@@ -148,3 +148,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: a31ab4d5-7a4b-488f-8b88-b08f8575cf5e
+    at: 2026-07-24T18:54:16.826Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: 172d79927382c7dc575d4410a69e4b5ffe94d5f1
+    tree: 664ae008603b9e26f00155d8f36374b399e5b625
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-cli-input-ergonomics/verify/report.md
+        sha256: d35db39b6bb9300afb52ef98a99f10e665033ed4b8b22e1aab963d3aac4cf132
+        intent: create
+    next_action: codepatrol-close 2026-07-24-cli-input-ergonomics commit on codepatrol/2026-07-24-cli-input-ergonomics
