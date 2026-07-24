@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Review the architecture/skills/workflow assessment and the Stage-Session ergonomics fix for bounded defects.
+  - id: c89718cb-c97a-47a7-ae73-aae83baa7fb6
+    at: 2026-07-24T17:08:54.829Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260724T170425Z
+      started_at: 2026-07-24T17:04:25Z
+      finished_at: 2026-07-24T17:06:55Z
+      elapsed_ms: 150000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
