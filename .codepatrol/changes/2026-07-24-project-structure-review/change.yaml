@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-24-project-structure-review on codepatrol/2026-07-24-project-structure-review
+  - id: e5d560c3-4477-44f4-8ed0-815007ff1883
+    at: 2026-07-24T22:09:07.655Z
+    actor: claude-code
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-20260724T215921Z
+      started_at: 2026-07-24T21:59:21Z
+      finished_at: 2026-07-24T22:09:07Z
+      elapsed_ms: 586000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
