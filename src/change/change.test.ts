@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { resolve } from "node:path";
 import { parse } from "yaml";
 import { foldChange } from "./model.js";
 import { aggregateUsage } from "./usage.js";
-import { primeStageSession, claimSessionItem, closeSessionItem, discardAndRebuildSession } from "./session.js";
+import { primeStageSession, claimSessionItem, closeSessionItem, discardAndRebuildSession, sessionStatus, readStageSession } from "./session.js";
 import { writeChangeRecord } from "./store.js";
 import { stageSessionPath } from "../shared/state.js";
 import { closeChange, transitionChange } from "./orchestrator.js";
@@ -145,4 +145,51 @@ test("gate field is allowed on stage-checkpointed", () => {
 	} catch (e: any) {
 		assert.fail(e.message);
 	}
+});
+
+test("sessionStatus reports ready and dependency-blocked items", () => {
+  const session = {
+    schema_version: 1 as const, work_id: "2026-07-22-active", stage: "apply" as const, attempt: 1,
+    next_action: "x", updated_at: "2026-07-22T10:00:00Z",
+    items: [
+      { id: "T1", title: "a", status: "closed" as const, dependencies: [] },
+      { id: "T2", title: "b", status: "open" as const, dependencies: ["T1"] },
+      { id: "T3", title: "c", status: "open" as const, dependencies: ["T2"] },
+    ],
+  };
+  const view = sessionStatus(session);
+  assert.deepEqual(view.ready.map((i) => i.id), ["T2"]);
+  assert.deepEqual(view.blocked.map((b) => [b.id, b.blockedBy.map((d) => [d.id, d.status])]), [["T3", [["T2", "open"]]]]);
+});
+
+test("readStageSession does not write when no session file exists", () => {
+  const workspace = mkdtempSync(join(tmpdir(), "codepatrol-status-"));
+  const record = fixture("active-change.yaml");
+  writeChangeRecord(workspace, record);
+  const path = stageSessionPath(workspace, record.identity.work_id, "plan", 1);
+  assert.equal(existsSync(path), false);
+  const view = readStageSession(workspace, record.identity.work_id, "plan", 1);
+  assert.equal(view.items[0]?.status, "open");
+  assert.equal(existsSync(path), false);
+});
+
+test("claim of a blocked item names the blocking dependency", async () => {
+  const workspace = mkdtempSync(join(tmpdir(), "codepatrol-apply-session-claim-"));
+  const record = fixture("active-change.yaml");
+  record.events.push(
+    { id: "plan-run", type: "run-recorded", at: "2026-07-22T10:01:00Z", actor: "codex", stage: "plan", attempt: 1, run: { id: "plan-run", started_at: "2026-07-22T10:00:00Z", finished_at: "2026-07-22T10:01:00Z", elapsed_ms: 60000, characters: { status: "unavailable", reason: "test" } } },
+    { id: "plan-done", type: "stage-checkpointed", at: "2026-07-22T10:01:01Z", actor: "codex", stage: "plan", attempt: 1, result: "ready", checkpoint: "a".repeat(40), artifacts: [], next_action: "review" },
+    { id: "review-begin", type: "stage-began", at: "2026-07-22T10:01:02Z", actor: "reviewer", stage: "review", attempt: 1, next_action: "review" },
+    { id: "review-run", type: "run-recorded", at: "2026-07-22T10:02:00Z", actor: "reviewer", stage: "review", attempt: 1, run: { id: "review-run", started_at: "2026-07-22T10:01:02Z", finished_at: "2026-07-22T10:02:00Z", elapsed_ms: 58000, characters: { status: "unavailable", reason: "test" } } },
+    { id: "review-done", type: "stage-checkpointed", at: "2026-07-22T10:02:01Z", actor: "reviewer", stage: "review", attempt: 1, result: "approve", checkpoint: "b".repeat(40), artifacts: [], next_action: "apply" },
+  );
+  writeChangeRecord(workspace, record);
+  const planDirectory = join(workspace, `.codepatrol/changes/${record.identity.work_id}/plan`);
+  mkdirSync(planDirectory, { recursive: true });
+  writeFileSync(join(planDirectory, "plan.md"), "### T1 — First\n\n**Depends on:** None\n\n### T2 — Second\n\n**Depends on:** T1\n");
+  primeStageSession(workspace, record.identity.work_id, "apply", 1, new Date("2026-07-22T10:03:00Z"));
+  await assert.rejects(
+    claimSessionItem(workspace, record.identity.work_id, "apply", 1, "T2", "codex"),
+    (e: unknown) => e instanceof CodepatrolError && e.code === "CHANGE_CONFLICT" && /T2/.test(e.message) && /T1/.test(e.message),
+  );
 });

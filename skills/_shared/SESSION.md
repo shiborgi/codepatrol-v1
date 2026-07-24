@@ -6,9 +6,9 @@ stage attempt. It lives at
 bounded tasks, dependencies, claims, concise results, artifact paths and the
 projected next action.
 
-Prime it with `codepatrol change session --id <work-id> --input -`. Claim one
+Prime it with `codepatrol change session --id <work-id> --input -`. Query the read-only `status` action to list claimable (ready) items and blocked items with their unclosed dependencies before claiming. Claim one
 ready item before mutation and close it only after its acceptance evidence
-passes. If the file is missing or corrupt, use action `rebuild`; the accepted
+passes. A failed claim will report the blocking dependency. If the file is missing or corrupt, use action `rebuild`; the accepted
 Change artifacts reconstruct it.
 
 A session must never own lifecycle, revision, approval, terminal outcome,

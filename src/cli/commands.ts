@@ -12,7 +12,7 @@ import { requireValue } from "./args.js";
 import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview } from "./output.js";
 import { closeChange, inspectChanges, startChange, transitionChange } from "../change/orchestrator.js";
 import { projectKanban, renderKanbanMarkdown } from "../change/board.js";
-import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStageSession } from "../change/session.js";
+import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStageSession, readStageSession, sessionStatus } from "../change/session.js";
 import type { CloseInput, Stage, StartChangeInput, TransitionIntent } from "../change/types.js";
 
 export interface CommandResult {
@@ -122,14 +122,22 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 			return { data, text: data.nextAction ?? `${data.identity.work_id} ${data.state}` };
 		}
 		case "change.session": {
-			const id = requireValue(args.id, "id"); const payload = readJsonInput(workspace, requireValue(args.input, "input"), "Session") as { action: "prime" | "claim" | "close" | "rebuild"; stage: Stage; attempt: number; itemId?: string; actor?: string; result?: string; artifacts?: string[] };
+			const id = requireValue(args.id, "id"); const payload = readJsonInput(workspace, requireValue(args.input, "input"), "Session") as { action: "prime" | "claim" | "close" | "rebuild" | "status"; stage: Stage; attempt: number; itemId?: string; actor?: string; result?: string; artifacts?: string[] };
 			let data;
-			if (payload.action === "prime") data = primeStageSession(workspace, id, payload.stage, payload.attempt);
-			else if (payload.action === "claim") data = await claimSessionItem(workspace, id, payload.stage, payload.attempt, requireValue(payload.itemId, "itemId"), requireValue(payload.actor, "actor"));
-			else if (payload.action === "close") data = await closeSessionItem(workspace, id, payload.stage, payload.attempt, requireValue(payload.itemId, "itemId"), requireValue(payload.result, "result"), payload.artifacts);
-			else if (payload.action === "rebuild") data = discardAndRebuildSession(workspace, id, payload.stage, payload.attempt);
-			else throw new CodepatrolError("INVALID_ARGUMENT", "Session action must be prime, claim, close, or rebuild.", 2);
-			return { data, text: data.next_action };
+			let text;
+			if (payload.action === "prime") { data = primeStageSession(workspace, id, payload.stage, payload.attempt); text = data.next_action; }
+			else if (payload.action === "claim") { data = await claimSessionItem(workspace, id, payload.stage, payload.attempt, requireValue(payload.itemId, "itemId"), requireValue(payload.actor, "actor")); text = data.next_action; }
+			else if (payload.action === "close") { data = await closeSessionItem(workspace, id, payload.stage, payload.attempt, requireValue(payload.itemId, "itemId"), requireValue(payload.result, "result"), payload.artifacts); text = data.next_action; }
+			else if (payload.action === "rebuild") { data = discardAndRebuildSession(workspace, id, payload.stage, payload.attempt); text = data.next_action; }
+			else if (payload.action === "status") {
+				const session = readStageSession(workspace, id, payload.stage, payload.attempt);
+				const status = sessionStatus(session);
+				data = { session, status };
+				text = `Ready: ${status.ready.map(i => i.id).join(", ") || "(none)"}\n` +
+					status.blocked.map(b => `${b.id} — blocked by ${b.blockedBy.map(d => `${d.id}(${d.status})`).join(", ")}`).join("\n");
+			}
+			else throw new CodepatrolError("INVALID_ARGUMENT", "Session action must be prime, claim, close, rebuild, or status.", 2);
+			return { data, text };
 		}
 		case "change.doctor": {
 			const data = (await inspectChanges(workspace, { workId: requireValue(args.id, "id"), all: true }, { signal }))[0];

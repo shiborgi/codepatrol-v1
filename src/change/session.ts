@@ -10,6 +10,10 @@ import { STAGES, type Stage } from "./types.js";
 
 export interface SessionItem { id: string; title: string; status: "open" | "claimed" | "closed"; dependencies: string[]; claim?: { actor: string; at: string }; result?: string; artifacts?: string[] }
 export interface StageSession { schema_version: 1; work_id: string; stage: Stage; attempt: number; items: SessionItem[]; next_action: string; updated_at: string }
+
+export interface BlockedItem { id: string; title: string; blockedBy: { id: string; status: SessionItem["status"] | "missing" }[] }
+export interface SessionStatusView { ready: SessionItem[]; blocked: BlockedItem[]; claimed: SessionItem[]; closed: SessionItem[] }
+
 const forbidden = new Set(["lifecycle", "revision", "approval", "terminal", "conversation", "messages", "transcript"]);
 
 function validate(session: StageSession): void {
@@ -57,7 +61,24 @@ function deriveItems(workspace: string, workId: string, stage: Stage): SessionIt
 	return items.length ? items : [{ id: "apply-work", title: "Complete apply stage contract", status: "open", dependencies: [] }];
 }
 
-export function primeStageSession(workspace: string, workId: string, stage: Stage, attempt: number, now = new Date()): StageSession {
+export function sessionStatus(session: StageSession): SessionStatusView {
+	const ready = readySessionItems(session);
+	const claimed = session.items.filter(i => i.status === "claimed");
+	const closed = session.items.filter(i => i.status === "closed");
+	const blocked: BlockedItem[] = [];
+	for (const item of session.items) {
+		if (item.status === "open" && !ready.some(r => r.id === item.id)) {
+			const blockedBy = item.dependencies.map(depId => {
+				const depItem = session.items.find(i => i.id === depId);
+				return { id: depId, status: depItem ? depItem.status : "missing" as const };
+			}).filter(d => d.status !== "closed");
+			if (blockedBy.length > 0) blocked.push({ id: item.id, title: item.title, blockedBy });
+		}
+	}
+	return { ready, blocked, claimed, closed };
+}
+
+function loadOrDerive(workspace: string, workId: string, stage: Stage, attempt: number, now: Date): { session: StageSession, fromDisk: boolean } {
 	const view = foldChange(readChangeRecord(workspace, workId));
 	if (view.stage !== stage || view.attempt !== attempt || view.state === "terminal") throw new CodepatrolError("CHANGE_CONFLICT", `Session ${stage}/${attempt} is not the current attempt.`, 4);
 	const path = stageSessionPath(workspace, workId, stage, attempt);
@@ -65,19 +86,44 @@ export function primeStageSession(workspace: string, workId: string, stage: Stag
 		try {
 			const session = JSON.parse(readFileSync(path, "utf8")) as StageSession;
 			validate(session);
-			if (session.work_id === workId && session.stage === stage && session.attempt === attempt) return session;
+			if (session.work_id === workId && session.stage === stage && session.attempt === attempt) return { session, fromDisk: true };
 		} catch { /* Rebuild disposable corruption. */ }
 	}
-	return write(workspace, { schema_version: 1, work_id: workId, stage, attempt, items: deriveItems(workspace, workId, stage), next_action: view.nextAction ?? `Continue ${stage} for ${workId}.`, updated_at: now.toISOString() });
+	return { session: { schema_version: 1, work_id: workId, stage, attempt, items: deriveItems(workspace, workId, stage), next_action: view.nextAction ?? `Continue ${stage} for ${workId}.`, updated_at: now.toISOString() }, fromDisk: false };
 }
+
+export function readStageSession(workspace: string, workId: string, stage: Stage, attempt: number, now = new Date()): StageSession {
+	return loadOrDerive(workspace, workId, stage, attempt, now).session;
+}
+
+export function primeStageSession(workspace: string, workId: string, stage: Stage, attempt: number, now = new Date()): StageSession {
+	const { session, fromDisk } = loadOrDerive(workspace, workId, stage, attempt, now);
+	if (!fromDisk) return write(workspace, session);
+	return session;
+}
+
 export function readySessionItems(session: StageSession): SessionItem[] { return session.items.filter((item) => item.status === "open" && item.dependencies.every((id) => session.items.find((candidate) => candidate.id === id)?.status === "closed")); }
+
 export async function claimSessionItem(workspace: string, workId: string, stage: Stage, attempt: number, itemId: string, actor: string, now = new Date()): Promise<StageSession> {
 	return withWorkspaceLock(workspace, `session-${workId}-${stage}-${attempt}`, "change.session.claim", () => {
-		const session = primeStageSession(workspace, workId, stage, attempt, now); const item = readySessionItems(session).find((candidate) => candidate.id === itemId);
-		if (!item) throw new CodepatrolError("CHANGE_CONFLICT", `Session item is not ready: ${itemId}.`, 4);
+		const session = primeStageSession(workspace, workId, stage, attempt, now);
+		const item = readySessionItems(session).find((candidate) => candidate.id === itemId);
+		if (!item) {
+			const existingItem = session.items.find(i => i.id === itemId);
+			if (!existingItem) throw new CodepatrolError("CHANGE_CONFLICT", `Session item is not ready: ${itemId} — no such item.`, 4);
+			if (existingItem.status === "claimed" || existingItem.status === "closed") throw new CodepatrolError("CHANGE_CONFLICT", `Session item is not ready: ${itemId} — already ${existingItem.status}.`, 4);
+			const view = sessionStatus(session);
+			const blocked = view.blocked.find(b => b.id === itemId);
+			if (blocked) {
+				const depsText = blocked.blockedBy.map(d => `${d.id} (${d.status})`).join(", ");
+				throw new CodepatrolError("CHANGE_CONFLICT", `Session item is not ready: ${itemId} — blocked by ${depsText}.`, 4);
+			}
+			throw new CodepatrolError("CHANGE_CONFLICT", `Session item is not ready: ${itemId}.`, 4);
+		}
 		item.status = "claimed"; item.claim = { actor, at: now.toISOString() }; session.updated_at = now.toISOString(); return write(workspace, session);
 	});
 }
+
 export async function closeSessionItem(workspace: string, workId: string, stage: Stage, attempt: number, itemId: string, result: string, artifacts: string[] = [], now = new Date()): Promise<StageSession> {
 	return withWorkspaceLock(workspace, `session-${workId}-${stage}-${attempt}`, "change.session.close", () => {
 		const session = primeStageSession(workspace, workId, stage, attempt, now); const item = session.items.find((candidate) => candidate.id === itemId);
@@ -85,6 +131,7 @@ export async function closeSessionItem(workspace: string, workId: string, stage:
 		item.status = "closed"; item.result = result.slice(0, 4000); item.artifacts = artifacts; session.updated_at = now.toISOString(); return write(workspace, session);
 	});
 }
+
 export function discardAndRebuildSession(workspace: string, workId: string, stage: Stage, attempt: number, now = new Date()): StageSession {
 	const view = foldChange(readChangeRecord(workspace, workId));
 	if (view.stage !== stage || view.attempt !== attempt || view.state === "terminal") throw new CodepatrolError("CHANGE_CONFLICT", `Session ${stage}/${attempt} is not the current attempt.`, 4);

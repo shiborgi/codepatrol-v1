@@ -59,3 +59,102 @@ test("CLI wiki record remains recoverable beneath runtime state", () => {
 		assert.equal(run(["wiki", "validate", "--workspace", root, "--format=json"]).status, 0);
 	} finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test("CLI change session supports read-only status projection", () => {
+	const root = workspace();
+	try {
+		const id = "2026-07-22-cli-session";
+		const started = run(["change", "start", "--input", "-", "--workspace", root, "--format=json"], JSON.stringify({ workId: id, title: "Session", targetBranch: "main", actor: "codex" }));
+		assert.equal(started.status, 0, started.stderr || started.stdout);
+		
+		const planDirectory = join(root, `.codepatrol/changes/${id}/plan`);
+		mkdirSync(planDirectory, { recursive: true });
+		writeFileSync(join(planDirectory, "plan.md"), "### T1 — First\n\n**Depends on:** None\n\n### T2 — Second\n\n**Depends on:** T1\n");
+		
+		writeFileSync(join(root, ".codepatrol/changes", id, "change.yaml"), `schema_version: 2
+identity:
+  work_id: ${id}
+  title: fake
+  created_at: "2026-07-22T10:00:00Z"
+  branch: codepatrol/${id}
+  target_branch: main
+  base_commit: 415f779bde14e57ad0af7ac4cd25657bcea00fcd
+events:
+  - id: e0
+    type: change-started
+    at: "2026-07-22T10:00:00Z"
+    actor: codex
+    stage: plan
+    attempt: 1
+    next_action: ...
+  - id: e0b
+    type: run-recorded
+    at: "2026-07-22T10:00:30Z"
+    actor: plan
+    stage: plan
+    attempt: 1
+    run:
+      id: run0
+      started_at: "2026-07-22T10:00:00Z"
+      finished_at: "2026-07-22T10:00:30Z"
+      elapsed_ms: 30000
+      characters:
+        status: unavailable
+        reason: x
+  - id: e1
+    type: stage-checkpointed
+    at: "2026-07-22T10:01:00Z"
+    actor: plan
+    stage: plan
+    attempt: 1
+    result: ready
+    checkpoint: "1111111111111111111111111111111111111111"
+    tree: "1111111111111111111111111111111111111111"
+    artifacts: []
+    next_action: review
+  - id: e2
+    type: stage-began
+    at: "2026-07-22T10:02:00Z"
+    actor: review
+    stage: review
+    attempt: 1
+    next_action: x
+  - id: e3
+    type: run-recorded
+    at: "2026-07-22T10:03:00Z"
+    actor: review
+    stage: review
+    attempt: 1
+    run:
+      id: run1
+      started_at: "2026-07-22T10:02:00Z"
+      finished_at: "2026-07-22T10:03:00Z"
+      elapsed_ms: 60000
+      characters:
+        status: unavailable
+        reason: x
+  - id: e4
+    type: stage-checkpointed
+    at: "2026-07-22T10:04:00Z"
+    actor: review
+    stage: review
+    attempt: 1
+    result: approve
+    checkpoint: "2222222222222222222222222222222222222222"
+    tree: "2222222222222222222222222222222222222222"
+    artifacts: []
+    next_action: apply
+`);
+
+		const statusResp = run(["change", "session", "--id", id, "--input", "-", "--workspace", root, "--format=json"], JSON.stringify({ action: "status", stage: "apply", attempt: 1 }));
+		assert.equal(statusResp.status, 0, statusResp.stderr || statusResp.stdout);
+		
+		const envelope = JSON.parse(statusResp.stdout);
+		assert.equal(envelope.data.status.ready[0].id, "T1");
+		assert.equal(envelope.data.status.blocked[0].id, "T2");
+
+		const statusTextResp = run(["change", "session", "--id", id, "--input", "-", "--workspace", root], JSON.stringify({ action: "status", stage: "apply", attempt: 1 }));
+		assert.match(statusTextResp.stdout, /T1/);
+		assert.match(statusTextResp.stdout, /T2/);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
