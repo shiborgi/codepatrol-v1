@@ -1,10 +1,11 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { parse } from "yaml";
+import { createHash } from "node:crypto";
 import { startChange, transitionChange, inspectChanges } from "./orchestrator.js";
 import { CodepatrolError } from "../shared/errors.js";
 
@@ -82,4 +83,29 @@ describe("orchestrator parallel aggregation", () => {
 			);
 		} finally { rmSync(workspace, { recursive: true, force: true }); }
 	});
+});
+
+test("a non-persona return aggregates persona sub-event reasons into reasons[]", async () => {
+  const workspace = mkdtempSync(join(tmpdir(), "codepatrol-parallel-"));
+  try {
+    initRepo(workspace);
+    const id = "2026-07-24-parallel-reasons";
+    await startChange(workspace, { workId: id, title: "Parallel reasons", targetBranch: "main", actor: "codex" }, at(1));
+    mkdirSync(join(workspace, `.codepatrol/changes/${id}/plan`), { recursive: true });
+    writeFileSync(join(workspace, `.codepatrol/changes/${id}/plan/spec.md`), "spec\n");
+    writeFileSync(join(workspace, `.codepatrol/changes/${id}/plan/plan.md`), "plan\n");
+    const planArtifacts = [binding(workspace, `.codepatrol/changes/${id}/plan/spec.md`), binding(workspace, `.codepatrol/changes/${id}/plan/plan.md`)];
+    await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "plan", run: { id: "plan-usage", started_at: "2026-07-24T10:00:03.000Z", finished_at: "2026-07-24T10:00:04.000Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(2));
+    await transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage: "plan", result: "ready", artifacts: planArtifacts, nextAction: "review" }, at(3));
+    await transitionChange(workspace, id, { type: "begin", actor: "codex", stage: "review", nextAction: "review" }, at(4));
+    await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "review", run: { id: "review-base", started_at: "2026-07-24T10:00:05.000Z", finished_at: "2026-07-24T10:00:06.000Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(5));
+    mkdirSync(join(workspace, `.codepatrol/changes/${id}/review`), { recursive: true });
+    writeFileSync(join(workspace, `.codepatrol/changes/${id}/review/findings-security.md`), "security review\n");
+    await transitionChange(workspace, id, { type: "return", actor: "codex-security", stage: "review", toStage: "plan", reason: "security: boundary gap", nextAction: "review-consolidate", persona: "review-security" }, at(6));
+    await transitionChange(workspace, id, { type: "return", actor: "codex", stage: "review", toStage: "plan", reason: "consolidated", nextAction: "plan" }, at(7));
+    const record = parse(readFileSync(join(workspace, `.codepatrol/changes/${id}/change.yaml`), "utf8")) as { events: Array<Record<string, any>> };
+    const consolidatedReturn = record.events.filter((e) => e.type === "stage-returned" && !e.persona).at(-1);
+    assert.ok(consolidatedReturn, "expected a non-persona stage-returned event");
+    assert.deepEqual(consolidatedReturn!.reasons, ["security: boundary gap"]);
+  } finally { rmSync(workspace, { recursive: true, force: true }); }
 });

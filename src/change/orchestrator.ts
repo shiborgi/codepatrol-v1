@@ -75,6 +75,12 @@ function assertCloseInput(input: CloseInput): void {
 	if (value.outcome !== "commit" && value.outcome !== "rollback") throw new CodepatrolError("INVALID_ARGUMENT", "Close outcome must be commit or rollback.", 2);
 	textInput(value.actor, "actor"); textInput(value.authority, "authority");
 }
+function personaSubEvents(events: ChangeEvent[], stage: Stage, attempt: number): ChangeEvent[] {
+	return events.filter((event) => (event.type === "stage-checkpointed" || event.type === "stage-returned") && (event as { persona?: string }).persona && event.stage === stage && event.attempt === attempt);
+}
+function isDivergentPersonaEvent(event: ChangeEvent): boolean {
+	return event.type === "stage-returned" || (event.type === "stage-checkpointed" && (event as { result?: string }).result !== "approve" && (event as { result?: string }).result !== "commit" && (event as { result?: string }).result !== "implemented" && (event as { result?: string }).result !== "ready");
+}
 function eventMatchesIntent(event: ChangeEvent | undefined, intent: TransitionIntent): boolean {
 	if (!event || event.stage !== intent.stage) return false;
 	if (intent.type === "begin") return event.type === "stage-began" && event.actor === intent.actor && event.next_action === intent.nextAction;
@@ -212,8 +218,8 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 	const persona = (intent as { persona?: string }).persona;
 	if (persona && (intent.stage === "review" || intent.stage === "verify")) {
 		if (intent.stage !== view.stage) {
-			const personaSubEvents = record.events.filter((event) => (event.type === "stage-checkpointed" || event.type === "stage-returned") && (event as { persona?: string }).persona && event.stage === intent.stage && event.attempt === view.attempt);
-			if (personaSubEvents.length === 0) {
+			const personaSub = personaSubEvents(record.events, intent.stage, view.attempt);
+			if (personaSub.length === 0) {
 				const attempt = view.attempts[intent.stage].at(-1);
 				if (!attempt || attempt.status !== "active") throw new CodepatrolError("CHANGE_CONFLICT", `Cannot ${intent.type} ${intent.stage} attempt ${attempt?.attempt ?? 0}: attempt is ${attempt?.status ?? "missing"}.`, 4);
 			}
@@ -223,9 +229,9 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 	}
 	
 	if (!persona && intent.type === "checkpoint" && (intent.stage === "review" || intent.stage === "verify")) {
-		const personaSubEvents = record.events.filter((ev) => (ev.type === "stage-checkpointed" || ev.type === "stage-returned") && (ev as { persona?: string }).persona && ev.stage === intent.stage && ev.attempt === view.attempt);
-		if (personaSubEvents.length > 0) {
-			const hasDivergence = personaSubEvents.some((ev) => ev.type === "stage-returned" || (ev.type === "stage-checkpointed" && (ev as { result?: string }).result !== "approve" && (ev as { result?: string }).result !== "commit" && (ev as { result?: string }).result !== "implemented" && (ev as { result?: string }).result !== "ready"));
+		const subEvents = personaSubEvents(record.events, intent.stage, view.attempt);
+		if (subEvents.length > 0) {
+			const hasDivergence = subEvents.some(isDivergentPersonaEvent);
 			if (hasDivergence) throw new CodepatrolError("CONSOLIDATION_AFTER_SUBEVENTS", "Cannot consolidate checkpoint with divergence; use return instead.", 4);
 		}
 	}
@@ -278,7 +284,7 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 		event = { id: randomUUID(), at: now(options).toISOString(), actor: intent.actor, stage: intent.stage, attempt: target.attempt, type: "run-recorded", run: intent.run };
 	}
 	else if (intent.type === "return") {
-		const reasonList = persona ? [intent.reason] : record.events.filter((ev) => (ev.type === "stage-checkpointed" || ev.type === "stage-returned") && (ev as { persona?: string }).persona && ev.stage === intent.stage && ev.attempt === view.attempt && (ev.type === "stage-returned" || (ev.type === "stage-checkpointed" && (ev as { result?: string }).result !== "approve" && (ev as { result?: string }).result !== "commit" && (ev as { result?: string }).result !== "implemented" && (ev as { result?: string }).result !== "ready"))).map((ev) => (ev as { reason?: string }).reason ?? "").filter((r) => r);
+		const reasonList = persona ? [intent.reason] : personaSubEvents(record.events, intent.stage, view.attempt).filter(isDivergentPersonaEvent).map((ev) => (ev as { reason?: string }).reason ?? "").filter((r) => r);
 		event = { ...eventBase(view, intent.actor, options), type: "stage-returned", to_stage: intent.toStage, reason: intent.reason, next_action: intent.nextAction, ...(persona ? { persona } : {}), ...(reasonList.length > 0 ? { reasons: reasonList } : {}) };
 	}
 	else if (intent.type === "block") event = { ...eventBase(view, intent.actor, options), type: "stage-blocked", reason: intent.reason, next_action: intent.nextAction };
