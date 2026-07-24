@@ -128,3 +128,10 @@ events:
       exit_code: 0
       elapsed_ms: 16200
       at: 2026-07-24T19:25:29.352Z
+  - id: 90877daa-6faf-4dd6-a036-644c5f6eb506
+    at: 2026-07-24T19:28:51.321Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: "Verify the migration normalizer implementation: re-run AC-1..AC-5, full gate, blast radius, and bind the candidate commit/tree."
