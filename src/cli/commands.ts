@@ -8,7 +8,7 @@ import { validateWiki } from "../wiki/validate.js";
 import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
 import type { ParsedArgs } from "./args.js";
-import { requireValue } from "./args.js";
+import { requireValue, KNOWN_COMMANDS } from "./args.js";
 import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview } from "./output.js";
 import { closeChange, inspectChanges, startChange, transitionChange } from "../change/orchestrator.js";
 import { projectKanban, renderKanbanMarkdown } from "../change/board.js";
@@ -43,6 +43,9 @@ function renderSync(data: Awaited<ReturnType<typeof graphSync>>): string {
 }
 
 function readJsonInput(workspace: string, input: string, label: string): unknown {
+	if (input !== "-" && (input.trimStart().startsWith("{") || input.trimStart().startsWith("["))) {
+		throw new CodepatrolError("INVALID_ARGUMENT", `${label} input looks like inline JSON, not a file path. Pipe it via stdin with \`--input -\` (for example: echo '<json>' | codepatrol … --input -) or write it to a workspace-relative file.`, 2);
+	}
 	const raw = input === "-" ? readFileSync(0, "utf8") : readFileSync(resolveInside(workspace, input, true), "utf8");
 	try { return JSON.parse(raw); }
 	catch { throw new CodepatrolError("INVALID_ARGUMENT", `${label} input is not valid JSON.`, 2); }
@@ -150,7 +153,13 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 			const text = data.pushSuggestion ? `${baseText}\nConsider: ${data.pushSuggestion}` : baseText;
 			return { data, text };
 		}
-		default:
-			throw new CodepatrolError("INVALID_ARGUMENT", `Unknown command: ${args.command || "(none)"}`, 2);
+		default: {
+			const suffix = args.command.startsWith("change.") ? args.command.slice(7) : "";
+			const transitionTypes = ["begin","usage","checkpoint","return","block","resume"];
+			if (transitionTypes.includes(suffix)) {
+				throw new CodepatrolError("INVALID_ARGUMENT", `Unknown command: ${args.command || "(none)"}. Did you mean \`change transition --id <work-id> --input -\` with type "${suffix}"?`, 2);
+			}
+			throw new CodepatrolError("INVALID_ARGUMENT", `Unknown command: ${args.command || "(none)"}. Known commands: ${KNOWN_COMMANDS.map((c) => c.replace(".", " ")).join(", ")}.`, 2);
+		}
 	}
 }

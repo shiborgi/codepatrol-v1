@@ -53,6 +53,8 @@ const COMMAND_OPTIONS = new Map<string, Set<string>>([
 	["change.close", new Set(["id", "input"])],
 ]);
 
+export const KNOWN_COMMANDS: string[] = [...COMMAND_OPTIONS.keys()];
+
 function fail(message: string): never {
 	throw new CodepatrolError("INVALID_ARGUMENT", message, 2);
 }

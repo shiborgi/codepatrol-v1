@@ -158,3 +158,36 @@ events:
 		assert.match(statusTextResp.stdout, /T2/);
 	} finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test("CLI rejects inline JSON passed to --input with an actionable error", () => {
+  const root = workspace();
+  try {
+    const res = run(["change", "transition", "--id", "2026-07-22-x", "--input", '{"type":"begin"}', "--workspace", root, "--format=json"]);
+    assert.equal(res.status, 2, res.stdout);
+    const err = JSON.parse(res.stdout).error;
+    assert.equal(err.code, "INVALID_ARGUMENT");
+    assert.match(err.message, /--input -/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI suggests change transition for an unknown change.<transition-type> command", () => {
+  const root = workspace();
+  try {
+    const res = run(["change", "begin", "--workspace", root, "--format=json"]);
+    assert.equal(res.status, 2, res.stdout);
+    const err = JSON.parse(res.stdout).error;
+    assert.equal(err.code, "INVALID_ARGUMENT");
+    assert.match(err.message, /change transition/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI lists known commands for an unknown command", () => {
+  const root = workspace();
+  try {
+    const res = run(["frobnicate", "--workspace", root, "--format=json"]);
+    assert.equal(res.status, 2, res.stdout);
+    const err = JSON.parse(res.stdout).error;
+    assert.equal(err.code, "INVALID_ARGUMENT");
+    assert.match(err.message, /change start|graph sync/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
