@@ -24,17 +24,19 @@ export interface ParsedArgs {
 	id?: string;
 	all?: boolean;
 	asOf?: string;
+	stage?: string;
 }
 
 const BOOLEAN_FLAGS = new Set(["help", "version", "force", "exact", "include-ambiguous", "all"]);
 const REPEATABLE = new Set(["file", "symbol", "relation"]);
 const KNOWN = new Set([
 	"workspace", "format", "help", "version", "force", "path", "query", "exact", "symbol", "file",
-	"relation", "since-ref", "include-ambiguous", "input", "id", "all", "as-of",
+	"relation", "since-ref", "include-ambiguous", "input", "id", "all", "as-of", "stage",
 ]);
 const GLOBAL = new Set(["workspace", "format", "help", "version"]);
 const COMMAND_OPTIONS = new Map<string, Set<string>>([
 	["status", new Set(["all", "as-of"])],
+	["next", new Set(["stage"])],
 	["graph.sync", new Set(["force"])],
 	["graph.overview", new Set(["path"])],
 	["graph.outline", new Set(["file"])],
@@ -51,6 +53,7 @@ const COMMAND_OPTIONS = new Map<string, Set<string>>([
 	["change.session", new Set(["id", "input"])],
 	["change.doctor", new Set(["id"])],
 	["change.close", new Set(["id", "input"])],
+	["change.summary", new Set(["id"])],
 ]);
 
 export const KNOWN_COMMANDS: string[] = [...COMMAND_OPTIONS.keys()];
@@ -123,6 +126,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
 		id: values.get("id")?.[0],
 		all: values.has("all"),
 		asOf: values.get("as-of")?.[0],
+		stage: values.get("stage")?.[0],
 	};
 }
 

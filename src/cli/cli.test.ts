@@ -191,3 +191,32 @@ test("CLI lists known commands for an unknown command", () => {
     assert.match(err.message, /change start|graph sync/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test("codepatrol next lists Changes by stage with affordances", () => {
+  const root = workspace();
+  try {
+    const id = "2026-07-22-io-demo";
+    assert.equal(run(["change","start","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: id, title: "IO", targetBranch: "main", actor: "codex" })).status, 0);
+    const plan = run(["next","--stage","plan","--workspace",root,"--format=json"]);
+    assert.equal(plan.status, 0, plan.stderr);
+    const pd = JSON.parse(plan.stdout).data;
+    assert.equal(pd.changes[0].workId, id);
+    assert.equal(pd.startNew, true);
+    const close = JSON.parse(run(["next","--stage","close","--workspace",root,"--format=json"]).stdout).data;
+    assert.deepEqual(close.closeOptions, ["commit","commit+push","rollback"]);
+    const bad = run(["next","--stage","bogus","--workspace",root,"--format=json"]);
+    assert.equal(bad.status, 2); assert.equal(JSON.parse(bad.stdout).error.code, "INVALID_ARGUMENT");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("codepatrol change summary renders a uniform Summary/Verdict/Next block", () => {
+  const root = workspace();
+  try {
+    const id = "2026-07-22-io-sum";
+    run(["change","start","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: id, title: "IO", targetBranch: "main", actor: "codex" }));
+    const j = JSON.parse(run(["change","summary","--id",id,"--workspace",root,"--format=json"]).stdout).data;
+    assert.ok(j.summary && j.verdict && j.next);
+    const text = run(["change","summary","--id",id,"--workspace",root]).stdout;
+    assert.match(text, /^Summary:/m); assert.match(text, /^Verdict:/m); assert.match(text, /^Next:/m);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});

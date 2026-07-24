@@ -6,10 +6,10 @@ description: (codepatrol) Independently verify the exact candidate checkpoint of
 # Codepatrol Verify
 
 Act as the Auditor in [ROLES.md](../_shared/ROLES.md). Follow
-[CHANGE.md](../_shared/CHANGE.md) and [SESSION.md](../_shared/SESSION.md).
+[CHANGE.md](../_shared/CHANGE.md), [SESSION.md](../_shared/SESSION.md), and [STAGE-IO.md](../_shared/STAGE-IO.md).
 Use the portable [execution protocol](../_shared/EXECUTION.md) for bounded verification.
 
-Run `codepatrol change inspect --id <work-id>` for the explicit work id. Stop unless the checkout is its recorded branch,
+Use `codepatrol next --stage verify` to retrieve the actionable changes. Run `codepatrol change inspect --id <work-id>` for the explicit work id. Stop unless the checkout is its recorded branch,
 the projection is Verify, the Apply checkpoint/tree is intact, the tree is
 clean, and accepted artifacts validate. Submit Verify `begin`, capture run
 start and prime the exact Stage Session. To support multiple parallel personas,
@@ -38,5 +38,5 @@ tokens. Choose exactly one route:
 - contract defect: return to Plan with an exact next action.
 
 If returning, ensure all persona-specific verification artifacts are attached.
-Report evidence, findings, residual risks, candidate binding and coverage. Do
+Report evidence, findings, residual risks, candidate binding and coverage. Finally, run `codepatrol change summary --id <work-id>` and print its output verbatim. Do
 not edit production code, invoke Close, merge, push or delete refs.

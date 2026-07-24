@@ -6,12 +6,11 @@ description: (codepatrol) Close an explicitly selected verified branch-backed Ch
 # Codepatrol Close
 
 Act as the Closer in [ROLES.md](../_shared/ROLES.md). Follow
-[CHANGE.md](../_shared/CHANGE.md). This is the only lifecycle skill authorized
+[CHANGE.md](../_shared/CHANGE.md) and [STAGE-IO.md](../_shared/STAGE-IO.md). This is the only lifecycle skill authorized
 to integrate or discard a Change branch.
 Use the portable [execution protocol](../_shared/EXECUTION.md) for preflight evidence.
 
-Require the user to state the work id and exactly one action: `commit` or
-`rollback`. Run `codepatrol change inspect --id <work-id>` and stop unless the
+Use `codepatrol next --stage close` to list closeable changes and choose `commit`, `commit+push`, or `rollback`. Require the user to state the work id and exactly one action: `commit`, `commit+push`, or `rollback`. Run `codepatrol change inspect --id <work-id>` and stop unless the
 projection is Close, Verify recorded `commit`, the candidate binding is
 intact, the checkout is the recorded branch, the tree is clean and the target
 ref still equals the recorded base. Never infer authority from a prior stage.
@@ -35,4 +34,4 @@ On target advance, dirty state, conflict or partial failure, stop with the exact
 reported recovery action. Never fetch, push, rebase, force, resolve conflicts,
 delete remote refs or edit production code. An opt-in `git push origin <target>`
 is allowed when the outcome is `commit` and `push: true` is set. Report outcome, target SHA, tag,
-receipt, metrics and clean-checkout validation.
+receipt, metrics and clean-checkout validation. Finally, run `codepatrol change summary --id <work-id>` and print its output verbatim.

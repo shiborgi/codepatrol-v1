@@ -6,11 +6,11 @@ description: (codepatrol) Implement an explicitly selected branch-backed Change 
 # Codepatrol Apply
 
 Act as the Implementer in [ROLES.md](../_shared/ROLES.md). Follow
-[CHANGE.md](../_shared/CHANGE.md), [SESSION.md](../_shared/SESSION.md), and
+[CHANGE.md](../_shared/CHANGE.md), [SESSION.md](../_shared/SESSION.md), [STAGE-IO.md](../_shared/STAGE-IO.md), and
 [execute-change](../execute-change/SKILL.md).
 Use the portable [execution protocol](../_shared/EXECUTION.md) for bounded tasks.
 
-Run `codepatrol change inspect --id <work-id>` before every new or resumed
+Use `codepatrol next --stage apply` to retrieve the actionable changes. Run `codepatrol change inspect --id <work-id>` before every new or resumed
 mutation session. Stop unless the checkout is the recorded
 `codepatrol/<work-id>` branch, the projection is Apply, the accepted Review
 attempt says `approve`, and all accepted artifact hashes validate. Submit Apply
@@ -38,5 +38,4 @@ must leave a clean tree. An Apply `implemented` checkpoint is machine-gated by
 `.codepatrol/config.json`'s `applyGate` and cannot seal on a non-zero exit; you 
 must run the full gate yourself, not a type-stripped `npm test` subset.
 
-Report checks actually run, deviations, residual risks, checkpoint and metrics.
-Do not invoke Verify, merge, push or close. (Close now handles opt-in pushes based on the push suggestion).
+Report checks actually run, deviations, residual risks, checkpoint and metrics. Finally, run `codepatrol change summary --id <work-id>` and print its output verbatim. Do not invoke Verify, merge, push or close. (Close now handles opt-in pushes based on the push suggestion).

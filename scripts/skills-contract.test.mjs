@@ -38,7 +38,11 @@ test("each lifecycle skill owns one stage, records metrics, checkpoints, and sto
 		assert.match(text, /elapsed/i); assert.match(text, /actual.*unavailable|measured.*unavailable/is);
 		if (name !== "codepatrol-close") assert.match(text, /Do not invoke|never.*invoke/is);
 		const metadata = parseYaml(readFileSync(join(root, name, "agents", "openai.yaml"), "utf8")); assert.match(metadata.interface.default_prompt, new RegExp(`\\$${name}\\b`));
+		assert.match(text, /codepatrol next/);
+		assert.match(text, /codepatrol change summary/);
+		assert.match(text, /STAGE-IO\.md/);
 	}
+	assert.match(skill("codepatrol-close"), /commit\+push/);
 });
 
 test("Close is authority-bound, recoverable, local-only, and clean", () => {

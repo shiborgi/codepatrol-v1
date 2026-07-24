@@ -6,10 +6,10 @@ description: (codepatrol) Review the Plan artifacts of an explicit branch-backed
 # Codepatrol Review
 
 Act as the Gatekeeper in [ROLES.md](../_shared/ROLES.md). Follow
-[CHANGE.md](../_shared/CHANGE.md) and [SESSION.md](../_shared/SESSION.md).
+[CHANGE.md](../_shared/CHANGE.md), [SESSION.md](../_shared/SESSION.md), and [STAGE-IO.md](../_shared/STAGE-IO.md).
 Use the portable [execution protocol](../_shared/EXECUTION.md) for bounded evidence work.
 
-Run `codepatrol change inspect --id <work-id>` and stop unless the checkout is
+Use `codepatrol next --stage review` to retrieve the actionable changes. Run `codepatrol change inspect --id <work-id>` and stop unless the checkout is
 the recorded branch and the projection is Review. Capture run start, submit a
 Review `begin` event when ready, and prime the exact Stage Session. To support
 multiple parallel personas, the coordinator or agent may prime and claim
@@ -39,5 +39,4 @@ tokens. Then choose exactly one route:
 - `fix-first` or `rework`: submit a `return` event to Plan with findings and an
   exact `codepatrol-plan` next action. If returning, all persona artifacts are attached.
 
-Report the verdict, findings, branch/checkpoint and metric coverage. Do not
-invoke Apply or edit production code.
+Report the verdict, findings, branch/checkpoint and metric coverage. Finally, run `codepatrol change summary --id <work-id>` and print its output verbatim. Do not invoke Apply or edit production code.

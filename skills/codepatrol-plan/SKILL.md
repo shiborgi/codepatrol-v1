@@ -6,10 +6,12 @@ description: (codepatrol) Start or resume one branch-backed Change and turn a pr
 # Codepatrol Plan
 
 Act as the Architect in [ROLES.md](../_shared/ROLES.md). Follow
-[CHANGE.md](../_shared/CHANGE.md), [SESSION.md](../_shared/SESSION.md), and the
+[CHANGE.md](../_shared/CHANGE.md), [SESSION.md](../_shared/SESSION.md), [STAGE-IO.md](../_shared/STAGE-IO.md), and the
 portable [execution protocol](../_shared/EXECUTION.md).
 
 ## Bind or start exactly one Change
+
+Use `codepatrol next --stage plan` to discover active Changes or confirm how to start a new one.
 
 If a work id is supplied, run `codepatrol change inspect --id <work-id>` and
 continue only when the projection says Plan on branch
@@ -53,4 +55,4 @@ declare every Plan artifact, then submit a `checkpoint` transition with stage
 the checkpoint and advances the projection to Review.
 
 Report the work id, branch, target/base, artifact paths, metrics coverage and
-risks. Do not invoke Review or edit production code.
+risks. Finally, run `codepatrol change summary --id <work-id>` and print its output verbatim. Do not invoke Review or edit production code.

@@ -9,7 +9,7 @@ import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
 import type { ParsedArgs } from "./args.js";
 import { requireValue, KNOWN_COMMANDS } from "./args.js";
-import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview } from "./output.js";
+import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary } from "./output.js";
 import { closeChange, inspectChanges, startChange, transitionChange } from "../change/orchestrator.js";
 import { projectKanban, renderKanbanMarkdown } from "../change/board.js";
 import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStageSession, readStageSession, sessionStatus } from "../change/session.js";
@@ -57,6 +57,17 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 			if (args.asOf && !Number.isFinite(Date.parse(args.asOf))) throw new CodepatrolError("INVALID_ARGUMENT", "--as-of must be an ISO timestamp.", 2);
 			const data = projectKanban(await inspectChanges(workspace, { all: args.all }, { signal }), { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}) });
 			return { data, text: renderKanbanMarkdown(data) };
+		}
+		case "next": {
+			if (args.stage && !["plan", "review", "apply", "verify", "close"].includes(args.stage)) throw new CodepatrolError("INVALID_ARGUMENT", `Unknown stage: ${args.stage}`, 2);
+			const changes = (await inspectChanges(workspace, { all: true }, { signal })).filter((v) => v.state !== "terminal" && (!args.stage || v.stage === args.stage));
+			const data = {
+				stage: args.stage,
+				changes: changes.map((v) => ({ workId: v.identity.work_id, state: v.state, nextAction: v.nextAction })),
+				startNew: args.stage === "plan" || !args.stage,
+				...(args.stage === "close" ? { closeOptions: ["commit", "commit+push", "rollback"] } : {})
+			};
+			return { data, text: renderNext(args.stage as Stage | undefined, changes) };
 		}
 		case "graph.sync": {
 			const data = await graphSync(workspace, { force: args.force, signal });
@@ -119,6 +130,11 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 		case "change.inspect": {
 			const data = (await inspectChanges(workspace, { workId: requireValue(args.id, "id"), all: true }, { signal }))[0];
 			return { data, text: `${data.identity.work_id} ${data.stage}#${data.attempt} ${data.state}${data.nextAction ? `\nnext: ${data.nextAction}` : ""}` };
+		}
+		case "change.summary": {
+			const view = (await inspectChanges(workspace, { workId: requireValue(args.id, "id"), all: true }, { signal }))[0];
+			const data = { summary: `${view.identity.work_id} - ${view.identity.title}`, verdict: `${view.stage} attempt ${view.attempt} is ${view.state}`, next: view.nextAction ?? "none" };
+			return { data, text: renderSummary(view) };
 		}
 		case "change.transition": {
 			const data = await transitionChange(workspace, requireValue(args.id, "id"), readJsonInput(workspace, requireValue(args.input, "input"), "Transition") as TransitionIntent, { signal });

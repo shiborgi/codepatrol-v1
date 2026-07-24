@@ -1,3 +1,4 @@
+import type { ChangeView, Stage } from "../change/types.js";
 import type { GraphImpactData, GraphNeighborsData, GraphOverviewData, OutlineFile } from "../graph/service.js";
 import type { GraphNode } from "../graph/model.js";
 import { formatTable, mermaidModuleMap } from "../graph/render.js";
@@ -35,8 +36,10 @@ Status commands:
   status [--all] [--as-of <ISO>]
 
 Change lifecycle commands:
+  next [--stage <stage>]
   change start --input <file|->
   change inspect --id <work-id>
+  change summary --id <work-id>
   change transition --id <work-id> --input <file|->
   change session --id <work-id> --input <file|->
   change doctor --id <work-id>
@@ -137,4 +140,25 @@ export function renderImpact(data: GraphImpactData): string {
 		...(data.possiblyAffected.length ? ["", `Possibly affected through ambiguous edges: ${data.possiblyAffected.join(", ")}`] : []),
 		...(data.unknownSeeds.length ? ["", `Seeds not in graph: ${data.unknownSeeds.join(", ")}`] : []),
 	].join("\n");
+}
+
+export function renderNext(stage: Stage | undefined, changes: ChangeView[]): string {
+	const lines = [`${stage ? `Stage: ${stage}` : "All active changes"}`];
+	if (changes.length) {
+		lines.push("");
+		lines.push(formatTable(["work_id", "state", "next_action"], changes.map(v => [v.identity.work_id, v.state, v.nextAction ?? ""])));
+	} else {
+		lines.push("(none)");
+	}
+	if (stage === "plan" || !stage) {
+		lines.push("", "To start a new change:", "codepatrol change start --input -");
+	}
+	if (stage === "close") {
+		lines.push("", "Close options: commit, commit+push, rollback");
+	}
+	return lines.join("\n");
+}
+
+export function renderSummary(view: ChangeView): string {
+	return `Summary: ${view.identity.work_id} — ${view.identity.title}\nVerdict: ${view.stage} attempt ${view.attempt} is ${view.state}${view.outcome ? ` (${view.outcome})` : ""}\nNext: ${view.nextAction ?? "none"}`;
 }
