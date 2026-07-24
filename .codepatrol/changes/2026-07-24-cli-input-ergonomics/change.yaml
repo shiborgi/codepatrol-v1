@@ -183,3 +183,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 3552f961-9481-49e3-a1cb-4c44fcf77ac2
+    at: 2026-07-24T18:59:02.504Z
+    actor: claude-code
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 6e60a516763b06b7a47551e621597d65ba26ab47
+    tag: codepatrol/committed/2026-07-24-cli-input-ergonomics
+    receipt: close/receipt.md
