@@ -135,3 +135,10 @@ events:
       exit_code: 0
       elapsed_ms: 16772
       at: 2026-07-24T21:44:51.776Z
+  - id: 5256a681-b364-4193-aeb3-b050f2fab452
+    at: 2026-07-24T21:49:19.124Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: "Verify the uniform stage IO implementation: re-run AC-1..AC-5, full gate, blast radius, and bind the candidate commit/tree."
