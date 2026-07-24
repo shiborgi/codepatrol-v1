@@ -48,3 +48,10 @@ events:
         sha256: 98ac707a439aeb21299e8dc56ab7c43d6b32e4869d1b832ac751663f9f4365a9
         intent: create
     next_action: codepatrol-review 2026-07-24-uniform-stage-io on codepatrol/2026-07-24-uniform-stage-io
+  - id: 6ae0c4e7-18ee-498c-8558-9b312ae0a7e7
+    at: 2026-07-24T21:33:19.009Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: "Review the uniform stage IO plan: add codepatrol next [--stage] and codepatrol change summary, wire all five lifecycle skills to reproduce them verbatim, lock with skills-contract test."
