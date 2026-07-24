@@ -48,3 +48,10 @@ events:
         sha256: 08b6c6c505e01642e638b85261f4fecac8a36059fa1366f3b512d1e8a1c52771
         intent: create
     next_action: codepatrol-review 2026-07-24-migration-normalizer on codepatrol/2026-07-24-migration-normalizer
+  - id: 341ef788-96a8-4652-a4dd-80f8f6083edb
+    at: 2026-07-24T19:15:45.042Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: "Review the migration normalizer plan: centralize three scattered compat migrations into one migrateRecord seam, lock with characterization tests, make foldChange strict."
