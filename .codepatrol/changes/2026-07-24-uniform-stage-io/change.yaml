@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: dc9b1879-9ee5-442b-b001-981c2f375f52
+    at: 2026-07-24T21:34:02.937Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 89abbe21eda983036656339bc4b2a805397d1eba
+    tree: 4aa39120d17d618391ef5318f701a01b0769429f
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-uniform-stage-io/review/report.md
+        sha256: 0aa46b99b9f95f470734f017b3b1ca5b5d5c080b81a29b8934e560714cac7567
+        intent: create
+    next_action: codepatrol-apply 2026-07-24-uniform-stage-io on codepatrol/2026-07-24-uniform-stage-io
