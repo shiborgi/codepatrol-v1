@@ -161,3 +161,10 @@ events:
         sha256: 696834d9cabc5f3ba58864dcf2e6d333e67e2843ed561e2ff4cc7b8ff1622a6b
         intent: create
     next_action: codepatrol-close 2026-07-24-persona-subevent-helpers commit on codepatrol/2026-07-24-persona-subevent-helpers
+  - id: 4a0ae197-5ca9-4a3e-81d6-a904cb2cb0e9
+    at: 2026-07-24T20:41:33.649Z
+    actor: claude-code
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-24-persona-subevent-helpers commit|rollback on codepatrol/2026-07-24-persona-subevent-helpers
