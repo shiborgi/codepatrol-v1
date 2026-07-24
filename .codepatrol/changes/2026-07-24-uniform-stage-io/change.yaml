@@ -142,3 +142,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Verify the uniform stage IO implementation: re-run AC-1..AC-5, full gate, blast radius, and bind the candidate commit/tree."
+  - id: b09f22cf-91c6-4f3a-b3e8-30dee70b6381
+    at: 2026-07-24T21:50:09.480Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260724T214918Z
+      started_at: 2026-07-24T21:49:18Z
+      finished_at: 2026-07-24T21:50:06Z
+      elapsed_ms: 48000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
