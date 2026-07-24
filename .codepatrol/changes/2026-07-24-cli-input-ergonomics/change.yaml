@@ -104,3 +104,26 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 95934cfe-92d4-4c43-9542-174b148c43ff
+    at: 2026-07-24T18:37:49.631Z
+    actor: codepatrol-apply
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 2b666bbb2dab7a40f6d613f762cb91ad05cac90d
+    tree: 5411550c5d28f9cfde734c50b082071494e73bba
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-cli-input-ergonomics/apply/journal.md
+        sha256: 6dc2d64146bfb8d5221589365a15879d4c9c1406ccb54057667e84e0e9aba283
+        intent: create
+    changes:
+      - src/cli/args.ts
+      - src/cli/cli.test.ts
+      - src/cli/commands.ts
+    next_action: codepatrol-verify 2026-07-24-cli-input-ergonomics on codepatrol/2026-07-24-cli-input-ergonomics
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 16194
+      at: 2026-07-24T18:37:49.576Z
