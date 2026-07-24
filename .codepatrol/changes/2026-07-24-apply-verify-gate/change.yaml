@@ -172,3 +172,10 @@ events:
         sha256: a10ce27638ee01bd6468e6bd1b08ecf347d27da378ae3a525babf79e60a168d5
         intent: create
     next_action: codepatrol-close 2026-07-24-apply-verify-gate commit|rollback on codepatrol/2026-07-24-apply-verify-gate
+  - id: 5646a57e-e556-40bb-beb4-b2a2d3f26df8
+    at: 2026-07-24T14:49:26.764Z
+    actor: claude-code
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-24-apply-verify-gate commit|rollback on codepatrol/2026-07-24-apply-verify-gate
