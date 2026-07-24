@@ -46,3 +46,10 @@ events:
         sha256: 21d62cbd76f6722103f98bb8620bb9042384929c1eeb025eb2afbe462906fa4e
         intent: create
     next_action: codepatrol-review 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
+  - id: ec229117-971a-4239-9392-e76019b04926
+    at: 2026-07-24T13:32:51.996Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
