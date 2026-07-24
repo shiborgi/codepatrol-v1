@@ -173,3 +173,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-close 2026-07-24-architecture-assessment commit|rollback on codepatrol/2026-07-24-architecture-assessment
+  - id: bf4677e8-b908-4572-8018-1d348ef19ecd
+    at: 2026-07-24T17:47:50.705Z
+    actor: claude-code
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-20260724T174744Z
+      started_at: 2026-07-24T17:47:44Z
+      finished_at: 2026-07-24T17:47:50Z
+      elapsed_ms: 6000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
