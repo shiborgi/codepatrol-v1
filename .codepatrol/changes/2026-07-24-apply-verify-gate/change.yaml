@@ -53,3 +53,18 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-review 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
+  - id: ed9b215e-4635-4507-8d94-986743d1a08d
+    at: 2026-07-24T13:33:21.369Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260724T133500Z
+      started_at: 2026-07-24T13:28:00.000Z
+      finished_at: 2026-07-24T13:35:00.000Z
+      elapsed_ms: 420000
+      characters:
+        status: unavailable
+        reason: opencode usage not collected
+        harness: opencode
