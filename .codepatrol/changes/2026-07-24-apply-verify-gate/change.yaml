@@ -89,3 +89,18 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
+  - id: ed300b7c-380d-4784-a101-c25e059dc60f
+    at: 2026-07-24T14:28:12.227Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-20260724T141000Z
+      started_at: 2026-07-24T14:10:00.000Z
+      finished_at: 2026-07-24T14:27:52.000Z
+      elapsed_ms: 1072000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
+        harness: claude-code
