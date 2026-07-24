@@ -36,6 +36,19 @@ export function assertChangeRecord(record: ChangeRecordV2): void {
 	if (!record.events.length || record.events[0]?.type !== "change-started") invalid("First event must be change-started.");
 }
 
+export function migrateRecord(record: unknown): ChangeRecordV2 {
+	const value = record as any;
+	if (value && Array.isArray(value.events)) {
+		for (const event of value.events) {
+			if (event.stage === "finalize") event.stage = "close";
+			if (event.type === "change-finalized") event.type = "change-closed";
+			if (event.receipt === "finalize/receipt.md") event.receipt = "close/receipt.md";
+			if (event.run && typeof event.run === "object" && "tokens" in event.run) { event.run.characters = event.run.tokens; delete event.run.tokens; }
+		}
+	}
+	return value as ChangeRecordV2;
+}
+
 export function foldChange(record: ChangeRecordV2): ChangeView {
 	assertChangeRecord(record);
 	const attempts = emptyAttempts();
@@ -56,9 +69,6 @@ export function foldChange(record: ChangeRecordV2): ChangeView {
 
 	for (let index = 0; index < record.events.length; index++) {
 		const event = record.events[index] as any;
-		if (event.stage === "finalize") event.stage = "close";
-		if (event.type === "change-finalized") event.type = "change-closed";
-		if (event.receipt === "finalize/receipt.md") event.receipt = "close/receipt.md";
 		if (!event.id || ids.has(event.id)) invalid(`Event id is missing or duplicated at index ${index}.`);
 		ids.add(event.id); iso(event.at, `events[${index}].at`);
 		const at = Date.parse(event.at); if (at < previousAt) invalid("Events must be chronologically ordered."); previousAt = at;

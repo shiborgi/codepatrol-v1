@@ -4,11 +4,11 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { resolve } from "node:path";
-import { parse } from "yaml";
-import { foldChange } from "./model.js";
+import { parse, stringify } from "yaml";
+import { foldChange, migrateRecord } from "./model.js";
 import { aggregateUsage } from "./usage.js";
 import { primeStageSession, claimSessionItem, closeSessionItem, discardAndRebuildSession, sessionStatus, readStageSession } from "./session.js";
-import { writeChangeRecord } from "./store.js";
+import { writeChangeRecord, readChangeRecord } from "./store.js";
 import { stageSessionPath } from "../shared/state.js";
 import { closeChange, transitionChange } from "./orchestrator.js";
 import { validateArtifactBindings } from "./validation.js";
@@ -192,4 +192,44 @@ test("claim of a blocked item names the blocking dependency", async () => {
     claimSessionItem(workspace, record.identity.work_id, "apply", 1, "T2", "codex"),
     (e: unknown) => e instanceof CodepatrolError && e.code === "CHANGE_CONFLICT" && /T2/.test(e.message) && /T1/.test(e.message),
   );
+});
+
+function toLegacy(record: ChangeRecordV2): any {
+  const clone = structuredClone(record) as any;
+  for (const event of clone.events) {
+    if (event.stage === "close") event.stage = "finalize";
+    if (event.type === "change-closed") event.type = "change-finalized";
+    if (event.receipt === "close/receipt.md") event.receipt = "finalize/receipt.md";
+    if (event.run && event.run.characters) { event.run.tokens = event.run.characters; delete event.run.characters; }
+  }
+  return clone;
+}
+
+test("migrateRecord reverses every legacy field and leaves modern records unchanged", () => {
+  const modern = fixture("committed-change.yaml");
+  const migrated = migrateRecord(toLegacy(modern));
+  assert.deepEqual(migrated, modern);
+  assert.deepEqual(migrateRecord(structuredClone(modern)), modern);
+});
+
+test("legacy records project identically to their modern equivalent", () => {
+  const modern = fixture("committed-change.yaml");
+  assert.deepEqual(foldChange(migrateRecord(toLegacy(modern))), foldChange(fixture("committed-change.yaml")));
+});
+
+test("foldChange no longer migrates: raw legacy throws, migrated legacy folds", () => {
+  const modern = fixture("committed-change.yaml");
+  assert.throws(() => foldChange(toLegacy(modern) as ChangeRecordV2), (e: unknown) => e instanceof CodepatrolError && e.code === "CHANGE_INVALID");
+  assert.doesNotThrow(() => foldChange(migrateRecord(toLegacy(modern))));
+});
+
+test("readChangeRecord migrates a legacy change.yaml at the read boundary", () => {
+  const workspace = mkdtempSync(join(tmpdir(), "codepatrol-legacy-"));
+  const modern = fixture("committed-change.yaml");
+  const dir = join(workspace, `.codepatrol/changes/${modern.identity.work_id}`);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "change.yaml"), stringify(toLegacy(modern), { lineWidth: 0 }));
+  const read = readChangeRecord(workspace, modern.identity.work_id);
+  assert.deepEqual(read, modern);
+  assert.doesNotThrow(() => foldChange(read));
 });

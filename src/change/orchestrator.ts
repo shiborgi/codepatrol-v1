@@ -5,7 +5,7 @@ import { CodepatrolError } from "../shared/errors.js";
 import { withWorkspaceLock } from "../shared/lock.js";
 import { resolveInside } from "../shared/workspace.js";
 import { NodeGitAdapter, type GitAdapter } from "./git.js";
-import { foldChange } from "./model.js";
+import { foldChange, migrateRecord } from "./model.js";
 import { changeRecordPath, listWorkingTreeChangeIds, readChangeRecord, writeChangeRecord, appendChangeEvent } from "./store.js";
 import * as trace from "./trace.js";
 import { writeImprovementReport, mirrorImprovementReport } from "./improvement-report.js";
@@ -287,16 +287,7 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 }
 
 function recordFromYaml(raw: string): ChangeRecordV2 {
-	const parsed = parse(raw) as any;
-	if (parsed && Array.isArray(parsed.events)) {
-		for (const event of parsed.events) {
-			if (event.run && "tokens" in event.run) {
-				event.run.characters = event.run.tokens;
-				delete event.run.tokens;
-			}
-		}
-	}
-	return parsed as ChangeRecordV2;
+	return migrateRecord(parse(raw));
 }
 export async function inspectChanges(workspace: string, query: ChangeQuery = {}, options: OperationOptions = {}): Promise<ChangeView[]> {
 	const git = gitFor(workspace, options); await git.assertTrusted(options.signal); const records = new Map<string, { record: ChangeRecordV2; source: string }>(); const terminalHeads = new Map<string, string>();
