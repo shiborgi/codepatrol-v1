@@ -9,6 +9,9 @@ import { foldChange } from "./model.js";
 import { changeRecordPath, listWorkingTreeChangeIds, readChangeRecord, writeChangeRecord, appendChangeEvent } from "./store.js";
 import * as trace from "./trace.js";
 import { writeImprovementReport, mirrorImprovementReport } from "./improvement-report.js";
+import { loadConfig } from "../shared/config.js";
+import { defaultGateRunner, gateOutputTail } from "./apply-gate.js";
+import type { GateResult } from "./types.js";
 import { validateStageArtifacts, validateStageArtifactsFromReader, type ArtifactReader, type BaselineReader } from "./validation.js";
 import { validateRun } from "./usage.js";
 import type { ArtifactBinding, ChangeEvent, ChangeQuery, ChangeRecordV2, ChangeView, CloseInput, CloseResult, OperationOptions, Stage, StageAttempt, StartChangeInput, TransitionIntent } from "./types.js";
@@ -246,11 +249,29 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 		if (unexpected.length && !personaCheckpoint) throw new CodepatrolError("CHANGE_CONFLICT", `Checkpoint has undeclared worktree paths: ${unexpected.join(", ")}.`, 4);
 		const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`)).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
 		if (!personaCheckpoint && JSON.stringify(actualProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Apply changes do not match the complete candidate production delta.", 4);
+		
+		let gateSummary: GateResult | undefined;
+		if (intent.stage === "apply" && intent.result === "implemented" && !personaCheckpoint) {
+			const applyGate = loadConfig(workspace).applyGate;
+			if (applyGate) {
+				const runner = options.gate ?? defaultGateRunner;
+				const result = await runner(applyGate, workspace, options.signal);
+				if (result.exitCode !== 0) {
+					throw new CodepatrolError(
+						"APPLY_GATE_FAILED",
+						`Apply gate \`${applyGate.command.join(" ")}\` failed (exit ${result.exitCode}); checkpoint not sealed.\n${gateOutputTail(result.output)}`,
+						4,
+					);
+				}
+				gateSummary = { command: applyGate.command.join(" "), exit_code: 0, elapsed_ms: result.elapsedMs, at: now(options).toISOString() };
+			}
+		}
+
 		await git.add([...new Set([...paths, ...intent.artifacts.map((item) => item.path)])], options.signal);
 		const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal); const tree = await git.tree(checkpoint, options.signal);
 		const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`)).sort();
 		if (unexpectedFinal.length || JSON.stringify(finalProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Checkpoint commit does not match its declared artifact and production paths.", 4);
-		event = { ...eventBase(view, intent.actor, options), type: "stage-checkpointed", stage: intent.stage, result: intent.result, checkpoint, tree, artifacts: intent.artifacts, ...(intent.stage === "apply" ? { changes: intent.changes ?? [] } : {}), next_action: intent.nextAction, ...(persona ? { persona } : {}) };
+		event = { ...eventBase(view, intent.actor, options), type: "stage-checkpointed", stage: intent.stage, result: intent.result, checkpoint, tree, artifacts: intent.artifacts, ...(intent.stage === "apply" ? { changes: intent.changes ?? [] } : {}), next_action: intent.nextAction, ...(persona ? { persona } : {}), ...(gateSummary ? { gate: gateSummary } : {}) };
 	} else if (intent.type === "begin") event = { ...eventBase(view, intent.actor, options), type: "stage-began", next_action: intent.nextAction };
 	else if (intent.type === "usage") {
 		const target = view.attempts[intent.stage].at(-1); if (!target || target.status === "invalidated") throw new CodepatrolError("CHANGE_CONFLICT", `No accepted ${intent.stage} attempt can receive usage.`, 4);

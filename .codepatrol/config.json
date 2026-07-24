@@ -1,0 +1,6 @@
+{
+  "applyGate": {
+    "command": ["npm", "run", "verify"],
+    "timeoutMs": 600000
+  }
+}

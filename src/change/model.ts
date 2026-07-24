@@ -64,7 +64,7 @@ export function foldChange(record: ChangeRecordV2): ChangeView {
 		const at = Date.parse(event.at); if (at < previousAt) invalid("Events must be chronologically ordered."); previousAt = at;
 		if (!event.actor?.trim() || !STAGES.includes(event.stage) || !Number.isSafeInteger(event.attempt) || event.attempt < 1) invalid(`Event ${event.id} has invalid actor, stage or attempt.`);
 		const common = ["id", "type", "at", "actor", "stage", "attempt"];
-		const specific: Record<string, string[]> = { "change-started": ["next_action"], "stage-began": ["next_action"], "run-recorded": ["run"], "stage-blocked": ["reason", "next_action"], "stage-resumed": ["next_action"], "stage-returned": ["to_stage", "reason", "next_action", "persona", "reasons"], "stage-checkpointed": ["result", "checkpoint", "tree", "artifacts", "changes", "next_action", "persona"], "change-closed": ["outcome", "commit", "tag", "receipt"] };
+		const specific: Record<string, string[]> = { "change-started": ["next_action"], "stage-began": ["next_action"], "run-recorded": ["run"], "stage-blocked": ["reason", "next_action"], "stage-resumed": ["next_action"], "stage-returned": ["to_stage", "reason", "next_action", "persona", "reasons"], "stage-checkpointed": ["result", "checkpoint", "tree", "artifacts", "changes", "next_action", "persona", "gate"], "change-closed": ["outcome", "commit", "tag", "receipt"] };
 		if (!specific[event.type]) invalid(`Unknown event type ${event.type}.`); exactKeys(event, [...common, ...specific[event.type]], `Event ${event.id}`);
 		switch (event.type) {
 			case "change-started":

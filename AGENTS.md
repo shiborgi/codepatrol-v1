@@ -110,6 +110,9 @@ Before sealing a stage, run its focused checks and every applicable typecheck,
 test, build, skill lint, package and smoke gate. State commands actually run,
 residual risks, Change path, branch/checkpoint and metric coverage.
 
+An Apply `implemented` checkpoint is machine-gated by `.codepatrol/config.json`'s
+`applyGate` command (when present) and will be refused if the command fails.
+
 Apply ends at a clean implemented candidate. Verify ends at a delivery verdict.
 Close ends at committed or rolled-back with a clean target checkout. The
 v1-release bootstrap cutover in `README.md` requires independent Verify and a

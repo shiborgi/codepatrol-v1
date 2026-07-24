@@ -126,3 +126,23 @@ test("Apply session rebuilds deterministic plan tasks and rejects a stale attemp
 	assert.deepEqual(primeStageSession(workspace, record.identity.work_id, "apply", 1).items.map((item) => item.id), ["T1", "T2"]);
 	assert.throws(() => discardAndRebuildSession(workspace, record.identity.work_id, "apply", 2), /not the current attempt/);
 });
+test("gate field is allowed on stage-checkpointed", () => {
+	const record = fixture("active-change.yaml");
+	const run = {
+		id: "uuid-run", type: "run-recorded", at: "2026-07-22T10:30:00.000Z", actor: "test", stage: "plan", attempt: 1,
+		run: { id: "run-1", started_at: "2026-07-22T10:00:00.000Z", finished_at: "2026-07-22T10:30:00.000Z", elapsed_ms: 1800000, characters: { status: "unavailable", reason: "test" } }
+	};
+	record.events.push(run as any);
+	const cp = {
+		id: "uuid", type: "stage-checkpointed", at: "2026-07-22T11:00:00.000Z", actor: "test", stage: "plan", attempt: 1,
+		result: "ready", checkpoint: "0000000000000000000000000000000000000000", tree: "0000000000000000000000000000000000000000", artifacts: [], next_action: "review",
+		gate: { command: "npm test", exit_code: 0, elapsed_ms: 100, at: "2026-07-22T11:00:00.000Z" }
+	};
+	record.events.push(cp as any);
+	try {
+		const view = foldChange(record);
+		assert.equal(view.stage, "review");
+	} catch (e: any) {
+		assert.fail(e.message);
+	}
+});

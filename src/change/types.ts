@@ -1,3 +1,5 @@
+import type { GateRunner } from "./apply-gate.js";
+
 export const STAGES = ["plan", "review", "apply", "verify", "close"] as const;
 export type Stage = typeof STAGES[number];
 export type TerminalOutcome = "committed" | "rolled-back";
@@ -13,7 +15,8 @@ interface EventBase { id: string; type: string; at: string; actor: string; stage
 export interface ChangeStartedEvent extends EventBase { type: "change-started"; stage: "plan"; attempt: 1; next_action: string }
 export interface StageBeganEvent extends EventBase { type: "stage-began"; next_action: string }
 export interface RunRecordedEvent extends EventBase { type: "run-recorded"; run: RunUsage }
-export interface StageCheckpointedEvent extends EventBase { type: "stage-checkpointed"; result: "ready" | "approve" | "implemented" | "commit"; checkpoint: string; tree?: string; artifacts: ArtifactBinding[]; changes?: string[]; next_action: string; persona?: string }
+export interface GateResult { command: string; exit_code: 0; elapsed_ms: number; at: string }
+export interface StageCheckpointedEvent extends EventBase { type: "stage-checkpointed"; result: "ready" | "approve" | "implemented" | "commit"; checkpoint: string; tree?: string; artifacts: ArtifactBinding[]; changes?: string[]; next_action: string; persona?: string; gate?: GateResult }
 export interface StageReturnedEvent extends EventBase { type: "stage-returned"; to_stage: "plan" | "apply"; reason: string; next_action: string; persona?: string; reasons?: string[] }
 export interface StageBlockedEvent extends EventBase { type: "stage-blocked"; reason: string; next_action: string }
 export interface StageResumedEvent extends EventBase { type: "stage-resumed"; next_action: string }
@@ -50,4 +53,4 @@ export interface StartChangeInput { workId: string; title: string; targetBranch:
 export interface ChangeQuery { workId?: string; all?: boolean }
 export interface CloseInput { outcome: "commit" | "rollback"; actor: string; authority: string; push?: boolean }
 export interface CloseResult { outcome: TerminalOutcome; workId: string; targetBranch: string; terminalCommit: string; tag: string; pushError?: { code: string; message: string }; pushSuggestion?: string }
-export interface OperationOptions { signal?: AbortSignal; now?: Date; git?: import("./git.js").GitAdapter }
+export interface OperationOptions { signal?: AbortSignal; now?: Date; git?: import("./git.js").GitAdapter; gate?: GateRunner }

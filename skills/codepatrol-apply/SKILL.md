@@ -34,7 +34,9 @@ gate. Record one finished Apply run with elapsed time and measured or
 unavailable tokens. Hash every Apply artifact and submit an Apply checkpoint
 with result `implemented`, the complete list of production `changes`, and next
 action `codepatrol-verify <work-id> on codepatrol/<work-id>`. The checkpoint
-must leave a clean tree.
+must leave a clean tree. An Apply `implemented` checkpoint is machine-gated by 
+`.codepatrol/config.json`'s `applyGate` and cannot seal on a non-zero exit; you 
+must run the full gate yourself, not a type-stripped `npm test` subset.
 
 Report checks actually run, deviations, residual risks, checkpoint and metrics.
 Do not invoke Verify, merge, push or close. (Close now handles opt-in pushes based on the push suggestion).
