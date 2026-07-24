@@ -163,3 +163,10 @@ events:
         sha256: 88c87875aae1492e6da8529d3f86940bceb875b863069711b462f11af100b63e
         intent: create
     next_action: codepatrol-close 2026-07-24-migration-normalizer commit on codepatrol/2026-07-24-migration-normalizer
+  - id: 374faa37-92c3-46dd-bf5b-a1ce2def32c9
+    at: 2026-07-24T19:37:12.715Z
+    actor: claude-code
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-24-migration-normalizer commit|rollback on codepatrol/2026-07-24-migration-normalizer
