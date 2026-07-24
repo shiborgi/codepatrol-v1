@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-24-cli-input-ergonomics
+  title: "CLI input ergonomics: detect inline JSON passed without --input - and emit an actionable error instead of an obscure INVALID_WORKSPACE"
+  created_at: 2026-07-24T17:55:26.634Z
+  branch: codepatrol/2026-07-24-cli-input-ergonomics
+  target_branch: main
+  base_commit: 5ed48226999d1a3d116fade28bee0652732a4db4
+events:
+  - id: ebe519b1-84ec-4ef3-8fe4-d86f5163e084
+    type: change-started
+    at: 2026-07-24T17:55:26.634Z
+    actor: claude-code
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-24-cli-input-ergonomics on codepatrol/2026-07-24-cli-input-ergonomics
