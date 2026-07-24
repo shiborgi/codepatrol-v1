@@ -104,3 +104,30 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 3699526e-2e2f-434d-a8cd-6202efe20ecb
+    at: 2026-07-24T17:27:28.080Z
+    actor: codepatrol-apply
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 2314e1799b84252cda168ef522566081d7a8be5d
+    tree: 4b1de6b42d3eda62c12cfcd96f7dca2eacd903ca
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-architecture-assessment/apply/journal.md
+        sha256: 604497a6e441c732fad1246e21254039f4fdf344d5ab25cea64a83e0c58b7c62
+        intent: create
+    changes:
+      - docs/codepatrol/assessments/2026-07-24-architecture-workflow.md
+      - scripts/skills-contract.test.mjs
+      - skills/_shared/SESSION.md
+      - src/change/change.test.ts
+      - src/change/session.ts
+      - src/cli/cli.test.ts
+      - src/cli/commands.ts
+    next_action: codepatrol-verify 2026-07-24-architecture-assessment on codepatrol/2026-07-24-architecture-assessment
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 16210
+      at: 2026-07-24T17:27:28.018Z
