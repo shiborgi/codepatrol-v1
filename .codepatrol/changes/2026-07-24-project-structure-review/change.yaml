@@ -104,3 +104,61 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 7306c906-592d-4f75-a25d-4b09241a7455
+    at: 2026-07-24T22:34:49.780Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 4bb5638ef382d0d4e1dc7933fd3695dda3ae9528
+    tree: 1b76373b0967042ee016319968ab23362d0c2389
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-project-structure-review/apply/journal.md
+        sha256: 4bc35b906e29e8d0c652bffb251684cc37fb7a5fe6caf2b05381e11c6cfdcd0d
+        intent: create
+    changes:
+      - .gitignore
+      - AGENTS.md
+      - docs/change-lifecycle.md
+      - docs/QODO-REVIEW-REPORT.md
+      - docs/runtime-state.md
+      - docs/smoke-tests.md
+      - package.json
+      - README.md
+      - scripts/lint-skills.mjs
+      - scripts/skills-contract.test.mjs
+      - skills/_shared/CODEPATROL-CLI.md
+      - skills/_shared/EXECUTION.md
+      - skills/_shared/SPEC-FORMAT.md
+      - skills/assess-change/SKILL.md
+      - skills/catalog.yaml
+      - skills/codebase-wiki/PAGE-FORMAT.md
+      - skills/codebase-wiki/SKILL.md
+      - skills/codepatrol-apply/IMPLEMENTATION-FORMAT.md
+      - skills/codepatrol-apply/SKILL.md
+      - skills/codepatrol-plan/MARKDOWN-REPORT.md
+      - skills/codepatrol-plan/SKILL.md
+      - skills/diagnose-bug/SKILL.md
+      - skills/execute-change/SKILL.md
+      - skills/research-technology/SKILL.md
+      - skills/writing-plans/PLAN-FORMAT.md
+      - src/cli/args.ts
+      - src/cli/cli.test.ts
+      - src/cli/commands.ts
+      - src/cli/output.ts
+      - src/shared/repo-files.ts
+      - src/shared/state.ts
+      - src/wiki/generate.ts
+      - src/wiki/manifest.ts
+      - src/wiki/record.ts
+      - src/wiki/status.ts
+      - src/wiki/types.ts
+      - src/wiki/validate.ts
+      - src/wiki/wiki.test.ts
+    next_action: codepatrol-verify 2026-07-24-project-structure-review on codepatrol/2026-07-24-project-structure-review
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 16147
+      at: 2026-07-24T22:34:49.704Z
