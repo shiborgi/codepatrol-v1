@@ -127,3 +127,10 @@ events:
       exit_code: 0
       elapsed_ms: 16194
       at: 2026-07-24T18:37:49.576Z
+  - id: b8e7e76f-76e3-4522-bad8-36323b86c2c9
+    at: 2026-07-24T18:53:07.775Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: "Verify the CLI input ergonomics implementation: re-run AC-1..AC-5, full gate, blast radius, and bind the candidate commit/tree."
