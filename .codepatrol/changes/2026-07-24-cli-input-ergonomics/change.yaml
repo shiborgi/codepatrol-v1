@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 7046c9d9-f38e-4ce3-92db-69d576dce4b0
+    at: 2026-07-24T17:59:32.189Z
+    actor: claude-code
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 05b5242e65ea80223b32939b7d62251c112e2a67
+    tree: b376e4cfaac8dd2ea3504a410e5f94501f05d93a
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-cli-input-ergonomics/plan/spec.md
+        sha256: efc66ad8c7a27669d9d2d2502d3c709c938f38fb4bfb955507f54c83e4d384c8
+        intent: create
+      - path: .codepatrol/changes/2026-07-24-cli-input-ergonomics/plan/plan.md
+        sha256: 40d2f1bde44e9f9e6e65f7b28ab7299d1a0562253f26b1ffb5bc5ed3ab195f86
+        intent: create
+      - path: .codepatrol/changes/2026-07-24-cli-input-ergonomics/plan/evidence/investigation.md
+        sha256: b0d493a9b4b79edffd4a9f69d4d52cea7f98065158ab147b81825b4769bd64b0
+        intent: create
+    next_action: codepatrol-review 2026-07-24-cli-input-ergonomics on codepatrol/2026-07-24-cli-input-ergonomics
