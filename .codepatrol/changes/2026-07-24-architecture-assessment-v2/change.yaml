@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Review the v2 architecture assessment plan: doc-only re-scan that reconciles v1 findings (F1/F3/F4/F5 delivered, F2 external, F6 by-design, F7 adoption) and ranks 4 new findings (dead ErrorCodes, durability gaps, transitionChangeLocked density, un-normalized report reader) with file:line evidence and bounded follow-up work-ids."
+  - id: 22420c40-e384-4918-8231-8f749b2bffa8
+    at: 2026-07-24T21:04:48.392Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260724T210405Z
+      started_at: 2026-07-24T21:04:05Z
+      finished_at: 2026-07-24T21:04:44Z
+      elapsed_ms: 39000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
