@@ -158,3 +158,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 03f17a31-1c6d-4287-8159-674ee7752ea7
+    at: 2026-07-24T14:40:09.081Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: afdbc23d2173f16f521648367f12221207815733
+    tree: 6694dc46839b762c523f16cba50bb8998fc1912e
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-apply-verify-gate/verify/report.md
+        sha256: a10ce27638ee01bd6468e6bd1b08ecf347d27da378ae3a525babf79e60a168d5
+        intent: create
+    next_action: codepatrol-close 2026-07-24-apply-verify-gate commit|rollback on codepatrol/2026-07-24-apply-verify-gate
