@@ -48,3 +48,10 @@ events:
         sha256: 10b7100cd3f98d9ee8ac007ea7f8d87d254f6120716990413463425de7bf8707
         intent: create
     next_action: codepatrol-review 2026-07-24-architecture-assessment-v2 on codepatrol/2026-07-24-architecture-assessment-v2
+  - id: b1c7162f-d578-4848-abca-961661e22ff0
+    at: 2026-07-24T21:04:06.015Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: "Review the v2 architecture assessment plan: doc-only re-scan that reconciles v1 findings (F1/F3/F4/F5 delivered, F2 external, F6 by-design, F7 adoption) and ranks 4 new findings (dead ErrorCodes, durability gaps, transitionChangeLocked density, un-normalized report reader) with file:line evidence and bounded follow-up work-ids."
