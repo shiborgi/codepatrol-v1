@@ -169,3 +169,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Verify the lean-structure candidate: confirm dead docs removed, v1-bootstrap purge, full wiki subsystem removal (code/CLI/skill/catalog/refs), bin/ and docs/codepatrol/assessments/ untouched; re-run acceptance and the full gate."
+  - id: 8ad7cfea-ec30-4248-afad-e302a93a151d
+    at: 2026-07-24T22:45:25.186Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260724T224313Z
+      started_at: 2026-07-24T22:43:13Z
+      finished_at: 2026-07-24T22:45:02Z
+      elapsed_ms: 109000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
