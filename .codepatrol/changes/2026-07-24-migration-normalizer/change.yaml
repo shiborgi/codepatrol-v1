@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Review the migration normalizer plan: centralize three scattered compat migrations into one migrateRecord seam, lock with characterization tests, make foldChange strict."
+  - id: 4e00d372-36b3-49f9-8693-17b40d12b5b9
+    at: 2026-07-24T19:16:21.333Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260724T191542Z
+      started_at: 2026-07-24T19:15:42Z
+      finished_at: 2026-07-24T19:16:18Z
+      elapsed_ms: 36000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
