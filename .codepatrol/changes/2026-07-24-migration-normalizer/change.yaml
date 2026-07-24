@@ -83,3 +83,10 @@ events:
         sha256: a0e8722b0ea2653f3fa2b21eb55bf0c8aa95d223f1dc45c2f256f2626d048b6f
         intent: create
     next_action: codepatrol-apply 2026-07-24-migration-normalizer on codepatrol/2026-07-24-migration-normalizer
+  - id: efdb0aa0-8bd3-4dae-8af0-42a2a2b10730
+    at: 2026-07-24T19:21:21.348Z
+    actor: codepatrol-apply
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply
