@@ -48,3 +48,10 @@ events:
         sha256: b0d493a9b4b79edffd4a9f69d4d52cea7f98065158ab147b81825b4769bd64b0
         intent: create
     next_action: codepatrol-review 2026-07-24-cli-input-ergonomics on codepatrol/2026-07-24-cli-input-ergonomics
+  - id: 3efdc7f4-6ec9-41e9-b1a9-77dc8ea17494
+    at: 2026-07-24T18:31:47.690Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: "Review the CLI input ergonomics plan: actionable INVALID_ARGUMENT for inline-JSON --input and unknown change.<transition-type> commands."
