@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: cf6e593e-03c6-4bf4-8d74-608147cde022
+    at: 2026-07-24T19:10:04.554Z
+    actor: claude-code
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 82056b39bfbe8edbeb24495b93f0ae97927faf63
+    tree: 254fc5625103a16669d1c24ada89de71049fba6c
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-migration-normalizer/plan/spec.md
+        sha256: da72fdaa2f75bc3f9caef926586687b2527281c233ffd7acdfc27999b0ee066e
+        intent: create
+      - path: .codepatrol/changes/2026-07-24-migration-normalizer/plan/plan.md
+        sha256: 6f708b44a064eb823bcb6682026fb72994a1594bf93a143c30ed0d5711bdc742
+        intent: create
+      - path: .codepatrol/changes/2026-07-24-migration-normalizer/plan/evidence/investigation.md
+        sha256: 08b6c6c505e01642e638b85261f4fecac8a36059fa1366f3b512d1e8a1c52771
+        intent: create
+    next_action: codepatrol-review 2026-07-24-migration-normalizer on codepatrol/2026-07-24-migration-normalizer
