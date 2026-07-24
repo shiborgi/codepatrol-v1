@@ -83,3 +83,10 @@ events:
         sha256: a922b37ba0383a0f4a6097cf52a27ba09a31b986eb3b4af8bca9e762890bebab
         intent: create
     next_action: codepatrol-apply 2026-07-24-cli-input-ergonomics on codepatrol/2026-07-24-cli-input-ergonomics
+  - id: 182b09e5-9ff0-43b2-9b65-888d29ea11fc
+    at: 2026-07-24T18:34:43.466Z
+    actor: codepatrol-apply
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply
