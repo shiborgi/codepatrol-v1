@@ -135,3 +135,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Verify the migration normalizer implementation: re-run AC-1..AC-5, full gate, blast radius, and bind the candidate commit/tree."
+  - id: cca1b2ea-7dc1-48e8-9e4e-40e86eb32158
+    at: 2026-07-24T19:29:32.098Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260724T192851Z
+      started_at: 2026-07-24T19:28:51Z
+      finished_at: 2026-07-24T19:29:29Z
+      elapsed_ms: 38000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
