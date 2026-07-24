@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-24-cli-input-ergonomics on codepatrol/2026-07-24-cli-input-ergonomics
+  - id: 7f4081a1-8fe6-4bd4-adc3-57660a0f8469
+    at: 2026-07-24T17:59:23.298Z
+    actor: claude-code
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-20260724T175526Z
+      started_at: 2026-07-24T17:55:26Z
+      finished_at: 2026-07-24T17:59:23Z
+      elapsed_ms: 237000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
