@@ -134,3 +134,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Verify the CLI input ergonomics implementation: re-run AC-1..AC-5, full gate, blast radius, and bind the candidate commit/tree."
+  - id: 0fdcd58e-35cd-4e20-8b5f-2e8f5c2d1d8b
+    at: 2026-07-24T18:54:13.453Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260724T185305Z
+      started_at: 2026-07-24T18:53:05Z
+      finished_at: 2026-07-24T18:54:10Z
+      elapsed_ms: 65000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
