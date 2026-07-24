@@ -182,3 +182,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 126d2bef-7a92-4da4-ad2e-b3d6a1137134
+    at: 2026-07-24T20:41:53.622Z
+    actor: claude-code
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 7f876dbde6326cbbd3d70b0d4c744bc8ec69fe73
+    tag: codepatrol/committed/2026-07-24-persona-subevent-helpers
+    receipt: close/receipt.md
