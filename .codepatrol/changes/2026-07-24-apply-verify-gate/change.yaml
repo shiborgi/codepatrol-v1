@@ -104,3 +104,36 @@ events:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
         harness: claude-code
+  - id: 07226f9b-3ff9-4422-a5c9-b42263fe3d0a
+    at: 2026-07-24T14:28:47.257Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 0962660a07c63032c24c1f94c1f5c50e6bbea649
+    tree: 84bd916a0b6d2a1e05273d051cd8b0665ecdd730
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-apply-verify-gate/apply/journal.md
+        sha256: 97bcf5b65a7c2c421282967b48c98439f2908306e5ce3276b204027ba2f40f55
+        intent: create
+    changes:
+      - AGENTS.md
+      - skills/codepatrol-apply/SKILL.md
+      - src/change/change.test.ts
+      - src/change/model.ts
+      - src/change/orchestrator.ts
+      - src/change/types.ts
+      - src/shared/errors.ts
+      - .codepatrol/config.json
+      - src/change/apply-gate-enforcement.test.ts
+      - src/change/apply-gate.test.ts
+      - src/change/apply-gate.ts
+      - src/shared/config.test.ts
+      - src/shared/config.ts
+    next_action: codepatrol-verify 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 15986
+      at: 2026-07-24T14:28:47.200Z
