@@ -10,14 +10,6 @@ export function graphStatePath(workspace: string): string {
 	return resolveInside(workspace, ".codepatrol/runtime/graph/graph.json");
 }
 
-export function wikiManifestPath(workspace: string): string {
-	return resolveInside(workspace, ".codepatrol/runtime/wiki/manifest.json");
-}
-
-export function wikiRoot(workspace: string): string {
-	return resolveInside(workspace, "docs/wiki");
-}
-
 export function lockPath(workspace: string, name: string): string {
 	return resolveInside(workspace, `.codepatrol/runtime/locks/${name}.lock`);
 }

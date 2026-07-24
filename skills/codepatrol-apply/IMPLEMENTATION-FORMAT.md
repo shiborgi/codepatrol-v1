@@ -49,7 +49,7 @@ observed surface only, never unmeasured savings.>
 
 ## Final verification
 
-<Affected checks, full relevant gate, graph/wiki/domain refresh, residual risks.>
+<Affected checks, full relevant gate, graph/domain refresh, residual risks.>
 ```
 
 Keep commands and concise results, not full logs. On interruption, update the

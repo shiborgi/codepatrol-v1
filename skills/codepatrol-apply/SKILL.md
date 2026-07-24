@@ -29,7 +29,7 @@ to Plan; do not hide it in the journal. External blockers use block/resume
 events with an exact next action.
 
 After every `AC-N` has passing evidence, reconcile actual surface delta,
-refresh required graph/wiki/domain artifacts, and run the affected project
+refresh required graph/domain artifacts, and run the affected project
 gate. Record one finished Apply run with elapsed time and measured or
 unavailable tokens. Hash every Apply artifact and submit an Apply checkpoint
 with result `implemented`, the complete list of production `changes`, and next

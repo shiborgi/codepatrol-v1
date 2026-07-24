@@ -17,7 +17,7 @@ Check both directions:
 
 - promised outcomes, interfaces, and acceptance criteria are delivered;
 - delivered behavior is declared and within scope;
-- proposal, plan, review report, wiki, domain language, and ADRs remain honest.
+- proposal, plan, review report, domain language, and ADRs remain honest.
 
 Record missing delivery separately from artifact drift.
 

@@ -107,7 +107,7 @@ End with explicit migration/rollout and documentation tasks when applicable, the
 - inspects the final diff for undeclared work;
 - reconciles actual surface delta with the spec forecast and explains every difference;
 - records whether a `DC-N` trigger was activated and follows its approved upgrade path if so;
-- syncs the graph and refreshes affected wiki/domain artifacts;
+- syncs the graph and refreshes affected domain artifacts;
 - states rollback and residual-risk checks.
 
 ## Rules

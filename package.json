@@ -2,7 +2,7 @@
   "name": "codepatrol",
   "version": "0.1.0",
   "private": true,
-  "description": "Harness-agnostic, branch-backed Change orchestration with deterministic lifecycle state, code graph, wiki, and Agent Skills.",
+  "description": "Harness-agnostic, branch-backed Change orchestration with deterministic lifecycle state, code graph, and Agent Skills.",
   "homepage": "https://github.com/shiborgi/codepatrol#readme",
   "repository": {
     "type": "git",

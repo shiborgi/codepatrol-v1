@@ -92,13 +92,6 @@ skills:
     consumes: [requirements, code evidence, domain language]
     produces: [module and interface design]
     mutation: never
-  codebase-wiki:
-    role: support
-    invokedBy: [execute-change]
-    mayInvoke: []
-    consumes: [code graph, verified source evidence]
-    produces: [OKF wiki bundle]
-    mutation: artifacts
   diagnose-bug:
     role: support
     invokedBy: [codepatrol-plan]
@@ -122,15 +115,13 @@ skills:
   execute-change:
     role: support
     invokedBy: [codepatrol-apply]
-    mayInvoke: [assess-change, codebase-wiki, domain-modeling, solution-simplification, verification-strategy]
+    mayInvoke: [assess-change, domain-modeling, solution-simplification, verification-strategy]
     consumes: [approved plan or correction, claimed Stage Session item]
     produces: [verified task change, updated Change artifacts and session evidence]
     mutation: authorized
     triggers:
       - target: assess-change
         when: after-task-result
-      - target: codebase-wiki
-        when: when-wiki-refresh-required
       - target: domain-modeling
         when: when-domain-term-settled
       - target: solution-simplification

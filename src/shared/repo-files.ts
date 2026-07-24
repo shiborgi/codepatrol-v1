@@ -1,5 +1,5 @@
 /**
- * Repo file enumeration shared by the graph and wiki core: which files
+ * Repo file enumeration shared by the graph: which files
  * count as source, which directories are vendor noise, what makes a file a
  * test, and the content hash used for incremental sync.
  *

@@ -48,18 +48,6 @@ test("CLI errors and Kanban clock input are stable", () => {
 	} finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test("CLI wiki record remains recoverable beneath runtime state", () => {
-	const root = workspace();
-	try {
-		const payload = JSON.stringify({ version: 1, mode: "rewrite", files: [
-			{ path: "index.md", content: `---\nokf_version: "0.1"\n---\n\n# Wiki\n\n- [Architecture](architecture.md) - map.\n` },
-			{ path: "architecture.md", content: `---\ntype: Software Architecture\ntitle: Architecture\ndescription: System map.\n---\n\n# Architecture\n`, sources: ["src/main.ts"] },
-		] });
-		const recorded = run(["wiki", "record", "--input", "-", "--workspace", root, "--format=json"], payload); assert.equal(recorded.status, 0, recorded.stderr || recorded.stdout);
-		assert.equal(run(["wiki", "validate", "--workspace", root, "--format=json"]).status, 0);
-	} finally { rmSync(root, { recursive: true, force: true }); }
-});
-
 test("CLI change session supports read-only status projection", () => {
 	const root = workspace();
 	try {

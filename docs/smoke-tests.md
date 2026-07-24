@@ -41,5 +41,4 @@ messages.
 
 Confirm durable Changes remain tracked, all ignored state is below
 `.codepatrol/runtime/`, ADRs use `docs/adr/`, and no root scratch JSON or global
-ledger is read by v2. During the bootstrap branch only, historical v1 paths may
-remain for later explicitly authorized cutover.
+ledger is read by v2.

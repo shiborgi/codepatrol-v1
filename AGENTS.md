@@ -70,7 +70,7 @@ end-to-end cycle time distinct.
 ## Investigation and implementation
 
 - Trace the real flow before proposing or changing it. Sync/query the graph and
-  verify every cited location. Record an absent wiki rather than inventing one.
+  verify every cited location. Record absent substrates rather than inventing them.
 - Pin external revisions, separate fact/inference/recommendation and require an
   explicit project decision for dependencies or protocols.
 - Prefer the earliest sufficient solution without weakening validation, data
@@ -114,13 +114,5 @@ An Apply `implemented` checkpoint is machine-gated by `.codepatrol/config.json`'
 `applyGate` command (when present) and will be refused if the command fails.
 
 Apply ends at a clean implemented candidate. Verify ends at a delivery verdict.
-Close ends at committed or rolled-back with a clean target checkout. The
-v1-release bootstrap cutover in `README.md` requires independent Verify and a
-separate explicit user instruction; Apply must not execute it.
+Close ends at committed or rolled-back with a clean target checkout.
 
-<!-- codepatrol:wiki:begin -->
-## Project wiki
-
-Run `codepatrol wiki status --format json` before trusting `docs/wiki/`. A
-reported absent wiki is a valid substrate state.
-<!-- codepatrol:wiki:end -->

@@ -11,7 +11,7 @@ Use the [Change contract](../_shared/CHANGE.md) for durable evidence ownership. 
 
 ## Bind the question
 
-Recover from the Change artifacts, wiki, current Stage Session, and user request:
+Recover from the Change artifacts, current Stage Session, and user request:
 
 - the target project and concrete problem;
 - constraints and settled decisions;

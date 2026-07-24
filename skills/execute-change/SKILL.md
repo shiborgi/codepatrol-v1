@@ -25,7 +25,7 @@ The Apply contract invokes this skill with the single trigger `always-before-tas
 
 Invoke [solution-simplification](../solution-simplification/SKILL.md) before mutation. Confirm the task still uses the approved ladder rung, reuses the declared local/platform capability, and introduces no surface absent from the plan. A simpler mechanical implementation within the same interface is allowed and recorded; a semantic simplification returns to review.
 
-Make the smallest coherent change that satisfies the task. Do not redesign, bundle drive-by cleanup, weaken checks, change public behavior accidentally, or modify the approved spec/plan/review. Use [domain-modeling](../domain-modeling/SKILL.md) or [codebase-wiki](../codebase-wiki/SKILL.md) only when the approved task requires those project artifacts.
+Make the smallest coherent change that satisfies the task. Do not redesign, bundle drive-by cleanup, weaken checks, change public behavior accidentally, or modify the approved spec/plan/review. Use [domain-modeling](../domain-modeling/SKILL.md) only when the approved task requires those project artifacts.
 
 Run the targeted check to green, graph-affected tests, and the task's broader gate. Invoke [assess-change](../assess-change/SKILL.md) on the task diff. Fix verified blocking findings within task scope and rerun affected checks; scope-changing findings return to the primary workflow.
 

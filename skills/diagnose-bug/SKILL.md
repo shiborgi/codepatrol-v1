@@ -42,7 +42,7 @@ Read the full error and stack trace before anything else — every line, file pa
 
 - **Recent changes** (if git): inspect log/diff and run `codepatrol graph impact --since-ref <ref> --format json`. A regression's cause is usually inside that set.
 - **Trace backward**: run `codepatrol graph neighbors --symbol <name> --format json` and walk callers to the bad value's origin. Confirm ambiguous edges by reading.
-- **Mental model first**: read the module's `docs/wiki/` page and `CONTEXT.md` terms before its code, when they exist. ADRs may explain why the code is the strange way it is.
+- **Mental model first**: read the module's `CONTEXT.md` terms before its code, when they exist. ADRs may explain why the code is the strange way it is.
 - **Pattern comparison**: find similar *working* code in the codebase (`codepatrol graph find`) and list every difference against the broken path — however small; "that can't matter" is how causes hide.
 
 Define one read-only unit per independent lead: recent-change set, data-flow chain, and working-vs-broken comparison. Delegate in parallel when available, otherwise investigate sequentially. Every unit receives the symptom, minimized repro, its single lead, and the verified `file:line` contract. Wait at the barrier; the coordinator keeps the verdict.

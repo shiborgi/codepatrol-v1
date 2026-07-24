@@ -9,7 +9,7 @@ Write analysis to `.codepatrol/changes/<work-id>/plan/evidence/analysis.md`. It 
 
 ## Scope and evidence
 
-<Scope, baseline, graph/wiki state, source paths and commands inspected,
+<Scope, baseline, graph state, source paths and commands inspected,
 limitations, and why this scope was selected.>
 
 ## System overview

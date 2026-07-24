@@ -1,10 +1,6 @@
 import { readFileSync } from "node:fs";
 import { relative } from "node:path";
 import { graphFind, graphImpact, graphNeighbors, graphOutline, graphOverview, graphSync } from "../graph/service.js";
-import { generateWiki } from "../wiki/generate.js";
-import { wikiRecord } from "../wiki/record.js";
-import { wikiStatus } from "../wiki/status.js";
-import { validateWiki } from "../wiki/validate.js";
 import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
 import type { ParsedArgs } from "./args.js";
@@ -104,24 +100,6 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 				includeAmbiguous: args.includeAmbiguous,
 			});
 			return { data, text: renderImpact(data) };
-		}
-		case "wiki.status": {
-			const data = await wikiStatus(workspace);
-			return { data, warnings: data.warnings, text: data.text };
-		}
-		case "wiki.validate": {
-			const data = await validateWiki(workspace);
-			return { data, warnings: data.warnings.map((warning) => warning.message), text: data.text, exitCode: data.valid ? 0 : 4 };
-		}
-		case "wiki.generate": {
-			const data = await generateWiki(workspace, { signal });
-			return { data, warnings: data.warnings, text: data.text };
-		}
-		case "wiki.record": {
-			const input = requireValue(args.input, "input");
-			const payload = readJsonInput(workspace, input, "Wiki");
-			const data = await wikiRecord(workspace, payload, signal);
-			return { data, warnings: data.warnings, text: data.text };
 		}
 		case "change.start": {
 			const data = await startChange(workspace, readJsonInput(workspace, requireValue(args.input, "input"), "Change") as StartChangeInput, { signal });

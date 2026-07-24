@@ -11,7 +11,7 @@ Write the governing specification to `.codepatrol/changes/<work-id>/plan/spec.md
 - Mode: project | feature | architecture | bug
 - Target baseline: <Git commit, unborn project, and any material dirty state>
 - Governing constraints: <`CONTEXT.md` terms and ADR ids the design depends on, or `None — <reason>`>
-- Substrate state: <graph revision or absent; wiki state present | stale | absent>
+- Substrate state: <graph revision or absent>
 - Problem: <who or what is affected and why it matters>
 - Outcome: <one observable end state>
 
@@ -27,7 +27,7 @@ Write the governing specification to `.codepatrol/changes/<work-id>/plan/spec.md
 
 ## Current evidence
 
-<Verified code, graph, wiki, runtime, reproduction, or external-reference facts.
+<Verified code, graph, runtime, reproduction, or external-reference facts.
 Use exact paths, commands, revisions, and confidence. For greenfield work, state
 which assumptions replace code evidence.>
 
@@ -81,7 +81,7 @@ while a question can materially change scope, interfaces, or acceptance.>
 Rules:
 
 - Every acceptance criterion has a stable `AC-N` identifier used by `plan.md`, `review.md`, and `implementation.md`, names an observable trigger or condition, and names one observable result in project vocabulary.
-- Governing constraints records the `CONTEXT.md` terms and ADR ids the design depends on, or `None — <reason>`; Substrate state records the graph revision and wiki state as `present`, `stale`, or `absent`.
+- Governing constraints records the `CONTEXT.md` terms and ADR ids the design depends on, or `None — <reason>`; Substrate state records the graph revision.
 - Brownfield claims cite evidence read in the current investigation. External concepts link the pinned reference analysis and distinguish fact, inference, and recommendation.
 - Use project domain language from `CONTEXT.md` and architecture vocabulary from [codebase-design](../codebase-design/SKILL.md).
 - The simplicity decision stops at the earliest sufficient ladder rung. It cannot remove a safety-floor requirement or substitute a small diff for correcting the right seam.

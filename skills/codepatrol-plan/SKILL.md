@@ -21,8 +21,8 @@ target branch, actor and exact Plan next action. The command creates and checks
 out the feature branch. Never infer an id by recency.
 
 Capture the run start time immediately. Prime the current Stage Session. For a
-brownfield Change, sync the graph once, check wiki status, read `CONTEXT.md` and
-`docs/adr/`, trace relevant modules/callers/tests and record absent substrates.
+brownfield Change, sync the graph once, read `CONTEXT.md` and `docs/adr/`,
+trace relevant modules/callers/tests and record absent substrates.
 Use the appropriate supporting skills for bug diagnosis, domain language,
 module/seam design, external evidence, simplification and executable planning.
 

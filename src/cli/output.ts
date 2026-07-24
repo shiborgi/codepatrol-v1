@@ -53,12 +53,6 @@ Graph commands:
   graph neighbors [--symbol <name|id>] [--file <path>] [--relation <type>...]
   graph impact [--file <path>...] [--symbol <name|id>...] [--since-ref <ref>] [--include-ambiguous]
 
-Wiki commands:
-  wiki status
-  wiki validate
-  wiki generate
-  wiki record --input <file|->
-
 Global options:
   --workspace <path>   Explicit workspace (then CODEPATROL_WORKSPACE, then cwd)
   --format text|json   Output format (default: text)

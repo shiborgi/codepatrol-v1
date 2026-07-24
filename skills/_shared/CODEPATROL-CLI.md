@@ -18,10 +18,6 @@ codepatrol graph outline --file src/example.ts --workspace "$PWD" --format json
 codepatrol graph find --query Example --workspace "$PWD" --format json
 codepatrol graph neighbors --file src/example.ts --relation tests --workspace "$PWD" --format json
 codepatrol graph impact --since-ref HEAD~30 --workspace "$PWD" --format json
-codepatrol wiki status --workspace "$PWD" --format json
-codepatrol wiki validate --workspace "$PWD" --format json
-codepatrol wiki generate --workspace "$PWD" --format json
-codepatrol wiki record --input result.json --workspace "$PWD" --format json
 ```
 
 Lifecycle commands require an explicit work id; none select by recency. All

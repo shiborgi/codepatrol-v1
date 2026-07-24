@@ -31,7 +31,6 @@ is no second mutable status or global workflow ledger.
 │   └── close/receipt.md
 └── runtime/
     ├── graph/graph.json
-    ├── wiki/{manifest.json,transactions/}
     ├── sessions/<work-id>/<stage>/<attempt>.json
     ├── evaluations/
     ├── locks/
@@ -41,7 +40,7 @@ is no second mutable status or global workflow ledger.
 
 Changes are portable and tracked. Runtime is ignored, disposable and never
 owns lifecycle, approval, terminal outcome or project decisions. Durable ADRs
-live in `docs/adr/`; the generated OKF wiki lives in `docs/wiki/`.
+live in `docs/adr/`.
 
 ## Public skills
 
@@ -122,7 +121,7 @@ the recorded candidate branch, an unchanged target ref and a clean tree.
 The tag is created before deletion. Codepatrol never fetches, pushes, rebases,
 forces, resolves conflicts or deletes remote refs.
 
-## Graph and wiki
+## Graph
 
 ```bash
 codepatrol graph sync --workspace "$PWD" --format json
@@ -130,14 +129,10 @@ codepatrol graph overview --workspace "$PWD" --format json
 codepatrol graph outline --file src/example.ts --workspace "$PWD" --format json
 codepatrol graph neighbors --file src/example.ts --relation tests --workspace "$PWD" --format json
 codepatrol graph impact --since-ref HEAD~10 --workspace "$PWD" --format json
-codepatrol wiki status --workspace "$PWD" --format json
-codepatrol wiki generate --workspace "$PWD" --format json
-codepatrol wiki validate --workspace "$PWD" --format json
 ```
 
-The incremental graph cache and wiki freshness/transaction state live below
-`.codepatrol/runtime/`. `docs/wiki/` remains the optional durable OKF v0.1
-bundle. A missing wiki is valid and reported as absent.
+The incremental graph cache lives below
+`.codepatrol/runtime/`.
 
 ## Installation
 
@@ -166,20 +161,3 @@ npm run lint:skills
 npm run verify
 ```
 
-## v1 bootstrap cutover
-
-Schema v1 is intentionally unsupported by the delivered CLI. Its historical
-`.codepatrol/packages/` and `.codepatrol/workflows/` remain only while this
-replacement is independently verified on `v1-release`. After a green Verify
-and a new explicit user instruction:
-
-1. record the verified `v1-release` SHA and unchanged `main` SHA;
-2. fast-forward `main` to `v1-release`, or stop;
-3. enumerate and remove only the historical v1 package/runtime paths;
-4. run `npm run verify`, compiled `codepatrol status`, and the Kanban script;
-5. require an empty active board and clean `main`, commit the cleanup, create
-   the v2 cutover tag, then delete local `v1-release`.
-
-Push and remote deletion always require separate authority. Git history and the
-cutover tag preserve recovery; no compatibility reader or migration store is
-shipped.

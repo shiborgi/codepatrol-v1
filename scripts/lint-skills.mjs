@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 
 const primaryWorkflows = ["codepatrol-plan", "codepatrol-review", "codepatrol-apply", "codepatrol-verify", "codepatrol-close", "codepatrol-status"];
-const executionProtocolSkills = new Set([...primaryWorkflows, "codebase-wiki", "diagnose-bug", "execute-change"]);
+const executionProtocolSkills = new Set([...primaryWorkflows, "diagnose-bug", "execute-change"]);
 const allowedRoles = new Set(["primary", "support"]);
 const allowedMutations = new Set(["never", "artifacts", "authorized"]);
 const PRIMARY_ORDER = { "codepatrol-plan": 1, "codepatrol-review": 2, "codepatrol-apply": 3, "codepatrol-verify": 4, "codepatrol-close": 5 };
@@ -29,7 +29,6 @@ const ALLOWED_TRIGGER_WHEN = new Set([
 	"after-spec-decision-complete",
 	"after-task-change",
 	"after-task-result",
-	"when-wiki-refresh-required",
 ]);
 
 function allMarkdown(directory) {
