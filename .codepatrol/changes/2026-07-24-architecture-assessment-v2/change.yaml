@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: b465e0fa-3059-4031-989f-2492097c123f
+    at: 2026-07-24T21:01:06.644Z
+    actor: claude-code
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: ebe9b43f259409a84eaaf106f0316428e361e0b8
+    tree: e320091f05349d1e6203b9eee1bec7622f6b1ad8
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-architecture-assessment-v2/plan/spec.md
+        sha256: da294fd65b1e8f5847030f067004e5ff8434e81f1844261073676e8e8616e64d
+        intent: create
+      - path: .codepatrol/changes/2026-07-24-architecture-assessment-v2/plan/plan.md
+        sha256: e6c21260dae11d9ce378854cb91a9a5621915e8162ea1d3eba4c493d1b2b206e
+        intent: create
+      - path: .codepatrol/changes/2026-07-24-architecture-assessment-v2/plan/evidence/investigation.md
+        sha256: 10b7100cd3f98d9ee8ac007ea7f8d87d254f6120716990413463425de7bf8707
+        intent: create
+    next_action: codepatrol-review 2026-07-24-architecture-assessment-v2 on codepatrol/2026-07-24-architecture-assessment-v2
