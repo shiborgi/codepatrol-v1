@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply
+  - id: fdbde663-c329-4e35-864f-7d8784f24b07
+    at: 2026-07-24T21:44:18.274Z
+    actor: codepatrol-apply
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: run-apply
+      started_at: 2026-07-24T21:40:00Z
+      finished_at: 2026-07-24T21:55:00Z
+      elapsed_ms: 900000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
