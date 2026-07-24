@@ -68,3 +68,17 @@ events:
         status: unavailable
         reason: opencode usage not collected
         harness: opencode
+  - id: 6d093368-7ad7-46d1-81ab-2ed844367a9a
+    at: 2026-07-24T13:33:58.202Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 5c29dbcfa2c383cf345bced33659d2159f4a16e6
+    tree: b36d43d8da9a71c9f5e8892970a83b743bc7a144
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-apply-verify-gate/review/report.md
+        sha256: b28cdc48ac06e23bfd021f0346dec38ab67a208f48b7d06c762bb290ced2feb0
+        intent: create
+    next_action: codepatrol-apply 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
