@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-24-migration-normalizer on codepatrol/2026-07-24-migration-normalizer
+  - id: 4c1bdaad-1a16-43c0-81f3-9b1eb4ab8f69
+    at: 2026-07-24T19:09:54.031Z
+    actor: claude-code
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-20260724T190504Z
+      started_at: 2026-07-24T19:05:04Z
+      finished_at: 2026-07-24T19:09:53Z
+      elapsed_ms: 289000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
