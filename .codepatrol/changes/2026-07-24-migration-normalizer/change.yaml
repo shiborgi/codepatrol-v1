@@ -184,3 +184,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 4b39be73-712f-4b2b-bd7e-4186d8998858
+    at: 2026-07-24T19:37:31.961Z
+    actor: claude-code
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: f802452ef48d6098be19107b7560cae5964c4c02
+    tag: codepatrol/committed/2026-07-24-migration-normalizer
+    receipt: close/receipt.md
