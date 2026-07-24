@@ -133,3 +133,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Verify the persona sub-event helpers implementation: re-run AC-1..AC-5, full gate, blast radius, and bind the candidate commit/tree."
+  - id: 91f62aef-57b0-4b23-a4fc-8558a436e101
+    at: 2026-07-24T20:40:05.505Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260724T203920Z
+      started_at: 2026-07-24T20:39:20Z
+      finished_at: 2026-07-24T20:40:01Z
+      elapsed_ms: 41000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
