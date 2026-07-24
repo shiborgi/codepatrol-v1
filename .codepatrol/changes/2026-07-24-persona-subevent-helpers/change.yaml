@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Review the persona sub-event helpers plan: consolidate three persona filter copies and two divergence copies into two module-private helpers, close the reason-aggregation coverage gap."
+  - id: 0ad3425e-3b26-4d23-8b45-bb3c47950908
+    at: 2026-07-24T19:55:16.658Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260724T195437Z
+      started_at: 2026-07-24T19:54:37Z
+      finished_at: 2026-07-24T19:55:13Z
+      elapsed_ms: 36000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
