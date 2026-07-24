@@ -132,3 +132,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Verify the v2 architecture assessment: re-run AC-1..AC-4, full gate, blast radius, and bind the candidate commit/tree."
+  - id: 09c26f7d-a0fb-4db5-8db3-1d0f2c94ea28
+    at: 2026-07-24T21:13:23.488Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260724T211243Z
+      started_at: 2026-07-24T21:12:43Z
+      finished_at: 2026-07-24T21:13:19Z
+      elapsed_ms: 36000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
