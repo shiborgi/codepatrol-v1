@@ -162,3 +162,10 @@ events:
       exit_code: 0
       elapsed_ms: 16147
       at: 2026-07-24T22:34:49.704Z
+  - id: ef4078fc-8975-4098-b7a1-223161c38416
+    at: 2026-07-24T22:43:13.537Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: "Verify the lean-structure candidate: confirm dead docs removed, v1-bootstrap purge, full wiki subsystem removal (code/CLI/skill/catalog/refs), bin/ and docs/codepatrol/assessments/ untouched; re-run acceptance and the full gate."
