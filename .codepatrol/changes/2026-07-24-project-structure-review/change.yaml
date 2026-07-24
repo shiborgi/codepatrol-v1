@@ -48,3 +48,10 @@ events:
         sha256: 169e6781b006cfb285d64231e842d6f3d543e154c0ceed1a3c2287bb357cd791
         intent: create
     next_action: codepatrol-review 2026-07-24-project-structure-review on codepatrol/2026-07-24-project-structure-review
+  - id: 4944dac2-20e5-4dd9-bf6e-eb3df2ef3776
+    at: 2026-07-24T22:12:16.269Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: "Review the project structure plan: dead docs (Qodo, change-lifecycle) and dead v1-bootstrap-cutover procedure removal, full wiki subsystem removal (code, CLI, skill, catalog, references), confirmed-untouched bin/ and docs/codepatrol/assessments/."
