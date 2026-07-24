@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 18fc1d1f-cfcc-41b9-80e4-4d09f4d49d6c
+    at: 2026-07-24T19:16:23.988Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 987e0cb22903bbf92de731470f72087015a92062
+    tree: 8a1d1f4f62f93a8117a56452b668068b3b2a3917
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-migration-normalizer/review/report.md
+        sha256: a0e8722b0ea2653f3fa2b21eb55bf0c8aa95d223f1dc45c2f256f2626d048b6f
+        intent: create
+    next_action: codepatrol-apply 2026-07-24-migration-normalizer on codepatrol/2026-07-24-migration-normalizer
