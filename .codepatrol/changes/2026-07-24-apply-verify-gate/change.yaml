@@ -14,3 +14,18 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
+  - id: b2f60b4b-091e-4db9-821b-fa83c9fd0278
+    at: 2026-07-24T13:26:43.760Z
+    actor: claude-opus-4-8
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-20260724T132137Z
+      started_at: 2026-07-24T13:21:37.000Z
+      finished_at: 2026-07-24T13:26:28.000Z
+      elapsed_ms: 291000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
+        harness: claude-code
