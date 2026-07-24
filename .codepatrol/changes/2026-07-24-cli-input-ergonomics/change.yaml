@@ -162,3 +162,10 @@ events:
         sha256: d35db39b6bb9300afb52ef98a99f10e665033ed4b8b22e1aab963d3aac4cf132
         intent: create
     next_action: codepatrol-close 2026-07-24-cli-input-ergonomics commit on codepatrol/2026-07-24-cli-input-ergonomics
+  - id: e6c7f439-f4ca-4a25-b2f7-4ddb82971845
+    at: 2026-07-24T18:58:43.472Z
+    actor: claude-code
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-24-cli-input-ergonomics commit|rollback on codepatrol/2026-07-24-cli-input-ergonomics
