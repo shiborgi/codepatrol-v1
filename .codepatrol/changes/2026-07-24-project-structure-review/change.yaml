@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Review the project structure plan: dead docs (Qodo, change-lifecycle) and dead v1-bootstrap-cutover procedure removal, full wiki subsystem removal (code, CLI, skill, catalog, references), confirmed-untouched bin/ and docs/codepatrol/assessments/."
+  - id: 71be91f0-45b6-43fb-b92d-00ac742b5217
+    at: 2026-07-24T22:13:06.516Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260724T221216Z
+      started_at: 2026-07-24T22:12:16Z
+      finished_at: 2026-07-24T22:13:02Z
+      elapsed_ms: 46000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
