@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Review the CLI input ergonomics plan: actionable INVALID_ARGUMENT for inline-JSON --input and unknown change.<transition-type> commands."
+  - id: 471ac897-69ae-4945-b702-de32915406d8
+    at: 2026-07-24T18:32:18.936Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260724T183144Z
+      started_at: 2026-07-24T18:31:44Z
+      finished_at: 2026-07-24T18:32:16Z
+      elapsed_ms: 32000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
