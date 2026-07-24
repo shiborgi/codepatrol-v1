@@ -104,3 +104,27 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 3dc6c6de-5099-4abf-aafd-09f9200bc480
+    at: 2026-07-24T19:25:29.406Z
+    actor: codepatrol-apply
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: e47c1625d567a703e120f23e447ad0ab780b23b7
+    tree: 6b640439f1c47004de785eab8fecbe1473eae29d
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-migration-normalizer/apply/journal.md
+        sha256: 2370636914a927caa3d78c0414f3ffcb3d208e564718af55c133a89652610f1f
+        intent: create
+    changes:
+      - src/change/change.test.ts
+      - src/change/model.ts
+      - src/change/orchestrator.ts
+      - src/change/store.ts
+    next_action: codepatrol-verify 2026-07-24-migration-normalizer on codepatrol/2026-07-24-migration-normalizer
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 16200
+      at: 2026-07-24T19:25:29.352Z
