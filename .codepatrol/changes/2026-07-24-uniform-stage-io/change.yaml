@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Review the uniform stage IO plan: add codepatrol next [--stage] and codepatrol change summary, wire all five lifecycle skills to reproduce them verbatim, lock with skills-contract test."
+  - id: 383430a0-9c55-4cf7-8622-2f5735b48a43
+    at: 2026-07-24T21:33:59.335Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260724T213318Z
+      started_at: 2026-07-24T21:33:18Z
+      finished_at: 2026-07-24T21:33:55Z
+      elapsed_ms: 37000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
