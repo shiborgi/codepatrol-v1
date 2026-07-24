@@ -126,3 +126,10 @@ events:
       exit_code: 0
       elapsed_ms: 16200
       at: 2026-07-24T20:11:08.186Z
+  - id: 3a47c033-1846-44a1-ad9d-dd62aa1db225
+    at: 2026-07-24T20:39:21.037Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: "Verify the persona sub-event helpers implementation: re-run AC-1..AC-5, full gate, blast radius, and bind the candidate commit/tree."
