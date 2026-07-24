@@ -48,3 +48,10 @@ events:
         sha256: 9f76761cbb7352877f0d260a901af7cfc545bf45458aa4e8944d84b94aaaaa32
         intent: create
     next_action: codepatrol-review 2026-07-24-persona-subevent-helpers on codepatrol/2026-07-24-persona-subevent-helpers
+  - id: aadf90b7-081a-49df-a626-94f748738e6e
+    at: 2026-07-24T19:54:37.851Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: "Review the persona sub-event helpers plan: consolidate three persona filter copies and two divergence copies into two module-private helpers, close the reason-aggregation coverage gap."
