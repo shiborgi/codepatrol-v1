@@ -183,3 +183,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: b44ccefb-b661-4cfd-bcf0-d1b53bf9a69a
+    at: 2026-07-24T22:45:37.631Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: b225adf2bb92b6edaadf65cc1ece4c03696fb207
+    tree: 28c2e41485c105670979efc4645cf87e70fa5209
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-project-structure-review/verify/report.md
+        sha256: 516c3acf22765cb8949432e745c4ac35ee09bf38f20f229873f4f44c8956d2b1
+        intent: create
+    next_action: codepatrol-close 2026-07-24-project-structure-review commit|rollback on codepatrol/2026-07-24-project-structure-review
