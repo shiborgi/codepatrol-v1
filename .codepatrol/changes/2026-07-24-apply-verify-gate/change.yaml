@@ -82,3 +82,10 @@ events:
         sha256: b28cdc48ac06e23bfd021f0346dec38ab67a208f48b7d06c762bb290ced2feb0
         intent: create
     next_action: codepatrol-apply 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
+  - id: 85a263f8-9996-4376-83f9-a5d19780bbc6
+    at: 2026-07-24T13:36:00.120Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-24-apply-verify-gate on codepatrol/2026-07-24-apply-verify-gate
