@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-25-commit-scoping
+  title: Scope every lifecycle bookkeeping commit to its own intended paths so accidental staged content can never leak in
+  created_at: 2026-07-25T15:23:25.292Z
+  branch: codepatrol/2026-07-25-commit-scoping
+  target_branch: main
+  base_commit: bcaa3c2bc5055cd5daa70f54210197adcc130f6b
+events:
+  - id: 4711be4c-d180-44ce-b820-2b81dfeebc1d
+    type: change-started
+    at: 2026-07-25T15:23:25.292Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-25-commit-scoping on codepatrol/2026-07-25-commit-scoping
