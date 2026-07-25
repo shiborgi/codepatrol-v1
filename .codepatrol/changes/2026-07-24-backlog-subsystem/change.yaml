@@ -250,3 +250,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: "Address Verify Finding 1 (major): fold .codepatrol/backlog/items.yaml into Close's terminal commit (orchestrator.ts:412 pathsToCommit) so the file is genuinely git-tracked as AGENTS.md/docs/runtime-state.md now promise; remove the .codepatrol/backlog/ exclusion from parseStatusPaths; re-run full gate; re-checkpoint. Finding 2 (minor) is optional and deferred."
+  - id: 4a44ed7f-afde-42b9-ae52-c7b3b0ebfd3b
+    at: 2026-07-25T02:45:12.468Z
+    actor: opencode
+    stage: apply
+    attempt: 2
+    type: run-recorded
+    run:
+      id: apply-20260725T023913Z
+      started_at: 2026-07-25T02:39:13Z
+      finished_at: 2026-07-25T02:45:00Z
+      elapsed_ms: 347000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
