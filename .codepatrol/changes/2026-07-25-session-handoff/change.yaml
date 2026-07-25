@@ -134,3 +134,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 01537fad-e356-4703-9e69-021c43634fa6
+    at: 2026-07-25T16:52:51.833Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 2
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 4b9962488941bb1dc48186af08609cd10e8dcd04
+    tree: a884bd35e8dfe8712a6bf506a3c1322d706d9ec9
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-session-handoff/plan/spec.md
+        sha256: 3febaf90ad56668bc521723401e6db8e31bdc466a328bdda335114c7cb750650
+        intent: modify
+      - path: .codepatrol/changes/2026-07-25-session-handoff/plan/plan.md
+        sha256: 19eb31fc0ca330211a78b3a5b5b9d066835917088bb660c79a648b22f5bcf5f9
+        intent: modify
+      - path: .codepatrol/changes/2026-07-25-session-handoff/plan/evidence/investigation.md
+        sha256: 5ba079d2ba134ed387ef65d808f1d6d214bac87537bf88e818ddc2a7a5d194b7
+        intent: modify
+    next_action: codepatrol-review 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
