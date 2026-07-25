@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Apply session-handoff: T1 per-stage checklists, T2 evidence reconciliation, T3 trace synergy + abandoned-item signal, T4 contract/skill alignment, T5 verify."
+  - id: 482613e9-ae38-493d-9969-a0ba50983c10
+    at: 2026-07-25T16:46:41.426Z
+    actor: claude-opus-5
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-20260725T164528Z
+      started_at: 2026-07-25T16:45:28Z
+      finished_at: 2026-07-25T16:46:34Z
+      elapsed_ms: 66000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
