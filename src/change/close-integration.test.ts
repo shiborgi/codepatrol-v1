@@ -5,7 +5,7 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { advanceThroughVerify } from "./git.test-helper.js";
-import { closeChange } from "./orchestrator.js";
+import { closeChange, transitionChange } from "./orchestrator.js";
 import * as trace from "./trace.js";
 
 function git(workspace: string, args: string[]): string { return execFileSync("git", args, { cwd: workspace, encoding: "utf8" }).trim(); }
@@ -20,7 +20,6 @@ describe("close integration: improvement report", () => {
 			const id = "2026-07-24-close-report";
 			await advanceThroughVerify(workspace, id);
 			trace.append(workspace, id, { kind: "command", at: "2026-07-22T10:00:00.000Z", command: "change transition", args: {} });
-			const { transitionChange } = await import("./orchestrator.js");
 			await transitionChange(workspace, id, { type: "begin", actor: "trace-test", stage: "close", nextAction: "close" }, at(15));
 			await transitionChange(workspace, id, { type: "usage", actor: "trace-test", stage: "close", run: { id: "close-usage", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
 			const result = await closeChange(workspace, id, { outcome: "commit", actor: "trace-test", authority: "test" }, at(20));
@@ -31,6 +30,32 @@ describe("close integration: improvement report", () => {
 			assert.equal(existsSync(mirrorPath), true, "mirror should exist");
 			const tracePath = join(workspace, ".codepatrol", "runtime", "traces", `${id}.jsonl`);
 			assert.equal(existsSync(tracePath), false, "trace file should be deleted after Close");
+		} finally { rmSync(workspace, { recursive: true, force: true }); }
+	});
+});
+
+describe("close integration: commit scoping", () => {
+	test("unrelated staged content is excluded from receipt and terminal commits and remains staged", async () => {
+		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-scope-"));
+		try {
+			writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
+			git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
+			const id = "2026-07-24-close-scope";
+			await advanceThroughVerify(workspace, id);
+			await transitionChange(workspace, id, { type: "begin", actor: "scope-test", stage: "close", nextAction: "close" }, at(15));
+			await transitionChange(workspace, id, { type: "usage", actor: "scope-test", stage: "close", run: { id: "close-scope", started_at: "2026-07-24T10:00:16Z", finished_at: "2026-07-24T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
+			const unrelatedPath = ".codepatrol/runtime/unrelated.txt";
+			writeFileSync(join(workspace, unrelatedPath), "must remain staged\n"); git(workspace, ["add", "-f", unrelatedPath]);
+			const result = await closeChange(workspace, id, { outcome: "commit", actor: "scope-test", authority: "test" }, at(20));
+			const receiptCommit = git(workspace, ["rev-parse", `${result.terminalCommit}^`]);
+			const receiptPaths = git(workspace, ["show", "--name-only", "--format=", receiptCommit]).split("\n");
+			const terminalPaths = git(workspace, ["show", "--name-only", "--format=", result.terminalCommit]).split("\n");
+			assert.equal(result.outcome, "committed");
+			assert.equal(receiptPaths.includes(unrelatedPath), false);
+			assert.equal(terminalPaths.includes(unrelatedPath), false);
+			assert.equal(receiptPaths.includes(`.codepatrol/changes/${id}/close/receipt.md`), true);
+			assert.equal(terminalPaths.includes(`.codepatrol/changes/${id}/change.yaml`), true);
+			assert.match(git(workspace, ["status", "--porcelain"]), new RegExp(`^A\\s+${unrelatedPath.replaceAll(".", "\\.")}$`, "m"));
 		} finally { rmSync(workspace, { recursive: true, force: true }); }
 	});
 });

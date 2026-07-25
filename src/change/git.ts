@@ -15,7 +15,7 @@ export interface GitAdapter {
 	checkout(ref: string, signal?: AbortSignal): Promise<void>;
 	add(paths: string[], signal?: AbortSignal): Promise<void>;
 	unstage(paths: string[], signal?: AbortSignal): Promise<void>;
-	commit(message: string, allowEmpty?: boolean, signal?: AbortSignal): Promise<string>;
+	commit(message: string, allowEmpty?: boolean, signal?: AbortSignal, paths?: string[]): Promise<string>;
 	tag(name: string, ref: string, signal?: AbortSignal): Promise<void>;
 	deleteBranch(name: string, expected: string, signal?: AbortSignal): Promise<void>;
 	mergeFf(ref: string, signal?: AbortSignal): Promise<void>;
@@ -74,8 +74,8 @@ export class NodeGitAdapter implements GitAdapter {
 	async checkout(ref: string, signal?: AbortSignal): Promise<void> { await this.run(["checkout", ref], signal); }
 	async add(paths: string[], signal?: AbortSignal): Promise<void> { if (paths.length) await this.run(["add", "--", ...paths], signal); }
 	async unstage(paths: string[], signal?: AbortSignal): Promise<void> { if (paths.length) await this.run(["rm", "--cached", "--ignore-unmatch", "--", ...paths], signal); }
-	async commit(message: string, allowEmpty = false, signal?: AbortSignal): Promise<string> {
-		await this.run(["-c", "user.name=Codepatrol", "-c", "user.email=codepatrol@local", "commit", ...(allowEmpty ? ["--allow-empty"] : []), "-m", message], signal);
+	async commit(message: string, allowEmpty = false, signal?: AbortSignal, paths?: string[]): Promise<string> {
+		await this.run(["-c", "user.name=Codepatrol", "-c", "user.email=codepatrol@local", "commit", ...(allowEmpty ? ["--allow-empty"] : []), "-m", message, ...(paths?.length ? ["--", ...paths] : [])], signal);
 		return this.head("HEAD", signal);
 	}
 	async tag(name: string, ref: string, signal?: AbortSignal): Promise<void> { await this.run(["tag", name, ref], signal); }

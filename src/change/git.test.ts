@@ -195,6 +195,18 @@ test("repeating an interrupted transition commits the pending event exactly once
 	assert.equal(run(workspace, ["status", "--porcelain"]), "");
 });
 
+test("an unrelated file staged outside Codepatrol is never swept into a lifecycle bookkeeping commit", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-transition-scope-")); initialize(workspace); const id = "2026-07-22-transition-scope";
+	await startChange(workspace, { workId: id, title: "Scoped transition", targetBranch: "main", actor: "codex" }, at(1));
+	writeFileSync(join(workspace, "unrelated.txt"), "must remain staged\n"); run(workspace, ["add", "unrelated.txt"]);
+	const transitioned = await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "plan", run: { id: "plan-scope", started_at: "2026-07-22T10:00:02Z", finished_at: "2026-07-22T10:00:03Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(3));
+	const committedPaths = run(workspace, ["show", "--name-only", "--format=", "HEAD"]).split("\n");
+	assert.equal(committedPaths.includes("unrelated.txt"), false);
+	assert.equal(committedPaths.includes(`.codepatrol/changes/${id}/change.yaml`), true);
+	assert.match(run(workspace, ["status", "--porcelain"]), /^A\s+unrelated\.txt$/m);
+	assert.equal(transitioned.attempts.plan[0]?.runs.some((item) => item.id === "plan-scope"), true);
+});
+
 test("rollback tags the complete Change, deletes its branch, and preserves the target tree", async () => {
 	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-lifecycle-"));
 	writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n"); run(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); run(workspace, ["add", "."]); run(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);

@@ -94,7 +94,7 @@ function eventMatchesIntent(event: ChangeEvent | undefined, intent: TransitionIn
 }
 async function commitMetadata(git: GitAdapter, workId: string, message: string, signal?: AbortSignal, extraPaths: string[] = []): Promise<string> {
 	const paths = [relativeRecord(workId), ...extraPaths];
-	await git.add(paths, signal); return git.commit(message, false, signal);
+	await git.add(paths, signal); return git.commit(message, false, signal, paths);
 }
 
 function baselineRef(record: ChangeRecordV2, checkpoint?: string): string {
@@ -286,8 +286,9 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 			}
 		}
 
-		await git.add([...new Set([...paths, ...intent.artifacts.map((item) => item.path)])], options.signal);
-		const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal); const tree = await git.tree(checkpoint, options.signal);
+		const committedPaths = [...new Set([...paths, ...intent.artifacts.map((item) => item.path)])];
+		await git.add(committedPaths, options.signal);
+		const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal, committedPaths); const tree = await git.tree(checkpoint, options.signal);
 		const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort();
 		if (unexpectedFinal.length || JSON.stringify(finalProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Checkpoint commit does not match its declared artifact and production paths.", 4);
 		event = { ...eventBase(view, intent.actor, options), type: "stage-checkpointed", stage: intent.stage, result: intent.result, checkpoint, tree, artifacts: intent.artifacts, ...(intent.stage === "apply" ? { changes: intent.changes ?? [] } : {}), next_action: intent.nextAction, ...(persona ? { persona } : {}), ...(gateSummary ? { gate: gateSummary } : {}) };
@@ -397,7 +398,7 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	const outcome = requestedOutcome; const tag = requestedTag; const at = now(options).toISOString();
 	const absolute = resolveInside(workspace, receiptPath); mkdirSync(resolveInside(workspace, `.codepatrol/changes/${workId}/close`), { recursive: true });
 	writeFileSync(absolute, `# Close receipt\n\n- Work: \`${workId}\`\n- Outcome: \`${outcome}\`\n- Target: \`${view.identity.target_branch}\`\n- Base: \`${view.identity.base_commit}\`\n- Authority: ${input.authority}\n- Recorded at: \`${at}\`\n`, "utf8");
-	await git.add([receiptPath], options.signal); const receiptCommit = await git.commit(`chore(codepatrol): ${outcome} receipt ${workId}`, false, options.signal);
+	await git.add([receiptPath], options.signal); const receiptCommit = await git.commit(`chore(codepatrol): ${outcome} receipt ${workId}`, false, options.signal, [receiptPath]);
 	const event: ChangeEvent = { ...eventBase(view, input.actor, { ...options, now: new Date(at) }), type: "change-closed", stage: "close", outcome, commit: receiptCommit, tag, receipt: "close/receipt.md" };
 	await appendChangeEvent(workspace, workId, event, options); try { trace.append(workspace, workId, { kind: "event", at: now(options).toISOString(), stage: event.stage, attempt: 0, type: event.type }); } catch { /* trace is fire-and-forget */ }
 	let reportPath: string | undefined; try {
@@ -415,7 +416,7 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	const pathsToCommit = [relativeRecord(workId)]; if (reportPath) pathsToCommit.push(reportPath);
 	const backlogFile = backlogPath(workspace);
 	if (existsSync(backlogFile)) pathsToCommit.push(backlogFile);
-	await git.add(pathsToCommit, options.signal); const terminalCommit = await git.commit(`chore(codepatrol): ${outcome} ${workId}`, false, options.signal); await git.tag(tag, terminalCommit, options.signal);
+	await git.add(pathsToCommit, options.signal); const terminalCommit = await git.commit(`chore(codepatrol): ${outcome} ${workId}`, false, options.signal, pathsToCommit); await git.tag(tag, terminalCommit, options.signal);
 	view = foldChange({ ...record, events: [...record.events, event] });
 	try { trace.close(workspace, workId); } catch { /* trace cleanup is best-effort */ }
 	await completeFinalization(git, view, input.outcome, tag, terminalCommit, options.signal);
