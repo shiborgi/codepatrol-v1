@@ -404,3 +404,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Close 2026-07-24-backlog-subsystem with commit+push: fast-forward main to the Verify attempt 3 commit candidate, tag codepatrol/committed/2026-07-24-backlog-subsystem, delete the feature branch, push main to origin."
+  - id: df979d2c-b0ee-4ed6-847a-4fc586b5f11e
+    at: 2026-07-25T10:12:28.570Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-20260725T101208Z
+      started_at: 2026-07-25T10:12:08Z
+      finished_at: 2026-07-25T10:12:22Z
+      elapsed_ms: 14000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
