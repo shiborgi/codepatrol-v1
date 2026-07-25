@@ -133,3 +133,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-verify 2026-07-25-remove-duplicate-reader on codepatrol/2026-07-25-remove-duplicate-reader
+  - id: a74e8940-95c6-4026-9f70-d7bca4471434
+    at: 2026-07-25T19:05:57.378Z
+    actor: claude
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-1
+      started_at: 2026-07-25T19:01:42.000Z
+      finished_at: 2026-07-25T19:05:52.000Z
+      elapsed_ms: 250000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
