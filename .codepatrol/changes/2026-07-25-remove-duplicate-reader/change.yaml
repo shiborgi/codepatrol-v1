@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-review 2026-07-25-remove-duplicate-reader on codepatrol/2026-07-25-remove-duplicate-reader
+  - id: 313cce9d-7d9f-4894-9c56-46c1815d15e9
+    at: 2026-07-25T18:43:43.463Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: run-rev1
+      started_at: 2026-07-25T18:35:46.000Z
+      finished_at: 2026-07-25T18:40:00.000Z
+      elapsed_ms: 254000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
