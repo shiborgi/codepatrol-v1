@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-review 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
+  - id: 56eb86fc-03ac-4949-b670-1ce58063c448
+    at: 2026-07-25T16:43:58.784Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: run-xyz
+      started_at: 2026-07-25T16:36:28Z
+      finished_at: 2026-07-25T16:40:00Z
+      elapsed_ms: 212000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
