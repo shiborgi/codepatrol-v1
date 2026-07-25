@@ -394,3 +394,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Close 2026-07-25-session-handoff with commit+push: fast-forward main to the Verify commit candidate, tag codepatrol/committed/2026-07-25-session-handoff, delete the feature branch, push main to origin."
+  - id: bd9619c9-998b-4242-aa33-68fced4292d4
+    at: 2026-07-25T18:15:14.081Z
+    actor: claude-opus-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-20260725T181459Z
+      started_at: 2026-07-25T18:14:59Z
+      finished_at: 2026-07-25T18:15:07Z
+      elapsed_ms: 8000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
