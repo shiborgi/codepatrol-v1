@@ -126,3 +126,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: "Review plan attempt 2: confirm the Kanban two-render-path finding is resolved (AC-6 widened, T7 files + dependency corrected), re-audit the full file-ownership matrix, and check for new defects."
+  - id: a8eb7a54-6d7b-4599-b6cd-c4819aa80049
+    at: 2026-07-25T01:44:15.575Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: run-recorded
+    run:
+      id: review-20260725T014259Z
+      started_at: 2026-07-25T01:42:59Z
+      finished_at: 2026-07-25T01:44:03Z
+      elapsed_ms: 64000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
