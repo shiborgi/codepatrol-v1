@@ -9,7 +9,7 @@ import { foldChange, migrateRecord } from "./model.js";
 import { changeRecordPath, listWorkingTreeChangeIds, readChangeRecord, writeChangeRecord, appendChangeEvent } from "./store.js";
 import * as trace from "./trace.js";
 import { writeImprovementReport, mirrorImprovementReport, generateImprovementReport } from "./improvement-report.js";
-import { upsertBacklogItem, findBacklogItem, linkBacklogItem } from "./backlog.js";
+import { upsertBacklogItem, findBacklogItem, linkBacklogItem, backlogPath } from "./backlog.js";
 import { loadConfig } from "../shared/config.js";
 import { defaultGateRunner, gateOutputTail } from "./apply-gate.js";
 import type { GateResult } from "./types.js";
@@ -22,7 +22,7 @@ function now(options: OperationOptions): Date { return options.now ?? new Date()
 function eventBase(view: ChangeView, actor: string, options: OperationOptions) { return { id: randomUUID(), at: now(options).toISOString(), actor, stage: view.stage, attempt: view.attempt }; }
 function gitFor(workspace: string, options: OperationOptions): GitAdapter { return options.git ?? new NodeGitAdapter(workspace); }
 function relativeRecord(workId: string): string { return `.codepatrol/changes/${workId}/change.yaml`; }
-function parseStatusPaths(status: string): string[] { return status.split("\n").filter(Boolean).map((line) => line.slice(3).split(" -> ").at(-1)!).filter((path) => Boolean(path) && path !== ".codepatrol/" && !path.startsWith(".codepatrol/runtime/") && !path.startsWith(".codepatrol/backlog/")); }
+function parseStatusPaths(status: string): string[] { return status.split("\n").filter(Boolean).map((line) => line.slice(3).split(" -> ").at(-1)!).filter((path) => Boolean(path) && path !== ".codepatrol/" && !path.startsWith(".codepatrol/runtime/")); }
 function ensurePath(path: string): void {
 	if (!path || /[\0\r\n]/.test(path) || path.startsWith("/") || path.split("/").includes("..") || path.startsWith(".codepatrol/runtime/")) throw new CodepatrolError("CHANGE_INVALID", `Unsafe checkpoint path: ${path}.`, 4);
 }
@@ -409,6 +409,8 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 		}
 	} catch (cause) { process.stderr.write(`[close] improvement report failed: ${(cause as Error).message}\n`); }
 	const pathsToCommit = [relativeRecord(workId)]; if (reportPath) pathsToCommit.push(reportPath);
+	const backlogFile = backlogPath(workspace);
+	if (existsSync(backlogFile)) pathsToCommit.push(backlogFile);
 	await git.add(pathsToCommit, options.signal); const terminalCommit = await git.commit(`chore(codepatrol): ${outcome} ${workId}`, false, options.signal); await git.tag(tag, terminalCommit, options.signal);
 	view = foldChange({ ...record, events: [...record.events, event] });
 	try { trace.close(workspace, workId); } catch { /* trace cleanup is best-effort */ }

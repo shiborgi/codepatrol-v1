@@ -167,3 +167,49 @@ No unforecasted dependencies, config, or events added. No DC-N triggers activate
 - T7's `parseStatusPaths` was extended to whitelist `.codepatrol/backlog/` (the Close postcondition otherwise fails when the hook writes a new item). This is documented as part of T4 (the hook is in T4; the postcondition fix is the natural complement).
 - The `assert.throws` regex tests required error messages to include the error code prefix (`CHANGE_INVALID:`, `INVALID_ARGUMENT:`, `CHANGE_CONFLICT:`) so the regex matches against the message text. This is consistent with the prior CLI-ergonomics and migration-normalizer Changes' conventions.
 - Test count: 151 → 173 (+22 tests). The +4 file count: `backlog.ts` + 3 new test files. The +157 symbol count reflects the new module's exports + tests + renderers.
+
+## T1B (rework) — Address Verify Finding 1: git-track the backlog file
+
+- Claim/workflow item: T1B
+- Started: 2026-07-25T02:39:13Z
+- Files changed: `src/change/orchestrator.ts`, `src/change/backlog.ts`, `src/change/backlog-close-integration.test.ts`
+- Simplicity check: minimal surgical fix — export `backlogPath` from backlog.ts, add one line to `closeChangeLocked`'s `pathsToCommit`, revert the `.codepatrol/backlog/` exclusion in `parseStatusPaths`, and add two characterization assertions.
+- Surface delta: 1 new export, 3 modified files; net +~12 LOC.
+
+### Root cause (per `verify/report.md` Finding 1)
+
+The previous apply taught `parseStatusPaths` to ignore `.codepatrol/backlog/` so the Close postcondition would not fail when the Close hook wrote a new backlog item — but this contradicted the T1-amended governing docs (".codepatrol/backlog/items.yaml is the sanctioned follow-up queue: a tracked, schema-validated top-level file"). The file was written but never staged/committed, so `git clean -fd` (or any fresh clone/worktree/CI) would either delete the backlog silently or never see it. The fix moves the responsibility from "hide the untracked file" to "actually track it": include `.codepatrol/backlog/items.yaml` in Close's existing terminal commit when it exists, the same way `reportPath` is conditionally added.
+
+### Implementation
+
+1. `src/change/backlog.ts`: exported `backlogPath(workspace)` (already existed as a module-private helper).
+2. `src/change/orchestrator.ts`:
+   - Imported `backlogPath` from `./backlog.js`.
+   - In `closeChangeLocked`, after `pathsToCommit` is built, conditionally push `backlogFile` if `existsSync(backlogFile)`. Only included when the file actually exists (i.e. the Close hook wrote at least one non-filler recommendation), so a no-recommendation close doesn't commit an unnecessary file.
+   - Reverted the `.codepatrol/backlog/` exclusion in `parseStatusPaths` (line 25), restoring the single backstop filter to just `.codepatrol/runtime/`.
+3. `src/change/backlog-close-integration.test.ts`:
+   - Added an assertion in the non-filler test: `git show --name-only <terminalCommit>` must include `.codepatrol/backlog/items.yaml` — proves the file is now tracked.
+   - Added an assertion in the filler-only test: the same `git show` must NOT include `.codepatrol/backlog/items.yaml` — proves the file is conditionally committed only when actually written.
+
+### Evidence
+
+- `node --test --import jiti/register src/change/backlog-close-integration.test.ts` — 2/2 pass (test 1: backlog file IS in the terminal commit after non-filler close; test 2: backlog file is NOT in the terminal commit after filler-only close).
+- `npm run typecheck` — clean.
+- `npm run verify` — exit 0, **173/173 tests pass** (same count as the previous apply; the test count did not change because the new assertions were added inside existing test blocks rather than as new tests).
+- AC-3 re-verified: the close-trace feed is unchanged; the file is now properly committed when written.
+- AC-8 re-verified: `npm run verify` exit 0 with 173/173.
+
+### What did NOT change
+
+- The 15 other production paths from apply attempt 1 (AGENTS.md, CONTEXT.md, docs/runtime-state.md, scripts/render-kanban.mjs, scripts/skills-contract.test.mjs, skills/codepatrol-plan/SKILL.md, src/change/backlog-close-integration.test.ts, src/change/backlog.test.ts, src/change/backlog.ts, src/change/board.test.ts, src/change/board.ts, src/change/orchestrator.ts, src/change/start-backlog-link.test.ts, src/change/types.ts, src/cli/args.ts, src/cli/cli.test.ts, src/cli/commands.ts, src/cli/output.ts) — 17 of those 18 are unchanged from the previous apply (their content was already in `54578f3`'s tree). Only `src/change/backlog-close-integration.test.ts` was further edited (the test assertions added above).
+- The governing-doc amendment (T1) is unchanged — `.codepatrol/backlog/items.yaml` is now genuinely "tracked" as the docs promise.
+- The module-private `parseStatusPaths` filter restoration is the only behavioral revert. It does not loosen any other postcondition: only `.codepatrol/runtime/` (rebuildable, ignored) remains exempted. Every other code path that calls `parseStatusPaths` is unaffected because the only behavioral change is that `.codepatrol/backlog/` is no longer specially exempted — and the file is now always committed by Close when it exists.
+- `bin/` and `docs/codepatrol/assessments/` are still untouched.
+
+### Residual risks (unchanged)
+
+- DC-1, DC-2, DC-3, DC-4 — none activated. The fix is bounded to the close-tracked-write gap, not the backlog subsystem design itself.
+
+### Note on Finding 2 (minor, optional)
+
+`verify/report.md` Finding 2 (AC-6 wording vs `status --format` flag — `--format markdown` is not accepted, only `text`/`json`) is optional and not addressed here. The substantive intent (both Kanban render paths show the Backlog column) is met; the AC text's mention of `--format markdown` is a Plan-pass wording issue, not an Apply-introduced defect. Deferred to a future Plan revision.

@@ -40,7 +40,7 @@ function isArea(value: unknown): value is BacklogArea { return typeof value === 
 function isStatus(value: unknown): value is BacklogStatus { return typeof value === "string" && VALID_STATUSES.has(value as BacklogStatus); }
 function isSourceKind(value: unknown): value is BacklogSourceKind { return typeof value === "string" && VALID_SOURCE_KINDS.has(value as BacklogSourceKind); }
 
-function backlogPath(workspace: string): string {
+export function backlogPath(workspace: string): string {
 	return resolveInside(workspace, ".codepatrol/backlog/items.yaml");
 }
 
