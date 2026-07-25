@@ -69,3 +69,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 36f6766d-60b5-41f2-878c-936c5ad8769d
+    at: 2026-07-25T22:02:04.754Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: spec is contract-complete and verified, but plan.md carries two bounded execution defects. (1) T1 red unit-test assertion is inverted — upsertBacklogItem with {kind:github-issue} (no workId) throws CHANGE_INVALID today (invalid kind) yet becomes valid after T1, so the assertion is green-before/red-after and can never reach the documented green; correct it to assert that PROVIDING workId to a github-issue source throws. (2) T2 NodeGhAdapter does not anchor gh to workspace — spec mandates mirroring NodeGitAdapter exactly (constructor takes workspace, run passes cwd:this.workspace per git.ts:33-36), but the T2 code sample uses a no-arg constructor and omits cwd, so gh runs against process.cwd() and silently misbehaves for any --workspace invocation; FakeGhAdapter-only tests cannot detect this. Corrections are plan-only; no AC, interface, scope, or spec change."
+    next_action: codepatrol-plan 2026-07-25-issue-tracker-sync on codepatrol/2026-07-25-issue-tracker-sync
