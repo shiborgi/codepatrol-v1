@@ -23,9 +23,9 @@ items:
       kind: close-trace
       workId: 2026-07-24-backlog-subsystem
     workId: null
-    count: 1
+    count: 2
     firstSeenAt: 2026-07-25T10:12:35.564Z
-    lastSeenAt: 2026-07-25T10:12:35.564Z
+    lastSeenAt: 2026-07-25T15:13:00.621Z
   - id: unsafe-duplicate-yaml-reader-in-improvement-report-ts-bypasses-migraterecord-normalization
     title: Unsafe duplicate YAML reader in improvement-report.ts bypasses migrateRecord normalization
     priority: p1
@@ -88,3 +88,16 @@ items:
     count: 1
     firstSeenAt: 2026-07-25T10:21:16.279Z
     lastSeenAt: 2026-07-25T10:21:16.279Z
+  - id: top-error-code-operation-failed-investigate-the-first-occurrence-s-args-and-stage-context
+    title: "Top error code: OPERATION_FAILED (6). Investigate the first occurrence's args and stage context."
+    priority: p1
+    area: workflow
+    status: candidate
+    evidence: []
+    source:
+      kind: close-trace
+      workId: 2026-07-25-docs-consolidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-25T15:13:00.612Z
+    lastSeenAt: 2026-07-25T15:13:00.612Z
