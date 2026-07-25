@@ -161,3 +161,19 @@ events:
     attempt: 1
     type: stage-began
     next_action: Execute accepted Apply tasks T1-T4 in dependency order for 2026-07-25-commit-scoping on codepatrol/2026-07-25-commit-scoping
+  - id: 0780badb-a661-4b4a-afce-a26ce8a285f5
+    at: 2026-07-25T16:03:46.656Z
+    actor: minimax-m3
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-20260725T155315Z
+      started_at: 2026-07-25T15:53:15.265Z
+      finished_at: 2026-07-25T16:03:46.511Z
+      elapsed_ms: 631246
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
+        model: minimax/MiniMax-M3
+        harness: opencode
