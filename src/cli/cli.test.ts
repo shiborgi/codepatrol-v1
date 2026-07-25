@@ -208,3 +208,39 @@ test("codepatrol change summary renders a uniform Summary/Verdict/Next block", (
     assert.match(text, /^Summary:/m); assert.match(text, /^Verdict:/m); assert.match(text, /^Next:/m);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test("codepatrol backlog add and list dedupe, classify, and filter", () => {
+  const root = workspace();
+  try {
+    const add1 = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "Command \"change.transition\" invoked 13 times — consider caching.", area: "workflow", evidence: [], source: { kind: "close-trace", workId: "2026-07-24-example" } })).stdout).data;
+    assert.equal(add1.status, "candidate");
+    assert.equal(add1.count, 1);
+    const add2 = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "Command \"change.transition\" invoked 47 times — consider caching.", area: "workflow", priority: "p1", evidence: [], source: { kind: "plan-followup", workId: "2026-07-24-example" } })).stdout).data;
+    assert.equal(add2.count, 2);
+    assert.equal(add2.status, "candidate");
+    const listed = JSON.parse(run(["backlog","list","--workspace",root,"--format=json"]).stdout).data;
+    assert.equal(listed.length, 1);
+    const text = run(["backlog","list","--workspace",root]).stdout;
+    assert.match(text, /id\s*\|\s*title/);
+    const filtered = JSON.parse(run(["backlog","list","--status","dismissed","--workspace",root,"--format=json"]).stdout).data;
+    assert.equal(filtered.length, 0);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("codepatrol next --stage plan includes the backlog section; --stage verify omits it", () => {
+  const root = workspace();
+  try {
+    const id = "2026-07-22-next-backlog";
+    assert.equal(run(["change","start","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: id, title: "IO", targetBranch: "main", actor: "codex" })).status, 0);
+    assert.equal(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "Test backlog item for next", area: "workflow", priority: "p2", evidence: [], source: { kind: "plan-followup", workId: id } })).status, 0);
+    const plan = JSON.parse(run(["next","--stage","plan","--workspace",root,"--format=json"]).stdout).data;
+    assert.ok(Array.isArray(plan.backlog));
+    assert.equal(plan.backlog.length, 1);
+    assert.equal(plan.backlog[0].priority, "p2");
+    const planText = run(["next","--stage","plan","--workspace",root]).stdout;
+    assert.match(planText, /Backlog:/);
+    assert.match(planText, /test-backlog-item-for-next/);
+    const verifyText = run(["next","--stage","verify","--workspace",root]).stdout;
+    assert.doesNotMatch(verifyText, /Backlog:/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});

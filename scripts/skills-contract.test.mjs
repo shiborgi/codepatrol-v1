@@ -42,6 +42,7 @@ test("each lifecycle skill owns one stage, records metrics, checkpoints, and sto
 		assert.match(text, /codepatrol change summary/);
 		assert.match(text, /STAGE-IO\.md/);
 	}
+	assert.match(skill("codepatrol-plan"), /backlog/);
 	assert.match(skill("codepatrol-close"), /commit\+push/);
 });
 

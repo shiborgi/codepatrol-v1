@@ -1,4 +1,5 @@
 import type { ChangeView, Stage } from "../change/types.js";
+import type { BacklogItem } from "../change/backlog.js";
 import type { GraphImpactData, GraphNeighborsData, GraphOverviewData, OutlineFile } from "../graph/service.js";
 import type { GraphNode } from "../graph/model.js";
 import { formatTable, mermaidModuleMap } from "../graph/render.js";
@@ -44,6 +45,8 @@ Change lifecycle commands:
   change session --id <work-id> --input <file|->
   change doctor --id <work-id>
   change close --id <work-id> --input <file|->
+  backlog add --input <file|->
+  backlog list [--status <candidate|scheduled|done|dismissed>]
 
 Graph commands:
   graph sync [--force]
@@ -136,13 +139,16 @@ export function renderImpact(data: GraphImpactData): string {
 	].join("\n");
 }
 
-export function renderNext(stage: Stage | undefined, changes: ChangeView[]): string {
+export function renderNext(stage: Stage | undefined, changes: ChangeView[], backlog?: BacklogItem[]): string {
 	const lines = [`${stage ? `Stage: ${stage}` : "All active changes"}`];
 	if (changes.length) {
 		lines.push("");
 		lines.push(formatTable(["work_id", "state", "next_action"], changes.map(v => [v.identity.work_id, v.state, v.nextAction ?? ""])));
 	} else {
 		lines.push("(none)");
+	}
+	if (backlog && backlog.length) {
+		lines.push("", "Backlog:", formatTable(["id", "priority", "area", "status", "count", "title"], backlog.map((entry) => [entry.id, entry.priority, entry.area, entry.status, String(entry.count), entry.title])));
 	}
 	if (stage === "plan" || !stage) {
 		lines.push("", "To start a new change:", "codepatrol change start --input -");
@@ -155,4 +161,9 @@ export function renderNext(stage: Stage | undefined, changes: ChangeView[]): str
 
 export function renderSummary(view: ChangeView): string {
 	return `Summary: ${view.identity.work_id} — ${view.identity.title}\nVerdict: ${view.stage} attempt ${view.attempt} is ${view.state}${view.outcome ? ` (${view.outcome})` : ""}\nNext: ${view.nextAction ?? "none"}`;
+}
+
+export function renderBacklogList(items: BacklogItem[]): string {
+	if (!items.length) return "(no backlog items)";
+	return formatTable(["id", "title", "priority", "area", "status", "count"], items.map((entry) => [entry.id, entry.title, entry.priority, entry.area, entry.status, String(entry.count)]));
 }

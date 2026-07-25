@@ -11,7 +11,7 @@ portable [execution protocol](../_shared/EXECUTION.md).
 
 ## Bind or start exactly one Change
 
-Use `codepatrol next --stage plan` to discover active Changes or confirm how to start a new one.
+Use `codepatrol next --stage plan` to discover active Changes, review the prioritized backlog, or confirm how to start a new one.
 
 If a work id is supplied, run `codepatrol change inspect --id <work-id>` and
 continue only when the projection says Plan on branch
@@ -29,6 +29,8 @@ module/seam design, external evidence, simplification and executable planning.
 If resuming after a return from Review or Verify, explicitly read all markdown files in the returning stage's directory (e.g., `review/` or `verify/`) to aggregate and address all findings from all parallel personas. The close stage now includes an opt-in push suggestion.
 
 For a brownfield Change, also read the most recent `docs/codepatrol/improvement-reports/*.md` (sorted by file mtime, take the most recent) and surface its top three `Recommendations` bullets as `Improvement signals:` lines in the new spec's Intent section. If no mirror exists yet, record `Improvement signals: none — first Change on this workspace.` and continue.
+
+When investigation shows the work exceeds one bounded Change, call `codepatrol backlog add --input -` for each follow-up (`source.kind: "plan-followup"`, `source.workId: <this-work-id>`) so each is queryable, deduplicated, and surfaced by `next --stage plan` and the Kanban Backlog column.
 
 ## Produce the Plan artifacts
 

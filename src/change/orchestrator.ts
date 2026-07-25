@@ -8,7 +8,8 @@ import { NodeGitAdapter, type GitAdapter } from "./git.js";
 import { foldChange, migrateRecord } from "./model.js";
 import { changeRecordPath, listWorkingTreeChangeIds, readChangeRecord, writeChangeRecord, appendChangeEvent } from "./store.js";
 import * as trace from "./trace.js";
-import { writeImprovementReport, mirrorImprovementReport } from "./improvement-report.js";
+import { writeImprovementReport, mirrorImprovementReport, generateImprovementReport } from "./improvement-report.js";
+import { upsertBacklogItem, findBacklogItem, linkBacklogItem } from "./backlog.js";
 import { loadConfig } from "../shared/config.js";
 import { defaultGateRunner, gateOutputTail } from "./apply-gate.js";
 import type { GateResult } from "./types.js";
@@ -21,7 +22,7 @@ function now(options: OperationOptions): Date { return options.now ?? new Date()
 function eventBase(view: ChangeView, actor: string, options: OperationOptions) { return { id: randomUUID(), at: now(options).toISOString(), actor, stage: view.stage, attempt: view.attempt }; }
 function gitFor(workspace: string, options: OperationOptions): GitAdapter { return options.git ?? new NodeGitAdapter(workspace); }
 function relativeRecord(workId: string): string { return `.codepatrol/changes/${workId}/change.yaml`; }
-function parseStatusPaths(status: string): string[] { return status.split("\n").filter(Boolean).map((line) => line.slice(3).split(" -> ").at(-1)!).filter((path) => Boolean(path) && path !== ".codepatrol/" && !path.startsWith(".codepatrol/runtime/")); }
+function parseStatusPaths(status: string): string[] { return status.split("\n").filter(Boolean).map((line) => line.slice(3).split(" -> ").at(-1)!).filter((path) => Boolean(path) && path !== ".codepatrol/" && !path.startsWith(".codepatrol/runtime/") && !path.startsWith(".codepatrol/backlog/")); }
 function ensurePath(path: string): void {
 	if (!path || /[\0\r\n]/.test(path) || path.startsWith("/") || path.split("/").includes("..") || path.startsWith(".codepatrol/runtime/")) throw new CodepatrolError("CHANGE_INVALID", `Unsafe checkpoint path: ${path}.`, 4);
 }
@@ -37,11 +38,12 @@ function textInput(value: unknown, field: string): string {
 	return value;
 }
 function assertStartInput(input: StartChangeInput): void {
-	const value = requireObject(input, "Change start"); exactInput(value, ["workId", "title", "targetBranch", "actor", "nextAction"], "Change start");
+	const value = requireObject(input, "Change start"); exactInput(value, ["workId", "title", "targetBranch", "actor", "nextAction", "backlogItemId"], "Change start");
 	textInput(value.workId, "workId"); textInput(value.title, "title"); textInput(value.actor, "actor");
 	const target = textInput(value.targetBranch, "targetBranch");
 	if (!/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(target) || target.includes("..") || target.includes("//") || target.endsWith("/") || target.includes("@{")) throw new CodepatrolError("INVALID_ARGUMENT", "targetBranch is not a safe Git branch name.", 2);
 	if (value.nextAction !== undefined) textInput(value.nextAction, "nextAction");
+	if (value.backlogItemId !== undefined && (typeof value.backlogItemId !== "string" || !value.backlogItemId.trim())) throw new CodepatrolError("INVALID_ARGUMENT", "backlogItemId must be a non-empty string.", 2);
 }
 function assertTransitionIntent(intent: TransitionIntent): void {
 	const value = requireObject(intent, "Transition"); const type = textInput(value.type, "type");
@@ -168,6 +170,11 @@ async function startChangeLocked(workspace: string, input: StartChangeInput, opt
 	const current = await git.currentBranch(options.signal); if (current !== input.targetBranch) throw new CodepatrolError("CHANGE_CONFLICT", `Expected target branch ${input.targetBranch}, found ${current}.`, 4);
 	const branch = `codepatrol/${input.workId}`; const terminal = (await git.refs("refs/tags/codepatrol", options.signal)).some((ref) => ref.endsWith(`/${input.workId}`));
 	if (await git.branchExists(branch, options.signal) || existsSync(changeRecordPath(workspace, input.workId)) || terminal) throw new CodepatrolError("CHANGE_CONFLICT", `Change already exists: ${input.workId}.`, 4);
+	if (input.backlogItemId) {
+		const existing = findBacklogItem(workspace, input.backlogItemId);
+		if (!existing) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: Backlog item not found: ${input.backlogItemId}.`, 2);
+		if (existing.status === "done" || existing.status === "dismissed") throw new CodepatrolError("CHANGE_CONFLICT", `CHANGE_CONFLICT: Backlog item ${input.backlogItemId} cannot be linked from status ${existing.status}.`, 4);
+	}
 	const base = await git.head("HEAD", options.signal); const at = now(options).toISOString();
 	const record: ChangeRecordV2 = { schema_version: 2, identity: { work_id: input.workId, title: input.title, created_at: at, branch, target_branch: input.targetBranch, base_commit: base }, events: [{ id: randomUUID(), type: "change-started", at, actor: input.actor, stage: "plan", attempt: 1, next_action: input.nextAction ?? `codepatrol-plan ${input.workId} on ${branch}` }] };
 	foldChange(record);
@@ -175,7 +182,9 @@ async function startChangeLocked(workspace: string, input: StartChangeInput, opt
 	try {
 		await git.createBranch(branch, base, options.signal);
 		branchCreated = true; recordOwned = true;
-		writeChangeRecord(workspace, record); try { trace.append(workspace, input.workId, { kind: "event", at: now(options).toISOString(), stage: "plan", attempt: 1, type: "change-started" }); } catch { /* trace is fire-and-forget */ } await commitMetadata(git, input.workId, `chore(codepatrol): start ${input.workId}`, options.signal); return foldChange(record);
+		writeChangeRecord(workspace, record); try { trace.append(workspace, input.workId, { kind: "event", at: now(options).toISOString(), stage: "plan", attempt: 1, type: "change-started" }); } catch { /* trace is fire-and-forget */ } await commitMetadata(git, input.workId, `chore(codepatrol): start ${input.workId}`, options.signal);
+		if (input.backlogItemId) linkBacklogItem(workspace, input.backlogItemId, input.workId, now(options));
+		return foldChange(record);
 	} catch (cause) {
 		if (recordOwned) {
 			try { await git.unstage([relativeRecord(input.workId)]); } catch { /* Preserve the original start failure. */ }
@@ -387,7 +396,18 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	await git.add([receiptPath], options.signal); const receiptCommit = await git.commit(`chore(codepatrol): ${outcome} receipt ${workId}`, false, options.signal);
 	const event: ChangeEvent = { ...eventBase(view, input.actor, { ...options, now: new Date(at) }), type: "change-closed", stage: "close", outcome, commit: receiptCommit, tag, receipt: "close/receipt.md" };
 	await appendChangeEvent(workspace, workId, event, options); try { trace.append(workspace, workId, { kind: "event", at: now(options).toISOString(), stage: event.stage, attempt: 0, type: event.type }); } catch { /* trace is fire-and-forget */ }
-	let reportPath: string | undefined; try { reportPath = writeImprovementReport(workspace, workId); mirrorImprovementReport(workspace, workId, reportPath); } catch (cause) { process.stderr.write(`[close] improvement report failed: ${(cause as Error).message}\n`); }
+	let reportPath: string | undefined; try {
+		reportPath = writeImprovementReport(workspace, workId);
+		mirrorImprovementReport(workspace, workId, reportPath);
+		const FILLER_1 = "No trace available for this Change.";
+		const FILLER_2 = "No notable patterns detected; continue with current process.";
+		const report = generateImprovementReport(workspace, workId);
+		for (const rec of report.recommendations) {
+			if (rec === FILLER_1 || rec === FILLER_2) continue;
+			try { upsertBacklogItem(workspace, { title: rec, area: "workflow", evidence: [], source: { kind: "close-trace", workId } }); }
+			catch (cause) { process.stderr.write(`[close] backlog upsert failed for "${rec.slice(0, 80)}": ${(cause as Error).message}\n`); }
+		}
+	} catch (cause) { process.stderr.write(`[close] improvement report failed: ${(cause as Error).message}\n`); }
 	const pathsToCommit = [relativeRecord(workId)]; if (reportPath) pathsToCommit.push(reportPath);
 	await git.add(pathsToCommit, options.signal); const terminalCommit = await git.commit(`chore(codepatrol): ${outcome} ${workId}`, false, options.signal); await git.tag(tag, terminalCommit, options.signal);
 	view = foldChange({ ...record, events: [...record.events, event] });

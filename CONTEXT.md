@@ -20,6 +20,11 @@ rollback and leaves a recoverable tag plus clean target checkout.
 **Codepatrol Status** — reproduces the deterministic Kanban and projected resume
 actions without interpreting or mutating them.
 
+**Backlog** — a prioritized (`p0`–`p3`), deduplicated queue of follow-up work at
+`.codepatrol/backlog/items.yaml`, auto-fed from Close trace analysis and Plan
+splits, surfaced by `codepatrol next --stage plan` and the Kanban's Backlog
+column.
+
 **Change** — the tracked `.codepatrol/changes/<work-id>/` aggregate containing
 immutable identity, ordered events and stage-owned artifacts for one branch.
 

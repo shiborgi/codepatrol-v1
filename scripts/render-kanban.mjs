@@ -25,10 +25,15 @@ export function parseKanbanArgs(argv) {
 	return result;
 }
 
+let backlogModule;
+try { backlogModule = await import("../dist/src/change/backlog.js"); }
+catch { backlogModule = await import("../src/change/backlog.ts"); }
+
 export async function renderKanban(argv) {
 	const args = parseKanbanArgs(argv);
 	const changes = await source.inspectChanges(args.workspace, { all: args.all });
-	const board = boardModule.projectKanban(changes, { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}) });
+	const backlog = backlogModule.readBacklog(args.workspace);
+	const board = boardModule.projectKanban(changes, { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}), backlogItems: backlog.items });
 	return args.format === "json" ? `${JSON.stringify(board, null, 2)}\n` : boardModule.renderKanbanMarkdown(board);
 }
 

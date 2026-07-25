@@ -49,7 +49,7 @@ export type TransitionIntent =
 	| { type: "return"; actor: string; stage: "review" | "apply" | "verify"; toStage: "plan" | "apply"; reason: string; nextAction: string; persona?: string; reasons?: string[] }
 	| { type: "block"; actor: string; stage: Stage; reason: string; nextAction: string }
 	| { type: "resume"; actor: string; stage: Stage; nextAction: string };
-export interface StartChangeInput { workId: string; title: string; targetBranch: string; actor: string; nextAction?: string }
+export interface StartChangeInput { workId: string; title: string; targetBranch: string; actor: string; nextAction?: string; backlogItemId?: string }
 export interface ChangeQuery { workId?: string; all?: boolean }
 export interface CloseInput { outcome: "commit" | "rollback"; actor: string; authority: string; push?: boolean }
 export interface CloseResult { outcome: TerminalOutcome; workId: string; targetBranch: string; terminalCommit: string; tag: string; pushError?: { code: string; message: string }; pushSuggestion?: string }

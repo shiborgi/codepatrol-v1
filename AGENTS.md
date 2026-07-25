@@ -13,8 +13,10 @@
 - `.codepatrol/runtime/sessions/` is rebuildable progress, never governing
   state.
 
-Do not create a root progress file, a mutable status mirror, a global workflow
-ledger, harness-specific worktrees or provider candidate trees.
+Do not create a root progress file, a mutable status mirror, harness-specific
+worktrees or provider candidate trees. The structured backlog at
+`.codepatrol/backlog/items.yaml` is the sanctioned exception — a tracked,
+deduplicated follow-up queue auto-fed from Close trace analysis and Plan splits.
 
 ## Choose one primary workflow
 

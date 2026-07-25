@@ -5,10 +5,11 @@ import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
 import type { ParsedArgs } from "./args.js";
 import { requireValue, KNOWN_COMMANDS } from "./args.js";
-import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary } from "./output.js";
+import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary, renderBacklogList } from "./output.js";
 import { closeChange, inspectChanges, startChange, transitionChange } from "../change/orchestrator.js";
 import { projectKanban, renderKanbanMarkdown } from "../change/board.js";
 import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStageSession, readStageSession, sessionStatus } from "../change/session.js";
+import { listBacklog, upsertBacklogItem, readBacklog, type BacklogArea, type BacklogPriority, type BacklogSource, type BacklogStatus } from "../change/backlog.js";
 import type { CloseInput, Stage, StartChangeInput, TransitionIntent } from "../change/types.js";
 
 export interface CommandResult {
@@ -51,19 +52,22 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 	switch (args.command) {
 		case "status": {
 			if (args.asOf && !Number.isFinite(Date.parse(args.asOf))) throw new CodepatrolError("INVALID_ARGUMENT", "--as-of must be an ISO timestamp.", 2);
-			const data = projectKanban(await inspectChanges(workspace, { all: args.all }, { signal }), { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}) });
+			const data = projectKanban(await inspectChanges(workspace, { all: args.all }, { signal }), { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}), backlogItems: readBacklog(workspace).items });
 			return { data, text: renderKanbanMarkdown(data) };
 		}
 		case "next": {
 			if (args.stage && !["plan", "review", "apply", "verify", "close"].includes(args.stage)) throw new CodepatrolError("INVALID_ARGUMENT", `Unknown stage: ${args.stage}`, 2);
 			const changes = (await inspectChanges(workspace, { all: true }, { signal })).filter((v) => v.state !== "terminal" && (!args.stage || v.stage === args.stage));
-			const data = {
+			const showBacklog = !args.stage || args.stage === "plan";
+			const backlog = showBacklog ? listBacklog(workspace, { open: true }) : [];
+			const data: { stage: string | undefined; changes: { workId: string; state: string; nextAction?: string }[]; startNew: boolean; closeOptions?: string[]; backlog?: { id: string; title: string; priority: string; area: string; status: string; count: number; workId: string | null }[] } = {
 				stage: args.stage,
 				changes: changes.map((v) => ({ workId: v.identity.work_id, state: v.state, nextAction: v.nextAction })),
 				startNew: args.stage === "plan" || !args.stage,
 				...(args.stage === "close" ? { closeOptions: ["commit", "commit+push", "rollback"] } : {})
 			};
-			return { data, text: renderNext(args.stage as Stage | undefined, changes) };
+			if (showBacklog) data.backlog = backlog.map((entry) => ({ id: entry.id, title: entry.title, priority: entry.priority, area: entry.area, status: entry.status, count: entry.count, workId: entry.workId }));
+			return { data, text: renderNext(args.stage as Stage | undefined, changes, showBacklog ? backlog : undefined) };
 		}
 		case "graph.sync": {
 			const data = await graphSync(workspace, { force: args.force, signal });
@@ -154,6 +158,25 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 				throw new CodepatrolError("INVALID_ARGUMENT", `Unknown command: ${args.command || "(none)"}. Did you mean \`change transition --id <work-id> --input -\` with type "${suffix}"?`, 2);
 			}
 			throw new CodepatrolError("INVALID_ARGUMENT", `Unknown command: ${args.command || "(none)"}. Known commands: ${KNOWN_COMMANDS.map((c) => c.replace(".", " ")).join(", ")}.`, 2);
+		}
+		case "backlog.add": {
+			const payload = readJsonInput(workspace, requireValue(args.input, "input"), "Backlog") as { title?: unknown; area?: unknown; priority?: unknown; evidence?: unknown; source?: unknown };
+			if (typeof payload.title !== "string" || !payload.title.trim()) throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input.title must be a non-empty string.", 2);
+			const area = payload.area as BacklogArea;
+			if (!["architecture", "workflow", "skills"].includes(area)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog add input.area must be one of architecture|workflow|skills, got ${payload.area}.`, 2);
+			const priority = payload.priority as BacklogPriority | undefined;
+			if (priority !== undefined && !["p0", "p1", "p2", "p3"].includes(priority)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog add input.priority must be one of p0|p1|p2|p3, got ${payload.priority}.`, 2);
+			const evidence = Array.isArray(payload.evidence) && payload.evidence.every((entry) => typeof entry === "string") ? payload.evidence as string[] : (() => { throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input.evidence must be an array of strings.", 2); })();
+			const source = payload.source as BacklogSource | undefined;
+			if (!source || typeof source !== "object" || !["close-trace", "plan-followup"].includes((source as { kind?: string }).kind ?? "") || typeof (source as { workId?: unknown }).workId !== "string") throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input.source must be { kind: close-trace|plan-followup, workId: string }.", 2);
+			const item = upsertBacklogItem(workspace, { title: payload.title, area, priority, evidence, source: { kind: (source as { kind: "close-trace" | "plan-followup" }).kind, workId: (source as { workId: string }).workId } });
+			return { data: { id: item.id, status: item.status, count: item.count }, text: `${item.id} (status: ${item.status}, count: ${item.count})` };
+		}
+		case "backlog.list": {
+			const status = args.status as BacklogStatus | undefined;
+			if (status !== undefined && !["candidate", "scheduled", "done", "dismissed"].includes(status)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog list --status must be one of candidate|scheduled|done|dismissed, got ${status}.`, 2);
+			const items = listBacklog(workspace, status ? { status } : {});
+			return { data: items, text: renderBacklogList(items) };
 		}
 	}
 }
