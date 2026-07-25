@@ -182,3 +182,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 85665434-9131-4ee7-9d72-011400796aa5
+    at: 2026-07-25T21:28:20.463Z
+    actor: claude
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 09c3d32ca201c626dfc91cee17afeb7d2d374304
+    tag: codepatrol/committed/2026-07-25-remove-duplicate-reader
+    receipt: close/receipt.md
