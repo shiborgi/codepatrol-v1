@@ -369,3 +369,17 @@ events:
     attempt: 3
     type: stage-began
     next_action: verify 2026-07-24-backlog-subsystem on codepatrol/2026-07-24-backlog-subsystem
+  - id: 33942e0d-906c-45fc-813a-f2b10999f290
+    at: 2026-07-25T10:09:57.435Z
+    actor: opencode-verify
+    stage: verify
+    attempt: 3
+    type: run-recorded
+    run:
+      id: verify-20260725T100453Z
+      started_at: 2026-07-25T10:04:53Z
+      finished_at: 2026-07-25T10:09:39Z
+      elapsed_ms: 286000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
