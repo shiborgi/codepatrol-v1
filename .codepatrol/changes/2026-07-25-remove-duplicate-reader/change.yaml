@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 9f4bdfbc-aa8c-4c54-a610-62e0f6f487b4
+    at: 2026-07-25T18:43:53.379Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: a68ab4dc702699514e4ff3b996a03237d8a5a3fe
+    tree: 3e052266a8ceb4b97f997d8eb8cb8b98b966b41c
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-remove-duplicate-reader/review/report.md
+        sha256: 20cf22c7828640d181720991f56c27d03ecf88b9fcd2861768cb70c483b496cb
+        intent: create
+    next_action: codepatrol-apply 2026-07-25-remove-duplicate-reader on codepatrol/2026-07-25-remove-duplicate-reader
