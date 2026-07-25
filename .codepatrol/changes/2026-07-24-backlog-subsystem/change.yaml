@@ -213,3 +213,10 @@ events:
       exit_code: 0
       elapsed_ms: 17220
       at: 2026-07-25T02:08:11.520Z
+  - id: acf8c283-72fa-4c14-b961-e630a335ff62
+    at: 2026-07-25T02:14:44.058Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: "Verify the backlog subsystem implementation against spec.md/plan.md AC-1..AC-N: audit backlog.ts, CLI add/list, Close/next --stage plan feeding, Kanban Backlog column (both render paths), run full gate, blast radius, regressions, unplanned changes."
