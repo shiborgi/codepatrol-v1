@@ -352,3 +352,10 @@ events:
       exit_code: 0
       elapsed_ms: 18896
       at: 2026-07-25T18:02:52.527Z
+  - id: e23e1464-5d14-4191-8b95-30a0cdd1118b
+    at: 2026-07-25T18:05:29.295Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-verify 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
