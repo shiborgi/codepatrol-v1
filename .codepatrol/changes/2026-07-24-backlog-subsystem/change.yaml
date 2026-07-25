@@ -324,3 +324,17 @@ events:
     attempt: 3
     type: stage-began
     next_action: "Address Verify Finding 1 (critical): extend the Find-1 commit fix to (a) change start's linkBacklogItem call and (b) the standalone backlog add CLI path. Fix start-backlog-link.test.ts's initRepo gitignore to match the real project (remove .codepatrol/backlog/ exemption). Add a regression test that a Plan checkpoint succeeds immediately after each backlog write path. Re-run npm run verify. Re-checkpoint. Finding 2 (minor, AC-6 wording) is optional and deferred."
+  - id: c2b70d84-7a5e-4f7a-b077-283bdee6aeaf
+    at: 2026-07-25T05:50:08.602Z
+    actor: opencode
+    stage: apply
+    attempt: 3
+    type: run-recorded
+    run:
+      id: apply-20260725T030647Z
+      started_at: 2026-07-25T03:06:47Z
+      finished_at: 2026-07-25T03:25:00Z
+      elapsed_ms: 1093000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
