@@ -220,3 +220,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Verify the backlog subsystem implementation against spec.md/plan.md AC-1..AC-N: audit backlog.ts, CLI add/list, Close/next --stage plan feeding, Kanban Backlog column (both render paths), run full gate, blast radius, regressions, unplanned changes."
+  - id: 7b01b032-6296-4d9e-b653-a75e78a300c9
+    at: 2026-07-25T02:36:47.675Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260725T021444Z
+      started_at: 2026-07-25T02:14:44Z
+      finished_at: 2026-07-25T02:36:30Z
+      elapsed_ms: 1306000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
