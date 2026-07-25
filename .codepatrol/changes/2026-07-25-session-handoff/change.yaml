@@ -212,3 +212,12 @@ events:
         reason: harness exposes no authoritative provider usage hook
         model: minimax/MiniMax-M3
         harness: opencode
+  - id: 0cc55b11-bfbb-4833-a26d-eb6fe44a0f8b
+    at: 2026-07-25T17:10:09.933Z
+    actor: minimax-m3
+    stage: apply
+    attempt: 2
+    type: stage-returned
+    to_stage: plan
+    reason: "Contract defect (blocking, found before production mutation): T6 step 3 hardcodes a Stage Session rebuild for apply attempt 1, but the current accepted Apply attempt is 2 after Apply attempt 1 returned. The literal accepted input fails with CHANGE_CONFLICT: Session apply/1 is not the current attempt. Required correction: change the rehearsal input to attempt 2 (or explicitly use the projected current Apply attempt) and keep the rehearsal scoped to that current attempt. No source or stage artifact was edited; the tracked tree is clean."
+    next_action: "codepatrol-plan 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff: correct T6 step 3 from apply attempt 1 to the projected current Apply attempt 2, then Review again"
