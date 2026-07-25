@@ -161,3 +161,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: codepatrol-review 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
+  - id: b723c5c4-345c-44ec-a80a-25704c0f7abc
+    at: 2026-07-25T17:06:33.613Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 2
+    type: run-recorded
+    run:
+      id: review-20260725T170511Z
+      started_at: 2026-07-25T17:05:11Z
+      finished_at: 2026-07-25T17:07:00Z
+      elapsed_ms: 109000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
