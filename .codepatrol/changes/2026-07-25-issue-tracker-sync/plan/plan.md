@@ -98,25 +98,39 @@ current required-field checks for the two existing kinds; no existing call site
 **Steps:**
 
 1. Add the test below to `src/change/backlog.test.ts` (existing file — check it exists and follow
-   its structure) before implementing, to observe red:
+   its structure) before implementing, to observe red. (Review finding: the previous draft of this
+   test asserted `upsertBacklogItem` throws for `{ kind: "github-issue" }` with no `workId` —
+   backwards, since that shape is exactly what T1 makes *valid*, and `upsertBacklogItem` is never
+   the real construction path for `github-issue` items in any case — `syncIssues` in T3 builds
+   `github-issue` items directly, since their `id` is `gh-issue-<number>`, not
+   `dedupKey(title)`. This corrected version tests `validateSource`'s real invariant — `workId`
+   forbidden for `github-issue`, required for the existing two kinds — through the same
+   `readBacklog`/`writeBacklog` round-trip `syncIssues` will actually use, and keeps exactly one
+   assertion that is genuinely red before T1 and green after.)
 
    ```typescript
    test("validateSource requires workId for close-trace/plan-followup but forbids it for github-issue", () => {
    	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-backlog-"));
    	try {
-   		assert.throws(() => upsertBacklogItem(workspace, { title: "x", area: "workflow", evidence: [], source: { kind: "github-issue" } as never }), /CHANGE_INVALID/);
-   		// direct write of a github-issue item with externalRef must round-trip through readBacklog
-   		writeFileSync(join(workspace, ".codepatrol", "backlog", "items.yaml"), stringify({ schema_version: 1, items: [{ id: "gh-issue-1", title: "t", priority: "p3", area: "workflow", status: "candidate", evidence: ["https://github.com/x/y/issues/1"], source: { kind: "github-issue" }, externalRef: { provider: "github", number: 1, url: "https://github.com/x/y/issues/1" }, workId: null, count: 1, firstSeenAt: "2026-07-25T00:00:00.000Z", lastSeenAt: "2026-07-25T00:00:00.000Z" }] }));
+   		// unchanged existing-kind behavior: workId still required for plan-followup
+   		assert.throws(() => upsertBacklogItem(workspace, { title: "x", area: "workflow", evidence: [], source: { kind: "plan-followup" } as never }), /CHANGE_INVALID/);
+   		const itemsDir = join(workspace, ".codepatrol", "backlog"); mkdirSync(itemsDir, { recursive: true });
+   		const itemsPath = join(itemsDir, "items.yaml");
+   		// github-issue MUST NOT carry a workId
+   		writeFileSync(itemsPath, stringify({ schema_version: 1, items: [{ id: "gh-issue-1", title: "t", priority: "p3", area: "workflow", status: "candidate", evidence: [], source: { kind: "github-issue", workId: "should-not-be-here" }, workId: null, count: 1, firstSeenAt: "2026-07-25T00:00:00.000Z", lastSeenAt: "2026-07-25T00:00:00.000Z" }] }));
+   		assert.throws(() => readBacklog(workspace), /CHANGE_INVALID/);
+   		// github-issue WITHOUT workId, WITH externalRef, round-trips cleanly — this is the red-capable assertion
+   		writeFileSync(itemsPath, stringify({ schema_version: 1, items: [{ id: "gh-issue-1", title: "t", priority: "p3", area: "workflow", status: "candidate", evidence: ["https://github.com/x/y/issues/1"], source: { kind: "github-issue" }, externalRef: { provider: "github", number: 1, url: "https://github.com/x/y/issues/1" }, workId: null, count: 1, firstSeenAt: "2026-07-25T00:00:00.000Z", lastSeenAt: "2026-07-25T00:00:00.000Z" }] }));
    		const backlog = readBacklog(workspace);
    		assert.equal(backlog.items[0]?.externalRef?.number, 1);
+   		assert.equal(backlog.items[0]?.source.workId, undefined);
    	} finally { rmSync(workspace, { recursive: true, force: true }); }
    });
    ```
 
-   Run: `node --test src/change/backlog.test.ts`. Expected red: `externalRef` is rejected as an
-   unknown field (current `ALLOWED_ITEM_KEYS` does not include it) and `source: { kind:
-   "github-issue" }` without `workId` is rejected (current `validateSource` requires `workId`
-   unconditionally).
+   Run: `node --test src/change/backlog.test.ts`. Expected red: the final `readBacklog` call
+   throws today, because `"github-issue"` is not yet in `VALID_SOURCE_KINDS` and `externalRef` is
+   not yet in `ALLOWED_ITEM_KEYS` — the test fails before reaching its final assertions.
 2. In `backlog.ts`, change `BacklogSourceKind`, `BacklogSource`, add `ExternalRef`, add
    `externalRef?: ExternalRef` to `BacklogItem`, add `"externalRef"` to `ALLOWED_ITEM_KEYS`, add
    `"github-issue"` to `VALID_SOURCE_KINDS`.
@@ -160,7 +174,12 @@ pattern invented.
    `plan/evidence/investigation.md`: `gh issue create --help`, `gh issue close --help`, `gh label
    create --help`, `gh issue list --help`. Note any drift in the Apply journal if found.
 2. Implement `NodeGhAdapter` per the spec's Proposed design, using
-   `promisify(execFile)` exactly as `git.ts` does:
+   `promisify(execFile)` exactly as `git.ts` does. It **must** take `workspace` in its constructor
+   and pass `cwd: this.workspace` to every `execute(...)` call, exactly like `NodeGitAdapter`
+   (`git.ts:33`) — a `codepatrol issues sync --workspace /elsewhere` invocation from a different
+   `process.cwd()` must still resolve `gh` against the declared workspace, not the shell's cwd
+   (Review Finding 2; this is invisible to `FakeGhAdapter`-only tests, so get it right here by
+   direct comparison against `git.ts`, not by test feedback):
 
    ```typescript
    import { execFile } from "node:child_process";
@@ -177,9 +196,10 @@ pattern invented.
    	closeIssue(number: number, reason: "completed" | "not planned", signal?: AbortSignal): Promise<void>;
    }
    export class NodeGhAdapter implements GhAdapter {
+   	constructor(readonly workspace: string) {}
    	private async run(args: string[], signal?: AbortSignal): Promise<string> {
    		try {
-   			const result = await execute("gh", args, { encoding: "utf8", signal, maxBuffer: 8 * 1024 * 1024 });
+   			const result = await execute("gh", args, { cwd: this.workspace, encoding: "utf8", signal, maxBuffer: 8 * 1024 * 1024 });
    			return result.stdout.trim();
    		} catch (cause) {
    			if (signal?.aborted) throw new CodepatrolError("CANCELLED", "Operation cancelled.", 130, true);
@@ -236,7 +256,11 @@ pattern invented.
   Promise<IssueSyncResult>` as specified
 - Invariants/errors: never calls `writeBacklog` or any `GhAdapter` mutation method when
   `options.dryRun` is true; never re-pushes a `github-issue`-sourced item (guarded by
-  `!item.externalRef` filter)
+  `!item.externalRef` filter); `syncIssues` resolves its adapter via a private `ghFor(workspace,
+  options): GhAdapter { return options.gh ?? new NodeGhAdapter(workspace); }`, mirroring
+  `orchestrator.ts`'s `gitFor` exactly — this is the one place `NodeGhAdapter` is constructed with
+  the real `workspace` (Review Finding 2); `options.gh` (the `FakeGhAdapter` override) is always
+  used when supplied, so no test ever touches the real subprocess path
 
 **Simplicity proof:** Single pass over one fetched issue snapshot; no caching layer, no retry
 logic, no rate-limit handling beyond what `gh` itself provides — none of these are required by any
