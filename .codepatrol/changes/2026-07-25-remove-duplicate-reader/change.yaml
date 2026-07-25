@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 29a54d15-b7cd-43b2-8a14-af8df8c6b976
+    at: 2026-07-25T18:36:18.131Z
+    actor: claude
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 693b6b5b130d22797dbb080d830201c496e8bfad
+    tree: ccb621122bbc9b2d0a1f6154d3a2dafcf89d1b7a
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-remove-duplicate-reader/plan/spec.md
+        sha256: 1ee3042324c87f333b8779edf8c5a3ec67381d2d3d21554f0a1db804798b3226
+        intent: create
+      - path: .codepatrol/changes/2026-07-25-remove-duplicate-reader/plan/plan.md
+        sha256: 2935a39a704611565a798c5ef01478be1b8bbb1cc7e8522467268868b181e6be
+        intent: create
+      - path: .codepatrol/changes/2026-07-25-remove-duplicate-reader/plan/evidence/investigation.md
+        sha256: 6e70d72471daa5797a0c7bb5d794c5d28601fbf1984ee4dc4bed136f152ae78d
+        intent: create
+    next_action: codepatrol-review 2026-07-25-remove-duplicate-reader on codepatrol/2026-07-25-remove-duplicate-reader
