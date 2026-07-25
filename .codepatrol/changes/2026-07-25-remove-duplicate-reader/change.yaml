@@ -48,3 +48,10 @@ events:
         sha256: 6e70d72471daa5797a0c7bb5d794c5d28601fbf1984ee4dc4bed136f152ae78d
         intent: create
     next_action: codepatrol-review 2026-07-25-remove-duplicate-reader on codepatrol/2026-07-25-remove-duplicate-reader
+  - id: 1b731882-d93f-4c77-acbc-9d4925f55cf6
+    at: 2026-07-25T18:43:38.603Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-25-remove-duplicate-reader on codepatrol/2026-07-25-remove-duplicate-reader
