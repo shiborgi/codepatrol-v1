@@ -48,3 +48,10 @@ events:
         sha256: 461659bd894fec118c8303783a304c958ce7a5be12ada0bd568a72e36dc1fe16
         intent: create
     next_action: codepatrol-review 2026-07-24-backlog-subsystem on codepatrol/2026-07-24-backlog-subsystem
+  - id: 16564860-9479-4ed5-830a-ad39df453ec6
+    at: 2026-07-25T01:21:06.903Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: "Review the backlog-subsystem Plan (attempt 2): re-check governing-doc amendment, cited extension points, dedup/priority, Close hook, start linkage, next rendering, and the Kanban Backlog column — including both Kanban render paths."
