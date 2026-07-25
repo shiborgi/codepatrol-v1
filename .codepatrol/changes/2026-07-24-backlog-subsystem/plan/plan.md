@@ -34,13 +34,13 @@ Sanction + amend the governing docs (T1), add the leaf module `src/change/backlo
 | AC-3 (Close feed: non-filler→item w/ priority; filler→none; hook failure non-blocking) | T4 | close-integration test |
 | AC-4 (`next --stage plan` Backlog section + json `backlog[]`; other stages omit) | T6 | `cli.test.ts` next-plan/next-verify |
 | AC-5 (`change start --backlogItemId` links + schedules; Kanban row populated; missing id → `INVALID_ARGUMENT` pre-branch) | T5 | start-linkage test |
-| AC-6 (Kanban first "Backlog" column; backlog-only rows; promoted flow) | T7 | `board.test.ts` + render-kanban |
+| AC-6 (Both Kanban render paths — `codepatrol status` + `render-kanban.mjs` — show the Backlog column; backlog-only rows; promoted flow) | T7 | `board.test.ts` + `codepatrol status --format markdown` + `render-kanban.mjs --format markdown` |
 | AC-7 (governing docs sanction; CONTEXT term; plan SKILL instructs `backlog add`; skills-contract asserts) | T1, T8 | `skills-contract.test.mjs`; doc grep |
 | AC-8 (`npm run verify` exit 0) | T9 | applyGate |
 
 ## Dependency order
 
-`T1` and `T2` are independent foundations. `T3` depends on `T2`. `T4` depends on `T2`. `T5` depends on `T4` (both edit `src/change/orchestrator.ts` — sequenced, not concurrent). `T6` depends on `T3` (both edit `src/cli/{commands,output,cli.test}.ts` — sequenced). `T7` depends on `T2` (board.ts reads `BacklogItem`; disjoint from T3–T6 files). `T8` is independent of T1–T7's files. `T9` depends on all.
+`T1` and `T2` are independent foundations. `T3` depends on `T2`. `T4` depends on `T2`. `T5` depends on `T4` (both edit `src/change/orchestrator.ts` — sequenced, not concurrent). `T6` depends on `T3` (both edit `src/cli/{commands,output,cli.test}.ts` — sequenced). `T7` depends on `T2` (board.ts reads `BacklogItem`) **and on `T6`** — T7 also edits `src/cli/commands.ts` (the `status` case at `:54`, to pass backlog items to `projectKanban`), which T6 owns, so the two are sequenced on that file; T7's other files (`board.ts`, `board.test.ts`, `scripts/render-kanban.mjs`) are T7-exclusive. `T8` is independent of T1–T7's files. `T9` depends on all.
 
 Sequence: `T1 → T2 → T3 → T4 → T5 → T6 → T7 → T8 → T9` (linear is simplest; T7/T8 could run after T2 in parallel with T3–T6 but own disjoint files).
 
@@ -204,12 +204,14 @@ Sequence: `T1 → T2 → T3 → T4 → T5 → T6 → T7 → T8 → T9` (linear i
 
 **Purpose:** Satisfies AC-6.
 
-**Depends on:** T2 (reads `BacklogItem`/`listBacklog`); disjoint from T3–T6 files
+**Depends on:** T2 (reads `BacklogItem`/`listBacklog`) and T6 (T7 also edits `src/cli/commands.ts` — the `status` case at `:54` — which T6 owns; sequenced, not concurrent. `board.ts`, `board.test.ts`, `scripts/render-kanban.mjs` are T7-exclusive.)
 
 **Files:**
 
-- Modify: `src/change/board.ts` — `KanbanRow.backlog`; `projectKanban` linkage + backlog-only rows; `renderKanbanMarkdown` header
+- Modify: `src/change/board.ts` — `KanbanRow.backlog`; `projectKanban` gains optional `backlogItems?: BacklogItem[]` + linkage + backlog-only rows; `renderKanbanMarkdown` header
 - Modify: `src/change/board.test.ts` — Kanban backlog tests
+- Modify: `src/cli/commands.ts` — `case "status"` (`:54`) passes `readBacklog(workspace).items` to `projectKanban` (same file as T6's `next` case — sequenced after T6)
+- Modify: `scripts/render-kanban.mjs` — `renderKanban` passes `readBacklog(workspace).items` to `projectKanban`
 
 **Interfaces:**
 
@@ -219,11 +221,11 @@ Sequence: `T1 → T2 → T3 → T4 → T5 → T6 → T7 → T8 → T9` (linear i
 
 **Steps:**
 
-1. Add `board.test.ts` cases: with a backlog-only `candidate` p2 item and no Changes, `projectKanban([])` yields one row with `backlog`=`p2 · candidate` and all stage cells `-`; with a Change whose `workId` matches a backlog item, the Change row's `backlog` cell is populated and no separate backlog-only row exists for it; `renderKanbanMarkdown` header has "Backlog" as the first stage column; promoted + backlog-only mix renders exactly the right row count.
+1. Add `board.test.ts` cases: with a backlog-only `candidate` p2 item and no Changes, `projectKanban([], { backlogItems: [item] })` yields one row with `backlog`=`p2 · candidate` and all stage cells `-`; with a Change whose `workId` matches a backlog item, the Change row's `backlog` cell is populated and no separate backlog-only row exists for it; `renderKanbanMarkdown` header has "Backlog" as the first stage column; promoted + backlog-only mix renders exactly the right row count; when `backlogItems` is omitted, no backlog-only rows appear and Change-row `backlog` cells are `-` (back-compat).
 2. Run `node --test --import jiti/register src/change/board.test.ts`. Expected red.
-3. Implement `board.ts` per the interfaces/invariants. Read items via `listBacklog(workspace, { open: true })` + also include promoted items (those with `workId`) — expose a `readBacklog`-based helper or have `projectKanban` accept the workspace and read. (Decide: `projectKanban(changes, options)` currently takes only changes; add an optional `backlogItems?: BacklogItem[]` parameter and have `render-kanban.mjs`/`commands.ts` pass `readBacklog(workspace).items`, keeping `projectKanban` pure/testable.)
+3. Implement `board.ts` per the interfaces/invariants: `projectKanban(changes, options & { backlogItems? })` keeps the projector pure by taking `backlogItems` as a parameter (it does NOT read the workspace). Then update BOTH render-path callers to pass items: `src/cli/commands.ts:54` (`case "status"` → `projectKanban(changes, { ..., backlogItems: readBacklog(workspace).items })`) and `scripts/render-kanban.mjs` (`renderKanban` → pass `readBacklog(args.workspace).items`). `commands.ts:54` is the same file T6 edits (`next` case at `:57`) — apply T7's status-case edit after T6.
 4. Run the test. Expected green.
-5. `node --import jiti/register scripts/render-kanban.mjs --workspace "$PWD" --format markdown` → confirm the "Backlog" column appears.
+5. `codepatrol status --workspace "$PWD" --format markdown` AND `node --import jiti/register scripts/render-kanban.mjs --workspace "$PWD" --format markdown` → confirm the "Backlog" column appears in BOTH render paths and they agree.
 
 **Task result:** append to `apply/journal.md`.
 

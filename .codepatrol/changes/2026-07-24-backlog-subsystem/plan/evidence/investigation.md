@@ -133,3 +133,37 @@ spec and made durable by amending the two governing docs in T1.
   not ignored), so it is trackable. `.gitignore:6` ignores
   `.codepatrol/runtime/` only; `.gitignore:7` ignores
   `docs/codepatrol/improvement-reports/` (unrelated).
+
+## Attempt 2 — Kanban two-render-path finding (from Review return)
+
+Review attempt 1 returned `fix-first` with one bounded finding: the
+Kanban has two production render paths, and attempt 1's T7 declared
+only `board.ts`/`board.test.ts` and claimed disjointness while AC-6
+named only the script.
+
+- `src/cli/commands.ts:52-55` `case "status"` calls
+  `projectKanban(inspectChanges(…), …)` then
+  `text: renderKanbanMarkdown(data)` — this is the primary Kanban
+  command (`codepatrol status`), distinct from `case "next"` at `:57`
+  (which uses `renderNext`, not the Kanban).
+- `scripts/render-kanban.mjs` is the second render path (same
+  `projectKanban`/`renderKanbanMarkdown`).
+- `rg projectKanban src scripts` → exactly two production callers:
+  `commands.ts:54` and `render-kanban.mjs`.
+
+Correction in attempt 2: AC-6 asserts both paths; T7 files add
+`src/cli/commands.ts` (the `status` case) and `scripts/render-kanban.mjs`;
+T7 depends on T6 (both edit `src/cli/commands.ts` — `status` vs `next`
+cases, sequenced); `projectKanban` stays pure by taking an optional
+`backlogItems` parameter that both callers populate from
+`readBacklog(workspace).items`.
+
+Rework-checkpoint mechanic verified: a Plan re-checkpoint after a Review
+return compares trees from the plan-attempt-1 checkpoint
+(`521426dc`, where `review/report.md` did not exist) to HEAD. The
+invalidated review's `review/report.md` (committed during the returned
+Review) must therefore be removed before re-checkpointing — otherwise
+`orchestrator.ts:255` rejects it as an undeclared worktree path (a plan
+checkpoint may only declare `plan/` artifacts per `validation.ts:27`).
+The finding is preserved in the `stage-returned` event's `reason` and in
+git history; removal is forward-only (no history rewrite).
