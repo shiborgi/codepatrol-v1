@@ -69,3 +69,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 99dd69e4-b946-44ec-abf1-90c40f61859b
+    at: 2026-07-25T01:22:43.771Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first (major plan/executability): the Kanban has two production render paths — codepatrol status (src/cli/commands.ts:54, projectKanban+renderKanbanMarkdown) and scripts/render-kanban.mjs — but AC-6 (spec.md:135) names only the script, and T7 (plan.md:207-212) declares only board.ts/board.test.ts and falsely claims 'disjoint from T3-T6 files'. To keep projectKanban pure, BOTH callers must pass readBacklog(workspace).items; the status call site is src/cli/commands.ts, which T6 (next case) also edits, so T7 must add commands.ts to its Files and depend on T6 (not disjoint). Literal execution would ship the primary codepatrol-status Kanban with an empty/absent Backlog column and collide T6/T7 on commands.ts. Fix: widen AC-6 to assert both render paths; add the status case to T7's files; make T7 depend on T6. Kanban architecture (KanbanRow.backlog cell, workId linkage, backlog-only rows) needs no re-derivation; AC-1..AC-5 and AC-7 are red-capable and the governing-doc amendment (T1) resolves the prior rework. See review/report.md."
+    next_action: codepatrol-plan 2026-07-24-backlog-subsystem on codepatrol/2026-07-24-backlog-subsystem
