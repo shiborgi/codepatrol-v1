@@ -362,3 +362,10 @@ events:
       exit_code: 0
       elapsed_ms: 18586
       at: 2026-07-25T05:50:27.522Z
+  - id: 00bfa250-5d36-4e6d-99a4-a862679f036e
+    at: 2026-07-25T10:04:58.750Z
+    actor: opencode-verify
+    stage: verify
+    attempt: 3
+    type: stage-began
+    next_action: verify 2026-07-24-backlog-subsystem on codepatrol/2026-07-24-backlog-subsystem
