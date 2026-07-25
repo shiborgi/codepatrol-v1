@@ -177,3 +177,27 @@ events:
         reason: harness exposes no authoritative provider usage hook
         model: minimax/MiniMax-M3
         harness: opencode
+  - id: 2b547c9b-d8e6-448a-b6e1-cf3612b4faf0
+    at: 2026-07-25T16:04:50.347Z
+    actor: minimax-m3
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 35292feb009a173ea1ddd93e7a2609d53a980ece
+    tree: f649ecba011f5f6698766993b710509562d853f4
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-commit-scoping/apply/journal.md
+        sha256: 2351cea7fea1bd897e642eb5e7db176ea11b0478b832a16caaf34a9e09bbbe61
+        intent: create
+    changes:
+      - src/change/close-integration.test.ts
+      - src/change/git.test.ts
+      - src/change/git.ts
+      - src/change/orchestrator.ts
+    next_action: codepatrol-verify 2026-07-25-commit-scoping on codepatrol/2026-07-25-commit-scoping
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 18703
+      at: 2026-07-25T16:04:50.281Z
