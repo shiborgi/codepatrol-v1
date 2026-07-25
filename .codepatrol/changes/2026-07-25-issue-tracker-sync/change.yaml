@@ -161,3 +161,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-25-issue-tracker-sync on codepatrol/2026-07-25-issue-tracker-sync
+  - id: cc6c9dc9-c31c-4d25-b4bd-013a9a3c4e1e
+    at: 2026-07-25T23:14:29.932Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-25T23:01:00.000Z
+      finished_at: 2026-07-25T23:14:24.000Z
+      elapsed_ms: 804000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
