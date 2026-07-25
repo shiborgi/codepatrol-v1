@@ -236,3 +236,10 @@ events:
         sha256: 2fd4a7bb96455cb29e7134f7893b95acf2bee4b92be91b3ac06723e187d5ce2a
         intent: create
     next_action: codepatrol-close 2026-07-25-commit-scoping commit|rollback on codepatrol/2026-07-25-commit-scoping
+  - id: 7e3de561-d25b-4a3c-9687-8dc3643ffff1
+    at: 2026-07-25T16:18:53.554Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: "Close 2026-07-25-commit-scoping with commit+push: fast-forward main to the Verify commit candidate, tag codepatrol/committed/2026-07-25-commit-scoping, delete the feature branch, push main to origin."
