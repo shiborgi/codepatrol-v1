@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-25-docs-consolidation
+  title: "Revalidate docs/ and .codepatrol/ artifacts: fold durable follow-ups into the backlog, consolidate the rest under .codepatrol/docs"
+  created_at: 2026-07-25T10:16:48.820Z
+  branch: codepatrol/2026-07-25-docs-consolidation
+  target_branch: main
+  base_commit: 9cf610d961294a0c00baa8464d79f2f950c16783
+events:
+  - id: 4f384c70-9e7a-4cf3-b768-71ce1c1ae123
+    type: change-started
+    at: 2026-07-25T10:16:48.820Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-25-docs-consolidation on codepatrol/2026-07-25-docs-consolidation
