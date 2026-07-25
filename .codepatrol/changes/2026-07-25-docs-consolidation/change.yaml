@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 8577430f-b746-402b-8f1e-c4ccb20c28fa
+    at: 2026-07-25T10:26:55.202Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: fbc76735aeac0d9d6fe8aff40ef9cf8d85de9143
+    tree: b320f61dc61440a27e86df88b16879264d35fdff
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-docs-consolidation/plan/spec.md
+        sha256: b849ffba0a09ae20b763251b7a65656a7d95e7973a7c38e5bd3bbf605a2b5e21
+        intent: create
+      - path: .codepatrol/changes/2026-07-25-docs-consolidation/plan/plan.md
+        sha256: 34ca19109b90ec8b13ee54cab4cd1772f617caa481e7c4bac4d54c079d066cff
+        intent: create
+      - path: .codepatrol/changes/2026-07-25-docs-consolidation/plan/evidence/investigation.md
+        sha256: 15b9f498b781a822b8f3bc0b5024fd02a72cc998a62f592631d12733bb1076ab
+        intent: create
+    next_action: codepatrol-review 2026-07-25-docs-consolidation on codepatrol/2026-07-25-docs-consolidation
