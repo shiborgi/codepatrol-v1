@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Execute accepted Apply tasks T1-T3 for 2026-07-25-remove-duplicate-reader
+  - id: e06a0b02-70ab-4069-b537-1ba604a86075
+    at: 2026-07-25T18:58:06.081Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: run-app1
+      started_at: 2026-07-25T18:41:00.000Z
+      finished_at: 2026-07-25T18:50:00.000Z
+      elapsed_ms: 540000
+      characters:
+        status: unavailable
+        reason: no provider hook
