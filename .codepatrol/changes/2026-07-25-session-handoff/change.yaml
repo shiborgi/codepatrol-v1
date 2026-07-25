@@ -304,3 +304,19 @@ events:
     attempt: 3
     type: stage-began
     next_action: Execute accepted Apply tasks T1-T6 in dependency order for 2026-07-25-session-handoff on Apply attempt 3
+  - id: bfb89b5a-2d5e-4320-b85a-c1f9d092e8dc
+    at: 2026-07-25T18:01:34.382Z
+    actor: minimax-m3
+    stage: apply
+    attempt: 3
+    type: run-recorded
+    run:
+      id: apply-20260725T174403Z
+      started_at: 2026-07-25T17:44:03.008Z
+      finished_at: 2026-07-25T18:01:34.139Z
+      elapsed_ms: 1051131
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
+        model: minimax/MiniMax-M3
+        harness: opencode
