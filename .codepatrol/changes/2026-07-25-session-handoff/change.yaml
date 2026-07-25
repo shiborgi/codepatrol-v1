@@ -228,3 +228,17 @@ events:
     attempt: 3
     type: stage-began
     next_action: "Re-plan after Apply attempt 2 returned: fix T6 step 3 attempt hardcoding, and fold in three validated defects found by the multi-model/persona compatibility review (attempt-blind reconciliation AC-10, persona-blind evidence AC-11, persona item ids DC-4)."
+  - id: 2b80264e-445d-4af8-b828-28555bebbb9f
+    at: 2026-07-25T17:15:21.327Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 3
+    type: run-recorded
+    run:
+      id: plan-20260725T171122Z
+      started_at: 2026-07-25T17:11:22Z
+      finished_at: 2026-07-25T17:15:12Z
+      elapsed_ms: 230000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
