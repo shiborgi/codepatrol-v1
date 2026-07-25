@@ -294,3 +294,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: "Fresh-eyes re-verify Apply attempt 2's fix for the Finding 1 backlog-tracking defect: confirm the Close-hook path now commits items.yaml, and independently probe whether the change-start/backlogItemId linkage and the T8 plan-followup backlog-add path (the two other backlog write paths) still leave the repo checkpoint-safe now that parseStatusPaths no longer whitelists .codepatrol/backlog/."
+  - id: ee5a8ab3-7d91-4716-b574-3164af74bf62
+    at: 2026-07-25T03:03:14.327Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 2
+    type: run-recorded
+    run:
+      id: verify-20260725T030051Z
+      started_at: 2026-07-25T03:00:51Z
+      finished_at: 2026-07-25T03:03:07Z
+      elapsed_ms: 136000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
