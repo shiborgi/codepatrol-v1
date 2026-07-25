@@ -48,3 +48,10 @@ events:
         sha256: 15b9f498b781a822b8f3bc0b5024fd02a72cc998a62f592631d12733bb1076ab
         intent: create
     next_action: codepatrol-review 2026-07-25-docs-consolidation on codepatrol/2026-07-25-docs-consolidation
+  - id: d04435e6-a8cb-44b5-8f6b-0936b7998ed1
+    at: 2026-07-25T10:31:33.895Z
+    actor: opencode-review
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: review 2026-07-25-docs-consolidation on codepatrol/2026-07-25-docs-consolidation
