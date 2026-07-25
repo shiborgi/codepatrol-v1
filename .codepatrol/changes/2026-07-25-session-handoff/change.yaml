@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-25-session-handoff
+  title: Make the Stage Session a faithful, resumable per-step todo list so a stopped harness can be replaced mid-stage, and reconcile it with the existing trace
+  created_at: 2026-07-25T16:28:59.852Z
+  branch: codepatrol/2026-07-25-session-handoff
+  target_branch: main
+  base_commit: c8d8ddc815dd19912ce91fb6973a703100083a3a
+events:
+  - id: fa1ab970-89f5-4ebe-9048-7ca2d3d63d1b
+    type: change-started
+    at: 2026-07-25T16:28:59.852Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
