@@ -104,3 +104,25 @@ events:
       characters:
         status: unavailable
         reason: no provider hook
+  - id: 21a8335a-863f-46dc-b1d4-a2367346d592
+    at: 2026-07-25T18:58:36.359Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 17aa8b1c5f6ea043442215463695a7832699c9a3
+    tree: a9c9be0a46df40e5eb0ecce644a3a92285333e5c
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-remove-duplicate-reader/apply/journal.md
+        sha256: 32b05329754a37aae61be040be5d1a926be072b42118d0b76e8816a9baf9b27a
+        intent: create
+    changes:
+      - src/change/improvement-report.ts
+      - src/change/improvement-report.test.ts
+    next_action: codepatrol-verify 2026-07-25-remove-duplicate-reader on codepatrol/2026-07-25-remove-duplicate-reader
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 18853
+      at: 2026-07-25T18:58:36.300Z
