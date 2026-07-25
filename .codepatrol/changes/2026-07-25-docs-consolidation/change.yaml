@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-25-docs-consolidation on codepatrol/2026-07-25-docs-consolidation
+  - id: 8e8a4abe-1304-47e3-8d88-eb007cdfd243
+    at: 2026-07-25T10:26:05.611Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-20260725T101648Z
+      started_at: 2026-07-25T10:16:48Z
+      finished_at: 2026-07-25T10:25:58Z
+      elapsed_ms: 550000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
