@@ -418,3 +418,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: a00be0b9-c650-46f3-b43a-865285bf2390
+    at: 2026-07-25T10:12:35.501Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 8f71cd802a30edf02a911bbb4e0f29653ca4c1ff
+    tag: codepatrol/committed/2026-07-24-backlog-subsystem
+    receipt: close/receipt.md

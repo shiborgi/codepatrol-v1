@@ -1,0 +1,28 @@
+schema_version: 1
+items:
+  - id: top-error-code-invalid-argument-investigate-the-first-occurrence-s-args-and-stage-context
+    title: "Top error code: INVALID_ARGUMENT (8). Investigate the first occurrence's args and stage context."
+    priority: p1
+    area: workflow
+    status: candidate
+    evidence: []
+    source:
+      kind: close-trace
+      workId: 2026-07-24-backlog-subsystem
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-25T10:12:35.558Z
+    lastSeenAt: 2026-07-25T10:12:35.558Z
+  - id: command-change-transition-was-invoked-times-consider-caching-or-batching-repeated-invocations
+    title: Command "change.transition" was invoked 52 times — consider caching or batching repeated invocations.
+    priority: p3
+    area: workflow
+    status: candidate
+    evidence: []
+    source:
+      kind: close-trace
+      workId: 2026-07-24-backlog-subsystem
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-25T10:12:35.564Z
+    lastSeenAt: 2026-07-25T10:12:35.564Z
