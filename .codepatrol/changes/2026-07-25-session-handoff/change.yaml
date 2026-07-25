@@ -83,3 +83,10 @@ events:
         sha256: 9dddb78880065c33777b6a5247ef843501726913206a8e51df5f5ba6712d6421
         intent: create
     next_action: codepatrol-apply 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
+  - id: eb61cb08-459b-4107-bfe2-fb9e1f9c41cb
+    at: 2026-07-25T16:45:33.770Z
+    actor: claude-opus-5
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: "Apply session-handoff: T1 per-stage checklists, T2 evidence reconciliation, T3 trace synergy + abandoned-item signal, T4 contract/skill alignment, T5 verify."
