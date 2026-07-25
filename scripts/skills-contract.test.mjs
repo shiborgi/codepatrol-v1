@@ -8,7 +8,7 @@ const root = resolve(import.meta.dirname, "..", "skills");
 const shared = join(root, "_shared");
 const lifecycle = ["codepatrol-plan", "codepatrol-review", "codepatrol-apply", "codepatrol-verify", "codepatrol-close"];
 const primaries = [...lifecycle, "codepatrol-status"];
-const support = ["assess-change", "codebase-design", "diagnose-bug", "domain-modeling", "execute-change", "grilling", "research-technology", "solution-simplification", "verification-strategy", "writing-plans"];
+const support = ["assess-change", "codebase-design", "codepatrol-git", "diagnose-bug", "domain-modeling", "execute-change", "grilling", "research-technology", "solution-simplification", "verification-strategy", "writing-plans"];
 const catalog = parseYaml(readFileSync(join(root, "catalog.yaml"), "utf8"));
 function skill(name) { return readFileSync(join(root, name, "SKILL.md"), "utf8"); }
 

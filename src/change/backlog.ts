@@ -7,9 +7,10 @@ import { resolveInside } from "../shared/workspace.js";
 export type BacklogPriority = "p0" | "p1" | "p2" | "p3";
 export type BacklogArea = "architecture" | "workflow" | "skills";
 export type BacklogStatus = "candidate" | "scheduled" | "done" | "dismissed";
-export type BacklogSourceKind = "close-trace" | "plan-followup";
+export type BacklogSourceKind = "close-trace" | "plan-followup" | "github-issue";
 
-export interface BacklogSource { kind: BacklogSourceKind; workId: string }
+export interface BacklogSource { kind: BacklogSourceKind; workId?: string }
+export interface ExternalRef { provider: "github"; number: number; url: string }
 export interface BacklogItem {
 	id: string;
 	title: string;
@@ -18,6 +19,7 @@ export interface BacklogItem {
 	status: BacklogStatus;
 	evidence: string[];
 	source: BacklogSource;
+	externalRef?: ExternalRef;
 	workId: string | null;
 	count: number;
 	firstSeenAt: string;
@@ -29,10 +31,11 @@ export const PRIORITY_ORDER: BacklogPriority[] = ["p0", "p1", "p2", "p3"];
 const VALID_PRIORITIES = new Set<BacklogPriority>(PRIORITY_ORDER);
 const VALID_AREAS = new Set<BacklogArea>(["architecture", "workflow", "skills"]);
 const VALID_STATUSES = new Set<BacklogStatus>(["candidate", "scheduled", "done", "dismissed"]);
-const VALID_SOURCE_KINDS = new Set<BacklogSourceKind>(["close-trace", "plan-followup"]);
+const VALID_SOURCE_KINDS = new Set<BacklogSourceKind>(["close-trace", "plan-followup", "github-issue"]);
 
-const ALLOWED_ITEM_KEYS = new Set(["id", "title", "priority", "area", "status", "evidence", "source", "workId", "count", "firstSeenAt", "lastSeenAt"]);
+const ALLOWED_ITEM_KEYS = new Set(["id", "title", "priority", "area", "status", "evidence", "source", "externalRef", "workId", "count", "firstSeenAt", "lastSeenAt"]);
 const ALLOWED_SOURCE_KEYS = new Set(["kind", "workId"]);
+const ALLOWED_EXTERNAL_REF_KEYS = new Set(["provider", "number", "url"]);
 const ALLOWED_ROOT_KEYS = new Set(["schema_version", "items"]);
 
 function isPriority(value: unknown): value is BacklogPriority { return typeof value === "string" && VALID_PRIORITIES.has(value as BacklogPriority); }
@@ -45,12 +48,27 @@ export function backlogPath(workspace: string): string {
 }
 
 function validateSource(source: unknown, itemId: string): BacklogSource {
-	if (!source || typeof source !== "object" || Array.isArray(source)) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${itemId} source must be an object.`, 4);
-	for (const key of Object.keys(source as Record<string, unknown>)) if (!ALLOWED_SOURCE_KEYS.has(key)) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${itemId} source contains unknown field ${key}.`, 4);
+	if (!source || typeof source !== "object" || Array.isArray(source)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} source must be an object.`, 4);
+	for (const key of Object.keys(source as Record<string, unknown>)) if (!ALLOWED_SOURCE_KEYS.has(key)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} source contains unknown field ${key}.`, 4);
 	const obj = source as Record<string, unknown>;
-	if (!isSourceKind(obj.kind)) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${itemId} source.kind is invalid.`, 4);
-	if (typeof obj.workId !== "string" || !obj.workId.trim()) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${itemId} source.workId must be a non-empty string.`, 4);
+	if (!isSourceKind(obj.kind)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} source.kind is invalid.`, 4);
+	if (obj.kind === "github-issue") {
+		if (obj.workId !== undefined) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} source.workId must be absent for kind github-issue.`, 4);
+		return { kind: "github-issue" };
+	}
+	if (typeof obj.workId !== "string" || !obj.workId.trim()) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} source.workId must be a non-empty string.`, 4);
 	return { kind: obj.kind, workId: obj.workId };
+}
+
+function validateExternalRef(ref: unknown, itemId: string): ExternalRef | undefined {
+	if (ref === undefined) return undefined;
+	if (!ref || typeof ref !== "object" || Array.isArray(ref)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef must be an object.`, 4);
+	for (const key of Object.keys(ref as Record<string, unknown>)) if (!ALLOWED_EXTERNAL_REF_KEYS.has(key)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef contains unknown field ${key}.`, 4);
+	const obj = ref as Record<string, unknown>;
+	if (obj.provider !== "github") throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef.provider must be "github".`, 4);
+	if (!Number.isSafeInteger(obj.number) || (obj.number as number) < 1) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef.number must be a positive integer.`, 4);
+	if (typeof obj.url !== "string" || !obj.url.trim()) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef.url must be a non-empty string.`, 4);
+	return { provider: "github", number: obj.number as number, url: obj.url };
 }
 
 function validateItem(raw: unknown, index: number): BacklogItem {
@@ -64,11 +82,12 @@ function validateItem(raw: unknown, index: number): BacklogItem {
 	if (!isStatus(item.status)) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${item.id} status is invalid.`, 4);
 	if (!Array.isArray(item.evidence) || item.evidence.some((entry) => typeof entry !== "string")) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${item.id} evidence must be an array of strings.`, 4);
 	const source = validateSource(item.source, item.id);
+	const externalRef = validateExternalRef(item.externalRef, item.id);
 	if (item.workId !== null && typeof item.workId !== "string") throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${item.id} workId must be a string or null.`, 4);
 	if (!Number.isSafeInteger(item.count) || (item.count as number) < 1) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${item.id} count must be a positive integer.`, 4);
 	if (typeof item.firstSeenAt !== "string" || !Number.isFinite(Date.parse(item.firstSeenAt))) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${item.id} firstSeenAt must be an ISO timestamp.`, 4);
 	if (typeof item.lastSeenAt !== "string" || !Number.isFinite(Date.parse(item.lastSeenAt))) throw new CodepatrolError("CHANGE_INVALID", `Backlog item ${item.id} lastSeenAt must be an ISO timestamp.`, 4);
-	return { id: item.id, title: item.title, priority: item.priority, area: item.area, status: item.status, evidence: item.evidence as string[], source, workId: item.workId as string | null, count: item.count as number, firstSeenAt: item.firstSeenAt, lastSeenAt: item.lastSeenAt };
+	return { id: item.id, title: item.title, priority: item.priority, area: item.area, status: item.status, evidence: item.evidence as string[], source, ...(externalRef ? { externalRef } : {}), workId: item.workId as string | null, count: item.count as number, firstSeenAt: item.firstSeenAt, lastSeenAt: item.lastSeenAt };
 }
 
 function validate(root: unknown): Backlog {

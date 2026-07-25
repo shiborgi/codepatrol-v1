@@ -1,5 +1,6 @@
 import type { ChangeView, Stage } from "../change/types.js";
 import type { BacklogItem } from "../change/backlog.js";
+import type { IssueSyncResult } from "../change/issue-sync.js";
 import type { GraphImpactData, GraphNeighborsData, GraphOverviewData, OutlineFile } from "../graph/service.js";
 import type { GraphNode } from "../graph/model.js";
 import { formatTable, mermaidModuleMap } from "../graph/render.js";
@@ -47,6 +48,9 @@ Change lifecycle commands:
   change close --id <work-id> --input <file|->
   backlog add --input <file|->
   backlog list [--status <candidate|scheduled|done|dismissed>]
+
+Issue sync commands:
+  issues sync [--direction pull|push|both] [--dry-run]
 
 Graph commands:
   graph sync [--force]
@@ -166,4 +170,19 @@ export function renderSummary(view: ChangeView): string {
 export function renderBacklogList(items: BacklogItem[]): string {
 	if (!items.length) return "(no backlog items)";
 	return formatTable(["id", "title", "priority", "area", "status", "count"], items.map((entry) => [entry.id, entry.title, entry.priority, entry.area, entry.status, String(entry.count)]));
+}
+
+export function renderIssueSyncResult(result: IssueSyncResult): string {
+	const lines: string[] = [];
+	const pull = result.pulled;
+	lines.push(`Pull: ${pull.created.length} created, ${pull.dismissed.length} dismissed, ${pull.reopened.length} reopened, ${pull.skippedClosed} closed skipped.`);
+	if (pull.created.length) lines.push(`  created: ${pull.created.join(", ")}`);
+	if (pull.dismissed.length) lines.push(`  dismissed: ${pull.dismissed.join(", ")}`);
+	if (pull.reopened.length) lines.push(`  reopened: ${pull.reopened.join(", ")}`);
+	const push = result.pushed;
+	lines.push(`Push: ${push.created.length} created, ${push.closed.length} closed.`);
+	if (push.created.length) lines.push(`  created: ${push.created.join(", ")}`);
+	if (push.closed.length) lines.push(`  closed: ${push.closed.join(", ")}`);
+	if (result.dryRun) lines.push("(dry run)");
+	return lines.join("\n");
 }

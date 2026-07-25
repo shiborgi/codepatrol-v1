@@ -5,11 +5,12 @@ import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
 import type { ParsedArgs } from "./args.js";
 import { requireValue, KNOWN_COMMANDS } from "./args.js";
-import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary, renderBacklogList } from "./output.js";
+import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary, renderBacklogList, renderIssueSyncResult } from "./output.js";
 import { closeChange, inspectChanges, startChange, transitionChange } from "../change/orchestrator.js";
 import { projectKanban, renderKanbanMarkdown } from "../change/board.js";
 import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStageSession, readStageSession, sessionStatus } from "../change/session.js";
 import { listBacklog, upsertBacklogItem, readBacklog, type BacklogArea, type BacklogPriority, type BacklogSource, type BacklogStatus } from "../change/backlog.js";
+import { syncIssues, type GhAdapter, type SyncDirection } from "../change/issue-sync.js";
 import type { CloseInput, Stage, StartChangeInput, TransitionIntent } from "../change/types.js";
 
 export interface CommandResult {
@@ -17,6 +18,10 @@ export interface CommandResult {
 	text: string;
 	warnings?: string[];
 	exitCode?: 0 | 4;
+}
+
+export interface CommandOverrides {
+	gh?: GhAdapter;
 }
 
 function relativePath(workspace: string, path: string): string {
@@ -48,7 +53,7 @@ function readJsonInput(workspace: string, input: string, label: string): unknown
 	catch { throw new CodepatrolError("INVALID_ARGUMENT", `${label} input is not valid JSON.`, 2); }
 }
 
-export async function executeCommand(args: ParsedArgs, workspace: string, signal: AbortSignal): Promise<CommandResult> {
+export async function executeCommand(args: ParsedArgs, workspace: string, signal: AbortSignal, overrides?: CommandOverrides): Promise<CommandResult> {
 	switch (args.command) {
 		case "status": {
 			if (args.asOf && !Number.isFinite(Date.parse(args.asOf))) throw new CodepatrolError("INVALID_ARGUMENT", "--as-of must be an ISO timestamp.", 2);
@@ -177,6 +182,12 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 			if (status !== undefined && !["candidate", "scheduled", "done", "dismissed"].includes(status)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog list --status must be one of candidate|scheduled|done|dismissed, got ${status}.`, 2);
 			const items = listBacklog(workspace, status ? { status } : {});
 			return { data: items, text: renderBacklogList(items) };
+		}
+		case "issues.sync": {
+			const direction = (args.direction ?? "both") as SyncDirection;
+			if (!["pull", "push", "both"].includes(direction)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: issues sync --direction must be one of pull|push|both, got ${direction}.`, 2);
+			const result = await syncIssues(workspace, direction, { signal, dryRun: args.dryRun, ...(overrides?.gh ? { gh: overrides.gh } : {}) });
+			return { data: result, text: renderIssueSyncResult(result) };
 		}
 	}
 }

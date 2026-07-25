@@ -26,13 +26,16 @@ export interface ParsedArgs {
 	asOf?: string;
 	stage?: string;
 	status?: string;
+	direction?: string;
+	dryRun?: boolean;
 }
 
-const BOOLEAN_FLAGS = new Set(["help", "version", "force", "exact", "include-ambiguous", "all"]);
+const BOOLEAN_FLAGS = new Set(["help", "version", "force", "exact", "include-ambiguous", "all", "dry-run"]);
 const REPEATABLE = new Set(["file", "symbol", "relation"]);
 const KNOWN = new Set([
 	"workspace", "format", "help", "version", "force", "path", "query", "exact", "symbol", "file",
 	"relation", "since-ref", "include-ambiguous", "input", "id", "all", "as-of", "stage", "status",
+	"direction", "dry-run",
 ]);
 const GLOBAL = new Set(["workspace", "format", "help", "version"]);
 const COMMAND_OPTIONS = new Map<string, Set<string>>([
@@ -53,6 +56,7 @@ const COMMAND_OPTIONS = new Map<string, Set<string>>([
 	["change.summary", new Set(["id"])],
 	["backlog.add", new Set(["input"])],
 	["backlog.list", new Set(["status"])],
+	["issues.sync", new Set(["direction", "dry-run"])],
 ]);
 
 export const KNOWN_COMMANDS: string[] = [...COMMAND_OPTIONS.keys()];
@@ -127,6 +131,8 @@ export function parseArgs(argv: string[]): ParsedArgs {
 		asOf: values.get("as-of")?.[0],
 		stage: values.get("stage")?.[0],
 		status: values.get("status")?.[0],
+		direction: values.get("direction")?.[0],
+		dryRun: values.has("dry-run"),
 	};
 }
 

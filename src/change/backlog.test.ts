@@ -127,3 +127,18 @@ test("readBacklog rejects malformed yaml (unknown top-level key)", () => {
 		assert.throws(() => readBacklog(root), /CHANGE_INVALID/);
 	} finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test("validateSource requires workId for close-trace/plan-followup but forbids it for github-issue", () => {
+	const root = mkdtempSync(join(tmpdir(), "codepatrol-backlog-"));
+	try {
+		assert.throws(() => upsertBacklogItem(root, { title: "x", area: "workflow", evidence: [], source: { kind: "plan-followup" } as never }), /CHANGE_INVALID/);
+		const itemsDir = join(root, ".codepatrol", "backlog"); mkdirSync(itemsDir, { recursive: true });
+		const itemsPath = join(itemsDir, "items.yaml");
+		writeFileSync(itemsPath, stringify({ schema_version: 1, items: [{ id: "gh-issue-1", title: "t", priority: "p3", area: "workflow", status: "candidate", evidence: [], source: { kind: "github-issue", workId: "should-not-be-here" }, workId: null, count: 1, firstSeenAt: "2026-07-25T00:00:00.000Z", lastSeenAt: "2026-07-25T00:00:00.000Z" }] }));
+		assert.throws(() => readBacklog(root), /CHANGE_INVALID/);
+		writeFileSync(itemsPath, stringify({ schema_version: 1, items: [{ id: "gh-issue-1", title: "t", priority: "p3", area: "workflow", status: "candidate", evidence: ["https://github.com/x/y/issues/1"], source: { kind: "github-issue" }, externalRef: { provider: "github", number: 1, url: "https://github.com/x/y/issues/1" }, workId: null, count: 1, firstSeenAt: "2026-07-25T00:00:00.000Z", lastSeenAt: "2026-07-25T00:00:00.000Z" }] }));
+		const backlog = readBacklog(root);
+		assert.equal(backlog.items[0]?.externalRef?.number, 1);
+		assert.equal(backlog.items[0]?.source.workId, undefined);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
