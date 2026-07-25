@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
+  - id: c16bae28-8973-4b25-8278-cdf48f627371
+    at: 2026-07-25T16:36:37.563Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-20260725T162845Z
+      started_at: 2026-07-25T16:28:45Z
+      finished_at: 2026-07-25T16:36:28Z
+      elapsed_ms: 463000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
