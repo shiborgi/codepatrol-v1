@@ -243,3 +243,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Close 2026-07-25-commit-scoping with commit+push: fast-forward main to the Verify commit candidate, tag codepatrol/committed/2026-07-25-commit-scoping, delete the feature branch, push main to origin."
+  - id: c9fe8b49-d330-4a9c-a016-fcecce13389d
+    at: 2026-07-25T16:19:03.105Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-20260725T161849Z
+      started_at: 2026-07-25T16:18:49Z
+      finished_at: 2026-07-25T16:18:56Z
+      elapsed_ms: 7000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
