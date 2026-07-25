@@ -13,7 +13,7 @@ import { CodepatrolError } from "../shared/errors.js";
 function gitCommand(workspace: string, args: string[]): string { return execFileSync("git", args, { cwd: workspace, encoding: "utf8" }).trim(); }
 function binding(workspace: string, path: string) { return { path, sha256: createHash("sha256").update(readFileSync(join(workspace, path))).digest("hex"), intent: "create" as const }; }
 function at(second: number) { return { now: new Date(`2026-07-24T10:00:${String(second).padStart(2, "0")}.000Z`) }; }
-function writeGitignore(workspace: string): void { writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\ndocs/codepatrol/improvement-reports/\n"); }
+function writeGitignore(workspace: string): void { writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n"); }
 function initRepo(workspace: string): void { writeGitignore(workspace); gitCommand(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); gitCommand(workspace, ["add", "."]); gitCommand(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]); }
 function writeConfig(workspace: string, config: any) { mkdirSync(join(workspace, ".codepatrol"), { recursive: true }); writeFileSync(join(workspace, ".codepatrol/config.json"), JSON.stringify(config)); }
 

@@ -366,8 +366,8 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	let view = foldChange(record); await validateCheckpointLineage(git, record, existingTag ?? "HEAD", options.signal);
 	if (view.state === "terminal") {
 		if (view.outcome !== requestedOutcome) throw new CodepatrolError("CHANGE_CONFLICT", `Change is already ${view.outcome}.`, 4);
-		await assertVerifiedCandidate(git, view, existingTag ?? "HEAD", [relativeRecord(workId), `.codepatrol/changes/${workId}/close/receipt.md`, `.codepatrol/changes/${workId}/close/improvement-report.md`, `docs/codepatrol/improvement-reports/${workId}.md`], options.signal);
-		const recoveryPaths = parseStatusPaths(await git.status(options.signal)); const allowedRecovery = existingTag ? new Set<string>([relativeRecord(workId), `.codepatrol/changes/${workId}/close/receipt.md`, `.codepatrol/changes/${workId}/close/improvement-report.md`, `docs/codepatrol/improvement-reports/${workId}.md`]) : new Set([relativeRecord(workId)]); const unexpectedRecovery = recoveryPaths.filter((path) => !allowedRecovery.has(path));
+		await assertVerifiedCandidate(git, view, existingTag ?? "HEAD", [relativeRecord(workId), `.codepatrol/changes/${workId}/close/receipt.md`, `.codepatrol/changes/${workId}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`], options.signal);
+		const recoveryPaths = parseStatusPaths(await git.status(options.signal)); const allowedRecovery = existingTag ? new Set<string>([relativeRecord(workId), `.codepatrol/changes/${workId}/close/receipt.md`, `.codepatrol/changes/${workId}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`]) : new Set([relativeRecord(workId)]); const unexpectedRecovery = recoveryPaths.filter((path) => !allowedRecovery.has(path));
 		if (unexpectedRecovery.length) throw new CodepatrolError("CHANGE_CONFLICT", `Close recovery found unrelated worktree paths: ${unexpectedRecovery.join(", ")}.`, 4);
 		let tag = existingTag;
 		if (!tag) {

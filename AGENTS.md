@@ -61,8 +61,9 @@ To support multiple parallel personas, Review and Verify stages may contain mult
 
 Only write files owned by the current stage. Declare and hash every durable
 file. Keep raw logs, conversations, prompts, credentials and scratch payloads
-out of Changes. Durable ADRs live in `docs/adr/`; ignored state lives only in
-`.codepatrol/runtime/`.
+out of Changes. Durable ADRs live in `docs/adr/`; ignored state lives in
+`.codepatrol/runtime/` and `.codepatrol/docs/` (local mirrors of Change-owned
+artifacts, e.g. the improvement-report mirror).
 
 Every attempt records finished or interrupted runs. Finished runs contain
 start/finish, elapsed milliseconds and either actual provider/harness tokens or

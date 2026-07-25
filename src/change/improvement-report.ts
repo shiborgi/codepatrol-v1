@@ -214,7 +214,7 @@ export function writeImprovementReport(workspace: string, workId: string): strin
 }
 
 export function mirrorImprovementReport(workspace: string, workId: string, sourcePath: string): string {
-	const mirror = join(workspace, "docs", "codepatrol", "improvement-reports", `${workId}.md`);
+	const mirror = join(workspace, ".codepatrol", "docs", "improvement-reports", `${workId}.md`);
 	mkdirSync(dirname(mirror), { recursive: true });
 	copyFileSync(sourcePath, mirror);
 	return mirror;

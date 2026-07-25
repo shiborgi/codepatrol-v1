@@ -29,3 +29,10 @@ follow-up queue: a tracked, schema-validated top-level file (not rebuildable
 runtime, not a per-Change artifact), auto-fed from Close trace analysis and
 Plan splits, surfaced by `codepatrol next --stage plan` and the Kanban's
 Backlog column.
+
+`.codepatrol/docs/` is gitignored, rebuildable local-mirror state: local,
+human-browsable copies of artifacts that are already durable elsewhere. It is
+never itself a source of truth — losing or deleting anything below it loses
+no information. Its first occupant is the improvement-report mirror
+(`.codepatrol/docs/improvement-reports/<work-id>.md`), copied from the durable
+`.codepatrol/changes/<work-id>/close/improvement-report.md`.

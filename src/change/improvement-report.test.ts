@@ -102,7 +102,7 @@ describe("improvement-report", () => {
 			trace.append(workspace, id, { kind: "command", at: "2026-07-24T00:00:00.000Z", command: "change transition", args: {} });
 			const source = report.writeImprovementReport(workspace, id);
 			const mirror = report.mirrorImprovementReport(workspace, id, source);
-			assert.equal(mirror, `${workspace}/docs/codepatrol/improvement-reports/${id}.md`);
+			assert.equal(mirror, `${workspace}/.codepatrol/docs/improvement-reports/${id}.md`);
 			assert.equal(existsSync(mirror), true);
 			assert.equal(readFileSync(mirror, "utf8"), readFileSync(source, "utf8"));
 		} finally { rmSync(workspace, { recursive: true, force: true }); }

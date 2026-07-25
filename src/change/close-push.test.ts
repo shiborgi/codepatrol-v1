@@ -23,7 +23,7 @@ describe("close push integration", () => {
 
 			mkdirSync(workspace);
 			git(workspace, ["init", "-b", "main"]);
-			writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\ndocs/codepatrol/improvement-reports/\n");
+			writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
 			writeFileSync(join(workspace, "README.md"), "baseline\n");
 			git(workspace, ["add", "."]);
 			git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);

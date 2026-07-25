@@ -22,7 +22,7 @@ describe("close integration: backlog feed", () => {
 test("close writes non-filler recommendations as close-trace items with deterministic priority", async () => {
 	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-backlog-"));
 	try {
-		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\ndocs/codepatrol/improvement-reports/\n");
+		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
 		git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
 		const id = "2026-07-24-close-backlog";
 		await advanceThroughVerify(workspace, id);
@@ -46,7 +46,7 @@ test("close writes non-filler recommendations as close-trace items with determin
 test("close with only filler recommendations adds nothing", async () => {
 	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-backlog-empty-"));
 	try {
-		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\ndocs/codepatrol/improvement-reports/\n");
+		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
 		git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
 		const id = "2026-07-24-close-backlog-empty";
 		await advanceThroughVerify(workspace, id);

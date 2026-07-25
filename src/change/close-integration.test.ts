@@ -15,7 +15,7 @@ describe("close integration: improvement report", () => {
 	test("close writes the durable report, mirrors it, and deletes the trace", async () => {
 		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-report-"));
 		try {
-			writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\ndocs/codepatrol/improvement-reports/\n");
+			writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
 			git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
 			const id = "2026-07-24-close-report";
 			await advanceThroughVerify(workspace, id);
@@ -26,7 +26,7 @@ describe("close integration: improvement report", () => {
 			const result = await closeChange(workspace, id, { outcome: "commit", actor: "trace-test", authority: "test" }, at(20));
 			assert.equal(result.outcome, "committed");
 			const reportPath = join(workspace, ".codepatrol", "changes", id, "close", "improvement-report.md");
-			const mirrorPath = join(workspace, "docs", "codepatrol", "improvement-reports", `${id}.md`);
+			const mirrorPath = join(workspace, ".codepatrol", "docs", "improvement-reports", `${id}.md`);
 			assert.equal(existsSync(reportPath), true, "durable report should exist");
 			assert.equal(existsSync(mirrorPath), true, "mirror should exist");
 			const tracePath = join(workspace, ".codepatrol", "runtime", "traces", `${id}.jsonl`);

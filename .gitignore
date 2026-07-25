@@ -4,4 +4,4 @@ dist/
 *.log
 # Codepatrol v2: Changes are tracked; all rebuildable state is below runtime.
 .codepatrol/runtime/
-docs/codepatrol/improvement-reports/
+.codepatrol/docs/
