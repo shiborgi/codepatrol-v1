@@ -1,11 +1,12 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import * as report from "./improvement-report.js";
-import { stringify } from "yaml";
+import { parse, stringify } from "yaml";
 import * as trace from "./trace.js";
+import { CodepatrolError } from "../shared/errors.js";
 
 function seedChange(workspace: string, id: string): void {
 	mkdirSync(join(workspace, ".codepatrol", "changes", id, "plan"), { recursive: true });
@@ -26,8 +27,15 @@ function seedChange(workspace: string, id: string): void {
 			{ id: "1", type: "change-started", at: "2026-07-24T00:00:00.000Z", actor: "codex", stage: "plan", attempt: 1, next_action: "plan" },
 			{ id: "2", type: "run-recorded", at: "2026-07-24T00:01:00.000Z", actor: "codex", stage: "plan", attempt: 1, run: { id: "p1", started_at: "2026-07-24T00:00:00.000Z", finished_at: "2026-07-24T00:01:00.000Z", elapsed_ms: 60000, characters: { status: "unavailable", reason: "test" } } },
 			{ id: "3", type: "stage-checkpointed", at: "2026-07-24T00:01:01.000Z", actor: "codex", stage: "plan", attempt: 1, result: "ready", checkpoint: "a".repeat(40), tree: "b".repeat(40), artifacts: [], next_action: "review" },
-			{ id: "4", type: "stage-returned", at: "2026-07-24T00:02:00.000Z", actor: "reviewer", stage: "review", attempt: 1, to_stage: "plan", reason: "minor defect", next_action: "plan" },
-			{ id: "5", type: "stage-returned", at: "2026-07-24T00:03:00.000Z", actor: "reviewer", stage: "review", attempt: 1, to_stage: "plan", reason: "second defect", next_action: "plan" },
+			{ id: "4", type: "stage-began", at: "2026-07-24T00:01:02.000Z", actor: "reviewer", stage: "review", attempt: 1, next_action: "review" },
+			{ id: "5", type: "run-recorded", at: "2026-07-24T00:02:00.000Z", actor: "reviewer", stage: "review", attempt: 1, run: { id: "r1", started_at: "2026-07-24T00:01:02.000Z", finished_at: "2026-07-24T00:02:00.000Z", elapsed_ms: 58000, characters: { status: "unavailable", reason: "test" } } },
+			{ id: "6", type: "stage-returned", at: "2026-07-24T00:02:01.000Z", actor: "reviewer", stage: "review", attempt: 1, to_stage: "plan", reason: "minor defect", next_action: "plan" },
+			{ id: "7", type: "stage-began", at: "2026-07-24T00:03:00.000Z", actor: "codex", stage: "plan", attempt: 2, next_action: "plan" },
+			{ id: "8", type: "run-recorded", at: "2026-07-24T00:04:00.000Z", actor: "codex", stage: "plan", attempt: 2, run: { id: "p2", started_at: "2026-07-24T00:03:00.000Z", finished_at: "2026-07-24T00:04:00.000Z", elapsed_ms: 60000, characters: { status: "unavailable", reason: "test" } } },
+			{ id: "9", type: "stage-checkpointed", at: "2026-07-24T00:04:01.000Z", actor: "codex", stage: "plan", attempt: 2, result: "ready", checkpoint: "c".repeat(40), tree: "d".repeat(40), artifacts: [], next_action: "review" },
+			{ id: "10", type: "stage-began", at: "2026-07-24T00:04:02.000Z", actor: "reviewer", stage: "review", attempt: 2, next_action: "review" },
+			{ id: "11", type: "run-recorded", at: "2026-07-24T00:05:00.000Z", actor: "reviewer", stage: "review", attempt: 2, run: { id: "r2", started_at: "2026-07-24T00:04:02.000Z", finished_at: "2026-07-24T00:05:00.000Z", elapsed_ms: 58000, characters: { status: "unavailable", reason: "test" } } },
+			{ id: "12", type: "stage-returned", at: "2026-07-24T00:05:01.000Z", actor: "reviewer", stage: "review", attempt: 2, to_stage: "plan", reason: "second defect", next_action: "plan" },
 		],
 	};
 	writeFileSync(join(workspace, ".codepatrol", "changes", id, "change.yaml"), stringify(record));
@@ -47,8 +55,8 @@ describe("improvement-report", () => {
 			const result = report.generateImprovementReport(workspace, id);
 			assert.equal(typeof result.summary, "string");
 			assert.ok(result.perStage.plan);
-			assert.equal(result.perStage.plan.attemptCount, 1);
-			assert.equal(result.perStage.review.attemptCount, 1);
+			assert.equal(result.perStage.plan.attemptCount, 2);
+			assert.equal(result.perStage.review.attemptCount, 2);
 			assert.equal(result.perStage.review.returnCount, 2);
 			assert.equal(result.returns.length, 2);
 			assert.equal(result.returns[0]?.reason, "minor defect");
@@ -135,6 +143,35 @@ describe("improvement-report", () => {
 			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:00.000Z", stage: "apply", attempt: 1, item: "T1", action: "claimed" });
 			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:01.000Z", stage: "apply", attempt: 1, item: "T1", action: "closed" });
 			assert.equal(report.generateImprovementReport(workspace, id).recommendations.some((item) => /claimed but never closed/.test(item)), false);
+		} finally { rmSync(workspace, { recursive: true, force: true }); }
+	});
+
+	test("generateImprovementReport folds legacy finalize-stage events into close", () => {
+		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-report-legacy-"));
+		try {
+			const id = "2026-07-24-legacy-finalize";
+			const record = parse(readFileSync(resolve("src/change/fixtures/committed-change.yaml"), "utf8"));
+			record.identity.work_id = id; record.identity.title = "Legacy"; record.identity.branch = `codepatrol/${id}`;
+			for (const event of record.events) {
+				if (event.stage === "close") event.stage = "finalize";
+				if (event.type === "change-closed") { event.type = "change-finalized"; event.tag = `codepatrol/${event.outcome}/${id}`; }
+				if (event.receipt === "close/receipt.md") event.receipt = "finalize/receipt.md";
+			}
+			const directory = join(workspace, ".codepatrol", "changes", id); mkdirSync(directory, { recursive: true });
+			writeFileSync(join(directory, "change.yaml"), stringify(record));
+			const result = report.generateImprovementReport(workspace, id);
+			assert.equal(result.perStage.close?.attemptCount, 1);
+			assert.equal("finalize" in result.perStage, false);
+		} finally { rmSync(workspace, { recursive: true, force: true }); }
+	});
+
+	test("generateImprovementReport throws on a present but corrupt change.yaml", () => {
+		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-report-corrupt-"));
+		try {
+			const id = "2026-07-24-corrupt";
+			mkdirSync(join(workspace, ".codepatrol", "changes", id), { recursive: true });
+			writeFileSync(join(workspace, ".codepatrol", "changes", id, "change.yaml"), "not: [valid, yaml: structure");
+			assert.throws(() => report.generateImprovementReport(workspace, id), (error: unknown) => error instanceof CodepatrolError && /CHANGE_INVALID/.test((error as CodepatrolError).code));
 		} finally { rmSync(workspace, { recursive: true, force: true }); }
 	});
 });

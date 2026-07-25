@@ -1,7 +1,8 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { copyFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { parse } from "yaml";
+import { changeRecordPath, readChangeRecord as readCanonicalChangeRecord } from "./store.js";
+import type { ChangeRecordV2 } from "./types.js";
 import * as trace from "./trace.js";
 
 export interface PerStageStats { attemptCount: number; returnCount: number; checkpointCount: number; elapsedMs: number }
@@ -26,18 +27,9 @@ function emptyPerStage(): Record<string, PerStageStats> {
 	return out;
 }
 
-function recordPathFor(workspace: string, workId: string): string {
-	return join(workspace, ".codepatrol", "changes", workId, "change.yaml");
-}
-
-function readChangeRecord(workspace: string, workId: string): { events: Array<Record<string, unknown>> } | null {
-	const p = recordPathFor(workspace, workId);
-	if (!existsSync(p)) return null;
-	try {
-		return parse(readFileSync(p, "utf8")) as { events: Array<Record<string, unknown>> };
-	} catch {
-		return null;
-	}
+function readChangeRecord(workspace: string, workId: string): ChangeRecordV2 | null {
+	if (!existsSync(changeRecordPath(workspace, workId))) return null;
+	return readCanonicalChangeRecord(workspace, workId);
 }
 
 function bytesForDir(dir: string): { count: number; totalBytes: number } {
