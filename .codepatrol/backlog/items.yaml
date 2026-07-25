@@ -26,3 +26,65 @@ items:
     count: 1
     firstSeenAt: 2026-07-25T10:12:35.564Z
     lastSeenAt: 2026-07-25T10:12:35.564Z
+  - id: unsafe-duplicate-yaml-reader-in-improvement-report-ts-bypasses-migraterecord-normalization
+    title: Unsafe duplicate YAML reader in improvement-report.ts bypasses migrateRecord normalization
+    priority: p1
+    area: architecture
+    status: candidate
+    evidence:
+      - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N4 (High)
+      - src/change/improvement-report.ts:33
+    source:
+      kind: plan-followup
+      workId: 2026-07-25-docs-consolidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-25T10:21:16.044Z
+    lastSeenAt: 2026-07-25T10:21:16.044Z
+  - id: orchestrator-transitionchangelocked-is-dense-and-mixes-validation-persona-semantics-and-storage-responsibilities
+    title: Orchestrator transitionChangeLocked is dense and mixes validation, persona semantics, and storage responsibilities
+    priority: p2
+    area: architecture
+    status: candidate
+    evidence:
+      - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N3 (Medium)
+      - src/change/orchestrator.ts:206-293
+    source:
+      kind: plan-followup
+      workId: 2026-07-25-docs-consolidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-25T10:21:16.121Z
+    lastSeenAt: 2026-07-25T10:21:16.121Z
+  - id: core-module-test-coverage-gaps-atomic-store-ts-graph-languages-ts-graph-queries-ts-lack-dedicated-tests
+    title: "Core module test coverage gaps: atomic-store.ts, graph/languages.ts, graph/queries.ts lack dedicated tests"
+    priority: p2
+    area: architecture
+    status: candidate
+    evidence:
+      - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N2 (Medium)
+      - src/shared/atomic-store.ts
+      - src/graph/languages.ts
+      - src/graph/queries.ts
+    source:
+      kind: plan-followup
+      workId: 2026-07-25-docs-consolidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-25T10:21:16.198Z
+    lastSeenAt: 2026-07-25T10:21:16.198Z
+  - id: dead-taxonomy-unused-error-codes-artifact-invalid-and-workflow-in-errors-ts
+    title: "Dead taxonomy: unused error codes ARTIFACT_INVALID and WORKFLOW_* in errors.ts"
+    priority: p3
+    area: architecture
+    status: candidate
+    evidence:
+      - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N1 (Low)
+      - src/shared/errors.ts:7,13-15
+    source:
+      kind: plan-followup
+      workId: 2026-07-25-docs-consolidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-25T10:21:16.279Z
+    lastSeenAt: 2026-07-25T10:21:16.279Z
