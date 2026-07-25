@@ -29,6 +29,7 @@ test("Change and Stage Session are the only shared lifecycle contracts", () => {
 	assert.match(change, /measured|unavailable/); assert.match(change, /elapsed/i); assert.match(change, /never.*recency/is);
 	const session = readFileSync(join(shared, "SESSION.md"), "utf8"); assert.match(session, /\.codepatrol\/runtime\/sessions/); assert.match(session, /never own lifecycle/i);
 	assert.match(session, /status.*blocked/i);
+	assert.match(session, /reconcil/i); assert.match(session, /re-?prime/i);
 });
 
 test("each lifecycle skill owns one stage, records metrics, checkpoints, and stops", () => {

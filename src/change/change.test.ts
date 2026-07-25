@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { parse, stringify } from "yaml";
 import { foldChange, migrateRecord } from "./model.js";
 import { aggregateUsage } from "./usage.js";
@@ -13,10 +13,49 @@ import { stageSessionPath } from "../shared/state.js";
 import { closeChange, transitionChange } from "./orchestrator.js";
 import { validateArtifactBindings } from "./validation.js";
 import { CodepatrolError } from "../shared/errors.js";
-import type { ChangeRecordV2 } from "./types.js";
+import * as trace from "./trace.js";
+import type { ArtifactBinding, ChangeRecordV2, Stage } from "./types.js";
 
 function fixture(name: string): ChangeRecordV2 {
 	return parse(readFileSync(resolve("src/change/fixtures", name), "utf8")) as ChangeRecordV2;
+}
+
+function recordAtStage(stage: Stage): ChangeRecordV2 {
+	if (stage === "plan") return fixture("active-change.yaml");
+	const record = fixture("committed-change.yaml");
+	const previous = { review: "plan", apply: "review", verify: "apply", close: "verify" } as const;
+	const index = record.events.findIndex((event) => event.type === "stage-checkpointed" && event.stage === previous[stage]);
+	record.events = record.events.slice(0, index + 1);
+	assert.equal(foldChange(record).stage, stage);
+	return record;
+}
+
+function artifactBinding(record: ChangeRecordV2, relativePath: string, content: string): ArtifactBinding {
+	return { path: `.codepatrol/changes/${record.identity.work_id}/${relativePath}`, sha256: createHash("sha256").update(content).digest("hex"), intent: "create" };
+}
+
+function writeStageArtifact(workspace: string, record: ChangeRecordV2, relativePath: string, content: string): void {
+	const path = join(workspace, `.codepatrol/changes/${record.identity.work_id}/${relativePath}`);
+	mkdirSync(dirname(path), { recursive: true });
+	writeFileSync(path, content);
+}
+
+function reviewAttemptTwo(priorArtifacts: Array<{ relativePath: string; content: string }>): ChangeRecordV2 {
+	const record = recordAtStage("apply");
+	const reviewCheckpoint = record.events.find((event) => event.type === "stage-checkpointed" && event.stage === "review");
+	assert.ok(reviewCheckpoint?.type === "stage-checkpointed");
+	reviewCheckpoint.artifacts = priorArtifacts.map((item) => artifactBinding(record, item.relativePath, item.content));
+	record.events.push(
+		{ id: "stale-apply-begin", type: "stage-began", at: "2026-07-22T10:04:00Z", actor: "codex", stage: "apply", attempt: 1, next_action: "apply" },
+		{ id: "stale-apply-run", type: "run-recorded", at: "2026-07-22T10:05:00Z", actor: "codex", stage: "apply", attempt: 1, run: { id: "stale-apply-run", started_at: "2026-07-22T10:04:00Z", finished_at: "2026-07-22T10:05:00Z", elapsed_ms: 60000, characters: { status: "unavailable", reason: "test" } } },
+		{ id: "stale-apply-return", type: "stage-returned", at: "2026-07-22T10:05:01Z", actor: "codex", stage: "apply", attempt: 1, to_stage: "plan", reason: "replan", next_action: "plan" },
+		{ id: "stale-plan-begin", type: "stage-began", at: "2026-07-22T10:06:00Z", actor: "codex", stage: "plan", attempt: 2, next_action: "plan" },
+		{ id: "stale-plan-run", type: "run-recorded", at: "2026-07-22T10:07:00Z", actor: "codex", stage: "plan", attempt: 2, run: { id: "stale-plan-run", started_at: "2026-07-22T10:06:00Z", finished_at: "2026-07-22T10:07:00Z", elapsed_ms: 60000, characters: { status: "unavailable", reason: "test" } } },
+		{ id: "stale-plan-done", type: "stage-checkpointed", at: "2026-07-22T10:07:01Z", actor: "codex", stage: "plan", attempt: 2, result: "ready", checkpoint: "c".repeat(40), artifacts: [], next_action: "review" },
+	);
+	const view = foldChange(record);
+	assert.deepEqual([view.stage, view.attempt, view.state], ["review", 2, "ready"]);
+	return record;
 }
 
 test("fold derives the active stage and never needs a mutable status", () => {
@@ -101,9 +140,32 @@ test("Stage Sessions are scoped, claim atomically, and close with bounded eviden
 	writeChangeRecord(workspace, fixture("active-change.yaml"));
 	const session = primeStageSession(workspace, "2026-07-22-active", "plan", 1, new Date("2026-07-22T10:00:00Z"));
 	assert.equal(session.items[0]?.status, "open");
-	await claimSessionItem(workspace, "2026-07-22-active", "plan", 1, "plan-work", "codex", new Date("2026-07-22T10:00:01Z"));
-	const closed = await closeSessionItem(workspace, "2026-07-22-active", "plan", 1, "plan-work", "validated", ["plan/spec.md"], new Date("2026-07-22T10:00:02Z"));
-	assert.equal(closed.items[0]?.status, "closed");
+	await claimSessionItem(workspace, "2026-07-22-active", "plan", 1, "spec", "codex", new Date("2026-07-22T10:00:01Z"));
+	const closed = await closeSessionItem(workspace, "2026-07-22-active", "plan", 1, "spec", "validated", ["plan/spec.md"], new Date("2026-07-22T10:00:02Z"));
+	assert.equal(closed.items.find((item) => item.id === "spec")?.status, "closed");
+});
+
+test("Session claims and closes append exactly one item-level trace entry each", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-session-trace-"));
+	const record = fixture("active-change.yaml");
+	writeChangeRecord(workspace, record);
+	await claimSessionItem(workspace, record.identity.work_id, "plan", 1, "spec", "codex", new Date("2026-07-22T10:00:01Z"));
+	await closeSessionItem(workspace, record.identity.work_id, "plan", 1, "spec", "done", [], new Date("2026-07-22T10:00:02Z"));
+	const entries = trace.read(workspace, record.identity.work_id).filter((entry) => entry.kind === "session");
+	assert.deepEqual(entries.map((entry) => ({ stage: entry.stage, attempt: entry.attempt, item: entry.item, action: entry.action, at: entry.at })), [
+		{ stage: "plan", attempt: 1, item: "spec", action: "claimed", at: "2026-07-22T10:00:01.000Z" },
+		{ stage: "plan", attempt: 1, item: "spec", action: "closed", at: "2026-07-22T10:00:02.000Z" },
+	]);
+});
+
+test("Session claim and close remain fail-open when the trace path is unavailable", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-session-trace-failure-"));
+	const record = fixture("active-change.yaml");
+	writeChangeRecord(workspace, record);
+	const runtime = join(workspace, ".codepatrol/runtime"); mkdirSync(runtime, { recursive: true }); writeFileSync(join(runtime, "traces"), "not a directory\n");
+	const claimed = await claimSessionItem(workspace, record.identity.work_id, "plan", 1, "spec", "codex");
+	const closed = await closeSessionItem(workspace, record.identity.work_id, "plan", 1, "spec", "done");
+	assert.deepEqual([claimed.items[0]?.status, closed.items[0]?.status], ["claimed", "closed"]);
 });
 
 test("Apply session rebuilds deterministic plan tasks and rejects a stale attempt", () => {
@@ -126,6 +188,133 @@ test("Apply session rebuilds deterministic plan tasks and rejects a stale attemp
 	assert.deepEqual(primeStageSession(workspace, record.identity.work_id, "apply", 1).items.map((item) => item.id), ["T1", "T2"]);
 	assert.throws(() => discardAndRebuildSession(workspace, record.identity.work_id, "apply", 2), /not the current attempt/);
 });
+
+test("Apply dependency parsing ignores self-references and prose after None", () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-apply-session-dependencies-"));
+	const record = fixture("active-change.yaml");
+	record.events.push(
+		{ id: "dependency-plan-run", type: "run-recorded", at: "2026-07-22T10:01:00Z", actor: "codex", stage: "plan", attempt: 1, run: { id: "dependency-plan-run", started_at: "2026-07-22T10:00:00Z", finished_at: "2026-07-22T10:01:00Z", elapsed_ms: 60000, characters: { status: "unavailable", reason: "test" } } },
+		{ id: "dependency-plan-done", type: "stage-checkpointed", at: "2026-07-22T10:01:01Z", actor: "codex", stage: "plan", attempt: 1, result: "ready", checkpoint: "a".repeat(40), artifacts: [], next_action: "review" },
+		{ id: "dependency-review-begin", type: "stage-began", at: "2026-07-22T10:01:02Z", actor: "reviewer", stage: "review", attempt: 1, next_action: "review" },
+		{ id: "dependency-review-run", type: "run-recorded", at: "2026-07-22T10:02:00Z", actor: "reviewer", stage: "review", attempt: 1, run: { id: "dependency-review-run", started_at: "2026-07-22T10:01:02Z", finished_at: "2026-07-22T10:02:00Z", elapsed_ms: 58000, characters: { status: "unavailable", reason: "test" } } },
+		{ id: "dependency-review-done", type: "stage-checkpointed", at: "2026-07-22T10:02:01Z", actor: "reviewer", stage: "review", attempt: 1, result: "approve", checkpoint: "b".repeat(40), artifacts: [], next_action: "apply" },
+	);
+	writeChangeRecord(workspace, record);
+	const planDirectory = join(workspace, `.codepatrol/changes/${record.identity.work_id}/plan`);
+	mkdirSync(planDirectory, { recursive: true });
+	writeFileSync(join(planDirectory, "plan.md"), "### T1 — First\n\n**Depends on:** None\n\n### T2 — Second\n\n**Depends on:** T1\n\n### T3 — Third\n\n**Depends on:** T2 (same file, session.ts; sequenced. trace.ts and improvement-report.ts are T3-exclusive.)\n\n### T4 — Fourth\n\n**Depends on:** None (docs/skills only; file-disjoint from T1–T3)\n\n### T5 — Fifth\n\n**Depends on:** T1, T2\n\n### T6 — Sixth\n\n**Depends on:** None\n");
+	const session = primeStageSession(workspace, record.identity.work_id, "apply", 1);
+	assert.deepEqual(session.items.map((item) => [item.id, item.dependencies]), [["T1", []], ["T2", ["T1"]], ["T3", ["T2"]], ["T4", []], ["T5", ["T1", "T2"]], ["T6", []]]);
+});
+
+test("Stage Sessions derive dependency-ordered artifact checklists for every stage", () => {
+	const expected: Record<Stage, Array<[string, string[]]>> = {
+		plan: [["spec", []], ["plan", ["spec"]], ["evidence", []]],
+		review: [["report", []]],
+		apply: [],
+		verify: [["report", []]],
+		close: [["close-work", []]],
+	};
+	for (const stage of ["plan", "review", "verify", "close"] as const) {
+		const workspace = mkdtempSync(join(tmpdir(), `codepatrol-${stage}-session-items-`));
+		const record = recordAtStage(stage);
+		writeChangeRecord(workspace, record);
+		const session = primeStageSession(workspace, record.identity.work_id, stage, 1);
+		assert.deepEqual(session.items.map((item) => [item.id, item.dependencies]), expected[stage]);
+		assert.equal(session.items.every((item) => item.status === "open"), true);
+	}
+});
+
+test("Stage Sessions reconcile non-empty artifact and directory evidence on prime and rebuild", () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-session-artifact-reconciliation-"));
+	const record = recordAtStage("plan");
+	writeChangeRecord(workspace, record);
+	writeStageArtifact(workspace, record, "plan/spec.md", "# Specification\n");
+	writeStageArtifact(workspace, record, "plan/evidence/empty.md", "   \n");
+	let session = primeStageSession(workspace, record.identity.work_id, "plan", 1);
+	assert.equal(session.items.find((item) => item.id === "spec")?.status, "closed");
+	assert.match(session.items.find((item) => item.id === "spec")?.result ?? "", /plan\/spec\.md/);
+	assert.equal(session.items.find((item) => item.id === "plan")?.status, "open");
+	assert.equal(session.items.find((item) => item.id === "evidence")?.status, "open");
+	writeStageArtifact(workspace, record, "plan/evidence/investigation.md", "evidence\n");
+	session = discardAndRebuildSession(workspace, record.identity.work_id, "plan", 1);
+	assert.equal(session.items.find((item) => item.id === "evidence")?.status, "closed");
+	assert.match(session.items.find((item) => item.id === "evidence")?.result ?? "", /plan\/evidence\/investigation\.md/);
+	writeStageArtifact(workspace, record, "plan/spec.md", " \n");
+	session = discardAndRebuildSession(workspace, record.identity.work_id, "plan", 1);
+	assert.equal(session.items.find((item) => item.id === "spec")?.status, "open");
+});
+
+test("Apply reconciliation closes exactly the tasks journaled with T headings", () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-session-apply-reconciliation-"));
+	const record = recordAtStage("apply");
+	writeChangeRecord(workspace, record);
+	writeStageArtifact(workspace, record, "plan/plan.md", "### T1 — First\n\n**Depends on:** None\n\n### T2 — Second\n\n**Depends on:** T1\n\n### T3 — Third\n\n**Depends on:** T2\n");
+	writeStageArtifact(workspace, record, "apply/journal.md", "# Implementation\n\n### T1 — First\n\nDelivered.\n\n### T2 — Second\n\nDelivered.\n");
+	const session = primeStageSession(workspace, record.identity.work_id, "apply", 1);
+	assert.deepEqual(session.items.map((item) => [item.id, item.status]), [["T1", "closed"], ["T2", "closed"], ["T3", "open"]]);
+	assert.match(session.items.find((item) => item.id === "T1")?.result ?? "", /apply\/journal\.md has ### T1/);
+});
+
+test("Apply rebuild preserves backed progress and drops unbacked claims", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-session-apply-rebuild-"));
+	const record = recordAtStage("apply");
+	writeChangeRecord(workspace, record);
+	writeStageArtifact(workspace, record, "plan/plan.md", "### T1 — First\n\n**Depends on:** None\n\n### T2 — Second\n\n**Depends on:** None\n\n### T3 — Third\n\n**Depends on:** None\n");
+	primeStageSession(workspace, record.identity.work_id, "apply", 1);
+	await claimSessionItem(workspace, record.identity.work_id, "apply", 1, "T1", "codex");
+	await closeSessionItem(workspace, record.identity.work_id, "apply", 1, "T1", "closed without evidence");
+	await claimSessionItem(workspace, record.identity.work_id, "apply", 1, "T3", "codex");
+	writeStageArtifact(workspace, record, "apply/journal.md", "### T1 — First\n");
+	const rebuilt = discardAndRebuildSession(workspace, record.identity.work_id, "apply", 1);
+	const backed = rebuilt.items.find((item) => item.id === "T1");
+	const unbacked = rebuilt.items.find((item) => item.id === "T3");
+	assert.deepEqual([backed?.status, backed?.claim, backed?.result?.startsWith("reconciled:")], ["closed", undefined, true]);
+	assert.deepEqual([unbacked?.status, unbacked?.claim, unbacked?.result], ["open", undefined, undefined]);
+});
+
+test("reconciliation rejects stale prior-attempt evidence and refreshes only on rebuild", () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-session-stale-reconciliation-"));
+	const oldContent = "old review\n";
+	const record = reviewAttemptTwo([{ relativePath: "review/report.md", content: oldContent }]);
+	writeChangeRecord(workspace, record);
+	writeStageArtifact(workspace, record, "review/report.md", oldContent);
+	let session = primeStageSession(workspace, record.identity.work_id, "review", 2);
+	assert.equal(session.items.find((item) => item.id === "report")?.status, "open");
+	writeStageArtifact(workspace, record, "review/report.md", "fresh review\n");
+	session = primeStageSession(workspace, record.identity.work_id, "review", 2);
+	assert.equal(session.items.find((item) => item.id === "report")?.status, "open");
+	session = discardAndRebuildSession(workspace, record.identity.work_id, "review", 2);
+	assert.equal(session.items.find((item) => item.id === "report")?.status, "closed");
+	assert.match(session.items.find((item) => item.id === "report")?.result ?? "", /review\/report\.md/);
+});
+
+test("reconciliation accepts fresh persona reports and rejects stale or false-prefix matches", () => {
+	const freshWorkspace = mkdtempSync(join(tmpdir(), "codepatrol-session-persona-reconciliation-"));
+	const freshRecord = recordAtStage("review");
+	writeChangeRecord(freshWorkspace, freshRecord);
+	writeStageArtifact(freshWorkspace, freshRecord, "review/report-security.md", "security\n");
+	writeStageArtifact(freshWorkspace, freshRecord, "review/report-architecture.md", "architecture\n");
+	let session = primeStageSession(freshWorkspace, freshRecord.identity.work_id, "review", 1);
+	assert.equal(session.items.find((item) => item.id === "report")?.status, "closed");
+	assert.match(session.items.find((item) => item.id === "report")?.result ?? "", /review\/report-(architecture|security)\.md/);
+	writeStageArtifact(freshWorkspace, freshRecord, "review/report-security.md", " \n");
+	writeStageArtifact(freshWorkspace, freshRecord, "review/report-architecture.md", " \n");
+	writeStageArtifact(freshWorkspace, freshRecord, "review/reporting.md", "not a report item\n");
+	writeStageArtifact(freshWorkspace, freshRecord, "review/report.md.bak", "not a report item\n");
+	writeStageArtifact(freshWorkspace, freshRecord, "review/findings-security.md", "not a report item\n");
+	session = discardAndRebuildSession(freshWorkspace, freshRecord.identity.work_id, "review", 1);
+	assert.equal(session.items.find((item) => item.id === "report")?.status, "open");
+
+	const staleWorkspace = mkdtempSync(join(tmpdir(), "codepatrol-session-stale-persona-reconciliation-"));
+	const prior = [{ relativePath: "review/report-security.md", content: "old security\n" }, { relativePath: "review/report-architecture.md", content: "old architecture\n" }];
+	const staleRecord = reviewAttemptTwo(prior);
+	writeChangeRecord(staleWorkspace, staleRecord);
+	for (const artifact of prior) writeStageArtifact(staleWorkspace, staleRecord, artifact.relativePath, artifact.content);
+	session = primeStageSession(staleWorkspace, staleRecord.identity.work_id, "review", 2);
+	assert.equal(session.items.find((item) => item.id === "report")?.status, "open");
+});
+
 test("gate field is allowed on stage-checkpointed", () => {
 	const record = fixture("active-change.yaml");
 	const run = {

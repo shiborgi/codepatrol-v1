@@ -32,7 +32,8 @@ immutable identity, ordered events and stage-owned artifacts for one branch.
 attempt, including every run and its metrics.
 
 **Stage Session** — disposable task progress under
-`.codepatrol/runtime/sessions/` for exactly one attempt. It never owns lifecycle.
+`.codepatrol/runtime/sessions/` for exactly one attempt, derived from and
+reconciled against the Change's durable artifacts. It never owns lifecycle.
 
 **Terminal Outcome** — `committed` or `rolled-back`, always preserved by a
 `codepatrol/<outcome>/<work-id>` Git tag.

@@ -15,7 +15,8 @@ mutation session. Stop unless the checkout is the recorded
 `codepatrol/<work-id>` branch, the projection is Apply, the accepted Review
 attempt says `approve`, and all accepted artifact hashes validate. Submit Apply
 `begin` when ready, capture run start and prime/rebuild only the exact Apply
-Stage Session.
+Stage Session. When resuming a stage another harness began, re-prime the Stage
+Session first and read its `status` projection before claiming.
 
 Read the accepted spec, plan, review and evidence completely. If resuming after a return from Verify, explicitly read all markdown files in the `verify/` directory to aggregate and address all findings from all parallel personas. Execute tasks in
 dependency order. Claim one session item before editing; establish its planned

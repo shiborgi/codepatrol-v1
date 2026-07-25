@@ -107,4 +107,34 @@ describe("improvement-report", () => {
 			assert.equal(readFileSync(mirror, "utf8"), readFileSync(source, "utf8"));
 		} finally { rmSync(workspace, { recursive: true, force: true }); }
 	});
+
+	test("generateImprovementReport identifies tuple-scoped abandoned and reclaimed session items", () => {
+		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-report-abandoned-session-"));
+		try {
+			const id = "2026-07-24-abandoned-session";
+			seedChange(workspace, id);
+			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:00.000Z", stage: "review", attempt: 1, item: "report", action: "claimed" });
+			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:01.000Z", stage: "review", attempt: 1, item: "report", action: "closed" });
+			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:02.000Z", stage: "verify", attempt: 1, item: "report", action: "claimed" });
+			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:03.000Z", stage: "apply", attempt: 1, item: "T2", action: "claimed" });
+			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:04.000Z", stage: "apply", attempt: 1, item: "T2", action: "closed" });
+			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:05.000Z", stage: "apply", attempt: 1, item: "T2", action: "claimed" });
+			const recommendation = report.generateImprovementReport(workspace, id).recommendations.find((item) => /claimed but never closed/.test(item));
+			assert.ok(recommendation);
+			assert.match(recommendation, /verify\/1\/report/);
+			assert.match(recommendation, /apply\/1\/T2/);
+			assert.doesNotMatch(recommendation, /review\/1\/report/);
+		} finally { rmSync(workspace, { recursive: true, force: true }); }
+	});
+
+	test("generateImprovementReport omits abandoned-item advice when every claim is closed", () => {
+		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-report-closed-session-"));
+		try {
+			const id = "2026-07-24-closed-session";
+			seedChange(workspace, id);
+			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:00.000Z", stage: "apply", attempt: 1, item: "T1", action: "claimed" });
+			trace.append(workspace, id, { kind: "session", at: "2026-07-24T00:00:01.000Z", stage: "apply", attempt: 1, item: "T1", action: "closed" });
+			assert.equal(report.generateImprovementReport(workspace, id).recommendations.some((item) => /claimed but never closed/.test(item)), false);
+		} finally { rmSync(workspace, { recursive: true, force: true }); }
+	});
 });

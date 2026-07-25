@@ -65,6 +65,7 @@ export function generateImprovementReport(workspace: string, workId: string): Im
 	const returns: ReturnRecord[] = [];
 	const topErrorMap = new Map<string, TopError>();
 	const commandCounts = new Map<string, number>();
+	const abandonedSessionItems = new Set<string>();
 	let commandCount = 0;
 
 	const entries = trace.read(workspace, workId);
@@ -83,6 +84,9 @@ export function generateImprovementReport(workspace: string, workId: string): Im
 			} else {
 				topErrorMap.set(entry.code, { code: entry.code, count: 1, sampleMessage: entry.message, command: entry.command });
 			}
+		} else if (entry.kind === "session") {
+			const key = `${entry.stage}/${entry.attempt}/${entry.item}`;
+			if (entry.action === "claimed") abandonedSessionItems.add(key); else abandonedSessionItems.delete(key);
 		}
 	}
 
@@ -148,6 +152,7 @@ export function generateImprovementReport(workspace: string, workId: string): Im
 			recommendations.push("No orchestrator events recorded — verify the trace hooks are firing.");
 		}
 	}
+	if (abandonedSessionItems.size > 0) recommendations.push(`Session item(s) claimed but never closed: ${[...abandonedSessionItems].sort().join(", ")}. A harness stopped mid-stage; re-prime the session to resume.`);
 	if (recommendations.length === 0) {
 		recommendations.push("No notable patterns detected; continue with current process.");
 	}

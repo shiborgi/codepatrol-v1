@@ -11,7 +11,9 @@ Use the portable [execution protocol](../_shared/EXECUTION.md) for bounded evide
 
 Use `codepatrol next --stage review` to retrieve the actionable changes. Run `codepatrol change inspect --id <work-id>` and stop unless the checkout is
 the recorded branch and the projection is Review. Capture run start, submit a
-Review `begin` event when ready, and prime the exact Stage Session. To support
+Review `begin` event when ready, and prime the exact Stage Session. When
+resuming a stage another harness began, re-prime the Stage Session first and
+read its `status` projection before claiming. To support
 multiple parallel personas, the coordinator or agent may prime and claim
 persona-specific session items (e.g., `review-security`, `review-architecture`).
 When transitioning to Review, the harness MUST initialize a fresh context window

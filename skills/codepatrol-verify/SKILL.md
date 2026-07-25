@@ -12,7 +12,9 @@ Use the portable [execution protocol](../_shared/EXECUTION.md) for bounded verif
 Use `codepatrol next --stage verify` to retrieve the actionable changes. Run `codepatrol change inspect --id <work-id>` for the explicit work id. Stop unless the checkout is its recorded branch,
 the projection is Verify, the Apply checkpoint/tree is intact, the tree is
 clean, and accepted artifacts validate. Submit Verify `begin`, capture run
-start and prime the exact Stage Session. To support multiple parallel personas,
+start and prime the exact Stage Session. When resuming a stage another harness
+began, re-prime the Stage Session first and read its `status` projection before
+claiming. To support multiple parallel personas,
 the coordinator or agent may prime and claim persona-specific session items (e.g.,
 `verify-security`, `verify-architecture`). When transitioning to Verify, the
 harness MUST initialize a fresh context window for the agent. The agent must not

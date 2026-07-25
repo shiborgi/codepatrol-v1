@@ -20,7 +20,9 @@ continue only when the projection says Plan on branch
 target branch, actor and exact Plan next action. The command creates and checks
 out the feature branch. Never infer an id by recency.
 
-Capture the run start time immediately. Prime the current Stage Session. For a
+Capture the run start time immediately. Prime the current Stage Session. When
+resuming a stage another harness began, re-prime the Stage Session first and
+read its `status` projection before claiming. For a
 brownfield Change, sync the graph once, read `CONTEXT.md` and `docs/adr/`,
 trace relevant modules/callers/tests and record absent substrates.
 Use the appropriate supporting skills for bug diagnosis, domain language,

@@ -11,6 +11,12 @@ ready item before mutation and close it only after its acceptance evidence
 passes. A failed claim will report the blocking dependency. If the file is missing or corrupt, use action `rebuild`; the accepted
 Change artifacts reconstruct it.
 
+Priming and `rebuild` derive items from the stage's declared artifacts and
+reconcile each against the Change's durable artifacts on disk: delivered work
+returns `closed`, and an unbacked claim does not survive a rebuild. A harness
+resuming a stage another harness began must re-prime the session first and treat
+its `status` projection as the resume point.
+
 A session must never own lifecycle, revision, approval, terminal outcome,
 project-wide decisions, conversations or logs. Losing it cannot change the
 Change stage or invalidate a checkpoint.

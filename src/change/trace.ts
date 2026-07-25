@@ -4,7 +4,8 @@ import { dirname, join } from "node:path";
 export type TraceEntry =
 	| { kind: "command"; at: string; command: string; args: Record<string, unknown> }
 	| { kind: "event"; at: string; stage: string; attempt: number; type: string }
-	| { kind: "error"; at: string; command: string; code: string; message: string };
+	| { kind: "error"; at: string; command: string; code: string; message: string }
+	| { kind: "session"; at: string; stage: string; attempt: number; item: string; action: "claimed" | "closed" };
 
 const SECRET_KEYS = new Set(["apikey", "api_key", "authorization", "token", "password", "secret"]);
 const MAX_TRACE_BYTES = 10 * 1024 * 1024;
