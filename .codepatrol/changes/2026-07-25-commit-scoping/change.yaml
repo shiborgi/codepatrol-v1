@@ -69,3 +69,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: c3afc9f9-ac7a-4fdf-867a-793e565b2d0b
+    at: 2026-07-25T15:34:33.718Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: spec.md and plan/evidence/investigation.md systematically cite the originating closed Change as 2026-07-24-docs-consolidation; the actual id (and the one used by its improvement report, terminal tag codepatrol/committed/2026-07-25-docs-consolidation, and all durable artifacts) is 2026-07-25-docs-consolidation. Cited evidence paths therefore do not resolve. Required correction: replace every 2026-07-24-docs-consolidation with 2026-07-25-docs-consolidation in spec.md and investigation.md. Technical diagnosis, scope, simplicity choice, ACs, and the red-capable test plan are independently verified and unaffected; no design change."
+    next_action: codepatrol-plan 2026-07-25-commit-scoping on codepatrol/2026-07-25-commit-scoping
