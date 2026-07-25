@@ -119,3 +119,10 @@ events:
         sha256: fd7dd4fa89efdcf072b5928b2feff023e392d4997c8a6e5fbf5ddfc9a41cbdea
         intent: modify
     next_action: codepatrol-review 2026-07-24-backlog-subsystem on codepatrol/2026-07-24-backlog-subsystem
+  - id: 27609df7-6cb6-4122-8bd7-bdd35686886e
+    at: 2026-07-25T01:42:59.452Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-began
+    next_action: "Review plan attempt 2: confirm the Kanban two-render-path finding is resolved (AC-6 widened, T7 files + dependency corrected), re-audit the full file-ownership matrix, and check for new defects."
