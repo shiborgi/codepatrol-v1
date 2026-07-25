@@ -34,6 +34,8 @@ Harden the dependency parser that derives the todo list (T1), give every stage a
 | AC-2 (artifact present → `closed` with `result`; absent → `open`) | T3 | `change.test.ts` reconciliation cases |
 | AC-3 (Apply `T<n>` closed iff journal has `### T<n>`) | T3 | `change.test.ts` partial-journal fixture |
 | AC-4 (`rebuild` keeps backed progress, drops unbacked claims) | T3 | `change.test.ts` rebuild-after-partial-work case |
+| AC-10 (attempt-scoped: prior-attempt artifact does not close the current item) | T3 | `change.test.ts` case (e) — stale-hash fixture |
+| AC-11 (persona-aware evidence: `report-<persona>.md` counts) | T3 | `change.test.ts` case (f) — two persona reports, no consolidated report |
 | AC-5 (one `{kind:"session"}` trace entry per claim/close; fail-open) | T4 | `change.test.ts` trace-assertion cases |
 | AC-6 (abandoned-item recommendation present/absent) | T4 | `node --test --import jiti/register src/change/improvement-report.test.ts` |
 | AC-7 (SESSION.md + CONTEXT.md + 4 skills + contract test) | T5 | `node --test --import jiti/register scripts/skills-contract.test.mjs`; `npm run lint:skills` |
@@ -121,7 +123,7 @@ File-ownership matrix: `src/change/session.ts` and `src/change/change.test.ts` a
 
 ### T3 — Reconcile derived items against durable evidence
 
-**Purpose:** Satisfies AC-2, AC-3 and AC-4 — the core of the Change.
+**Purpose:** Satisfies AC-2, AC-3, AC-4, AC-10 and AC-11 — the core of the Change.
 
 **Depends on:** T2
 
@@ -134,17 +136,19 @@ File-ownership matrix: `src/change/session.ts` and `src/change/change.test.ts` a
 
 **Interfaces:**
 
-- `function itemIsDelivered(workspace: string, workId: string, stage: Stage, item: { id: string; artifact?: string }): boolean` (module-private):
-  - artifact ending in `/` → resolve via `resolveInside`; true when the directory exists and contains at least one entry;
-  - other artifact → true when the file exists and its trimmed content is non-empty;
-  - Apply item (`id` matches `/^T\d+$/`, no artifact) → true when `apply/journal.md` exists and its content matches `new RegExp("^### " + id + "\\b", "m")`.
-- Reconciled items are emitted `status: "closed"` with `result: "reconciled: <evidence>"` (for example `reconciled: plan/spec.md present`, `reconciled: apply/journal.md has ### T2`). `claim` and `artifacts` are left unset — a reconciled close was not claimed by any actor.
+- `function staleHashes(record: ChangeRecordV2, stage: Stage, attempt: number): Map<string, Set<string>>` (module-private) — for every `stage-checkpointed` event of the same `stage` whose `attempt` is **not** the current one, collect `artifacts[].path → {sha256}`. This is the attempt-scoping input for AC-10 and is built from data `change.yaml` already records.
+- `function itemIsDelivered(workspace: string, workId: string, stage: Stage, item: { id: string; artifact?: string }, stale: Map<string, Set<string>>): { delivered: boolean; evidence?: string }` (module-private). A candidate file counts only when it exists, its trimmed content is non-empty, **and** `!stale.get(<relative path>)?.has(<its sha256>)`:
+  - artifact ending in `/` → resolve via `resolveInside`; scan the directory's entries and accept the first qualifying file;
+  - other artifact → treat the value as a **prefix**: accept the first qualifying file among `<prefix>.md` and every sibling matching `<basename>-*.md` in the same directory (this is what makes `review/report-security.md` count — AC-11);
+  - Apply item (`id` matches `/^T\d+$/`, no artifact) → the qualifying file is `apply/journal.md` and its content must match `new RegExp("^### " + id + "\\b", "m")`.
+- Reconciled items are emitted `status: "closed"` with `result: "reconciled: <evidence>"` (for example `reconciled: plan/spec.md present`, `reconciled: review/report-security.md present`, `reconciled: apply/journal.md has ### T2`). `claim` and `artifacts` are left unset — a reconciled close was not claimed by any actor.
+- `deriveItems` gains the already-loaded `record` as a parameter (`loadOrDerive:82` reads it anyway; `discardAndRebuildSession:136` likewise) so no extra read is introduced.
 
-**Invariants:** reconciliation is read-only; it runs only inside `deriveItems`, never on the `loadOrDerive:85-91` return-valid-session path; `validate()` still runs on every write.
+**Invariants:** reconciliation is read-only; it runs only inside `deriveItems`, never on the `loadOrDerive:85-91` return-valid-session path; `validate()` still runs on every write; a file byte-identical to a prior attempt's binding resolves to `open` — the fail-safe direction, because a successor re-deriving is strictly safer than falsely skipping.
 
-**Simplicity proof:** One pure predicate over paths already inside the Change directory; reuses `resolveInside` and the `### T<n>` convention already parsed at `:53`.
+**Simplicity proof:** One pure predicate over paths already inside the Change directory plus one map built from `change.yaml` data already in memory; reuses `resolveInside` and the `### T<n>` convention already parsed at `:53`. No new module, no new I/O source.
 
-**Surface delta:** one helper and two call sites in `session.ts`; new test cases only.
+**Surface delta:** two module-private helpers and their call sites in `session.ts`; one added parameter on an internal function; new test cases only.
 
 **Steps:**
 
@@ -152,10 +156,12 @@ File-ownership matrix: `src/change/session.ts` and `src/change/change.test.ts` a
    (a) with `plan/spec.md` written non-empty and `plan/plan.md` absent, `primeStageSession(..., "plan", 1)` returns `spec` `closed` with a non-empty `result`, and `plan` `open`;
    (b) with `plan/spec.md` present but empty, `spec` is `open`;
    (c) for Apply with a `plan.md` declaring `T1`, `T2`, `T3` and an `apply/journal.md` containing only `### T1 — …` and `### T2 — …`, derivation returns `T1` and `T2` `closed` and `T3` `open`;
-   (d) rebuild fidelity: with `T1`'s journal section present, `discardAndRebuildSession` returns `T1` `closed`; with `T3` previously claimed but no journal section, rebuild returns `T3` `open`.
+   (d) rebuild fidelity: with `T1`'s journal section present, `discardAndRebuildSession` returns `T1` `closed`; with `T3` previously claimed but no journal section, rebuild returns `T3` `open`;
+   (e) **attempt-scoping (AC-10):** seed a Change whose `change.yaml` records a completed *prior* attempt of the stage binding `review/report.md` at hash `H`, write that exact byte content on disk, advance to a new attempt of the same stage, and assert the `report` item derives `open`; then overwrite the file with different non-empty content and assert it derives `closed`;
+   (f) **persona-aware evidence (AC-11):** with no `review/report.md` but `review/report-security.md` and `review/report-architecture.md` present, non-empty and matching no prior-attempt hash, assert `report` derives `closed` with a `result` naming one of them; with those two files present but byte-identical to a prior attempt's bindings, assert `open`.
 2. Run `node --test --import jiti/register src/change/change.test.ts`.
-   Expected red: every reconciliation case fails with the item `open`, and case (d)'s first half fails after rebuild.
-3. Implement `itemIsDelivered` and apply it inside `deriveItems` for both the `STAGE_ITEMS` branch and the Apply branch.
+   Expected red: cases (a)–(d) fail with the item `open`; case (e) fails with the item `closed` (the stale artifact is wrongly credited); case (f) fails with the item `open` (persona files are not matched). A fixture-setup error is not a valid red.
+3. Implement `itemIsDelivered` — freshness gate first, then prefix matching, then the Apply journal branch — and apply it inside `deriveItems` for both the `STAGE_ITEMS` branch and the Apply branch, threading the already-loaded `record` from `loadOrDerive`.
 4. Run the test. Expected green.
 5. Run `node --test --import jiti/register src/change/change.test.ts src/cli/cli.test.ts` and `npm run typecheck`. Expected green and clean.
 
@@ -241,7 +247,7 @@ File-ownership matrix: `src/change/session.ts` and `src/change/change.test.ts` a
 
 1. Map delivered paths back to AC-1 through AC-9; confirm each passed.
 2. Run the full gate: `npm run verify`. Expected exit 0 (also enforced at Apply `implemented` by `.codepatrol/config.json` `applyGate`).
-3. End-to-end handoff rehearsal on this Change's own Apply session: after at least one task is journaled, run `codepatrol change session --id 2026-07-25-session-handoff --input -` with `{"stage":"apply","attempt":1,"action":"rebuild"}` and confirm the journaled tasks come back `closed` and the rest `open`. Record the exact output in the journal — this is the live proof of the user-facing outcome.
+3. End-to-end handoff rehearsal on this Change's own Apply session. **Read the current Apply attempt number first** — `codepatrol change inspect --id 2026-07-25-session-handoff --workspace "$PWD" --format json` and take `data.attempt` — then, after at least one task is journaled, run `codepatrol change session --id 2026-07-25-session-handoff --input -` with `{"stage":"apply","attempt":<that number>,"action":"rebuild"}` and confirm the journaled tasks come back `closed` and the rest `open`. Never hardcode the attempt: a session action naming any attempt other than the projected current one fails with `CHANGE_CONFLICT: Session apply/<n> is not the current attempt` (`session.ts:83`, `:137`), which is exactly how Apply attempt 2 was blocked and returned. Record the exact output in the journal — this is the live proof of the user-facing outcome.
 4. `git diff --stat c8d8ddc` — inspect for undeclared work; confirm the changed set matches this plan's Expected surface delta.
 5. Reconcile actual surface delta with the spec forecast; explain any difference in the journal.
 6. Record whether any `DC-N` trigger activated (expected: none).

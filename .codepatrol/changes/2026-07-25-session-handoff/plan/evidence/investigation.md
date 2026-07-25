@@ -82,6 +82,18 @@ Reconciliation reads the stage's artifacts **from the working tree**. That fully
 
 It does **not** cover a successor harness on a *different* machine or a fresh clone mid-stage, because mid-stage artifacts are uncommitted until the stage checkpoint, and committing them early would collide with the checkpoint's declared-delta validation (`orchestrator.ts:266-270`, `:291-292`), which requires the candidate delta to match the declared artifact/production paths exactly. That is a genuine design tension, not an oversight, and is recorded as a deferred constraint rather than silently half-solved.
 
+## Finding 5 — the first reconciliation design was attempt-blind (found by validation review, Plan attempt 3)
+
+Plan attempt 2's `itemIsDelivered` credited any non-empty artifact on disk. Attempts are the unit of independence (`ROLES.md:45`), a returned attempt's artifacts stay on disk **and stay committed**, so the predicate would credit the *current* attempt with a *prior* attempt's work. Reproduced live against this Change's own state: `review/report.md` was written and sealed by review attempt 2 (`Incoming revision: 2`, `Reviewer: claude-sonnet-5`), that attempt was then invalidated by Apply attempt 2's return, and the file remains on disk and committed. The pre-fix predicate returns `true` — a future review attempt would derive `report` as `closed` having produced nothing. Exactly the "todo list misrepresents reality" failure this Change exists to eliminate, reintroduced by the Change's own fix.
+
+The fix is decidable from data already recorded: `change.yaml` stores `artifacts[].sha256` per attempt. Verified on the live file — its hash `ec2f8295eb7fad974ce7d665533b037ad6e6a759c79383d48c2b7fb1ba3e139e` appears exactly once in `change.yaml` (the review attempt 2 binding), so "is this file stale?" is answerable without clocks, mtimes or filesystem heuristics. Confidence: high (both the defect and the fix's decidability executed this session).
+
+## Finding 6 — persona artifacts were invisible to the first reconciliation design
+
+Parallel Review/Verify personas do not write the consolidated `report.md`. `skills/codepatrol-review/SKILL.md:29` and `skills/codepatrol-verify/SKILL.md:28` prescribe `review/report-security.md` / `verify/report-security.md`; `src/change/orchestrator-parallel.test.ts:35,41` exercises `review/findings-security.md` and `review/findings-architecture.md`. Plan attempt 2 keyed the `review`/`verify` item on the single exact path `review/report.md`, so two personas could fully deliver and the checklist would still read `open` — understating progress, the opposite polarity of Finding 5 but the same root cause: evidence bound to one fixed filename. Fixed by prefix matching (AC-11). Confidence: high (skills and test read).
+
+Persona *item ids* are a distinct concern: `deriveItems` is static while ids like `review-security` are chosen at runtime by the coordinator, and `personaSubEvents` only records them after a persona checkpoints — too late to seed a todo list. Claiming such an id fails today (`no such item`) and still fails after this Change; that is pre-existing behaviour, not a regression, and is recorded as DC-4 with an explicit upgrade path rather than silently frozen.
+
 ## Test-coverage baseline
 
 There is no `session.test.ts`. Session coverage lives inside `src/change/change.test.ts` (`:99-190`, found via `grep -rln "primeStageSession"`): prime-derives-open (`:102-103`), Apply-derives-plan-tasks-with-dependencies (`:109-124`), `sessionStatus` ready/blocked (`:150-163`), no-write-on-read (`:165`), claim (`:177`). None of them exercises rebuild-after-partial-work, because that behavior does not exist yet. New tests land beside these, in the same file, reusing its fixtures.
