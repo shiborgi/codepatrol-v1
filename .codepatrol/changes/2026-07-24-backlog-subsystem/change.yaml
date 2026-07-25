@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Review the backlog-subsystem Plan (attempt 2): re-check governing-doc amendment, cited extension points, dedup/priority, Close hook, start linkage, next rendering, and the Kanban Backlog column — including both Kanban render paths."
+  - id: 6ee999ea-8ece-4935-a15a-e74e6c5ae527
+    at: 2026-07-25T01:22:31.450Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-20260725T012106Z
+      started_at: 2026-07-25T01:21:06Z
+      finished_at: 2026-07-25T01:22:15Z
+      elapsed_ms: 69000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
