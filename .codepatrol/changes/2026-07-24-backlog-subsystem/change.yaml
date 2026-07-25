@@ -154,3 +154,10 @@ events:
         sha256: 426560a8096925b44547333b974db57cca8ed46539869f0967d17f7a4cb88dd4
         intent: create
     next_action: codepatrol-apply 2026-07-24-backlog-subsystem on codepatrol/2026-07-24-backlog-subsystem
+  - id: bd711e76-8a2e-43a8-9c22-7ed1f2d73291
+    at: 2026-07-25T01:46:01.716Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: "Apply the structured backlog subsystem: T1 amend governing docs, T2 backlog.ts module, T3 CLI add/list, T4 Close hook, T5 change start linkage, T6 next --stage plan, T7 Kanban Backlog column, T8 Plan skill, T9 verify."
