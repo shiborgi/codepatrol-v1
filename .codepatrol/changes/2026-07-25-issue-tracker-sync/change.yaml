@@ -48,3 +48,10 @@ events:
         sha256: c10bde51ef4fa248789f785957be017c6cf58b764824723c3fc09fde663c7299
         intent: create
     next_action: codepatrol-review 2026-07-25-issue-tracker-sync on codepatrol/2026-07-25-issue-tracker-sync
+  - id: 3633c84e-11d4-4089-b019-84b5f643c972
+    at: 2026-07-25T22:00:13.326Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-25-issue-tracker-sync on codepatrol/2026-07-25-issue-tracker-sync
