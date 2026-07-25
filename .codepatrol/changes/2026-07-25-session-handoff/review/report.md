@@ -1,46 +1,53 @@
 # Review — Faithful per-stage todo lists: reconcile the Stage Session from durable evidence
 
 - Change: `2026-07-25-session-handoff`
-- Incoming revision: 2 (Plan attempt 2)
-- Reviewed revision: 2
+- Incoming revision: 3 (Plan attempt 3)
+- Reviewed revision: 3
 - Reviewer: claude-sonnet-5 (default persona)
-- Evidence date: 2026-07-25T17:06:30Z
+- Evidence date: 2026-07-25T17:20:30Z
 
 ## Scope and evidence
 
-Reviewed at branch `codepatrol/2026-07-25-session-handoff`, Plan attempt 2 checkpoint `4b99624` (transition commit `1eb4a41`), base `c8d8ddc` (`main`, unchanged), clean worktree. Plan attempt 2 is the response to Apply attempt 1's contract-defect return (which found two dependency-parser defects while priming this Change's own session against its own `plan.md`); it adds T1 (parser hardening) and rewords this Change's own `plan.md` `**Depends on:**` lines to be bare `None`/`T<n>` lists.
+Reviewed at branch `codepatrol/2026-07-25-session-handoff`, Plan attempt 3 checkpoint `0ba351b` (transition commit `ff58bcc`), base `c8d8ddc` (`main`, unchanged), clean worktree. This attempt is Plan's response to **Apply attempt 2's contract-defect return** (Apply ran 40 s, found the defect before mutation, returned to Plan).
 
-Declared Plan-attempt-2 artifact hashes re-computed and matched `change.yaml` exactly:
+Declared Plan-attempt-3 artifact hashes re-computed and matched `change.yaml` exactly:
 
-- `plan/spec.md` → `3febaf90…750650` (intent `modify`) ✓
-- `plan/plan.md` → `19eb31fc…bcf5f9` (intent `modify`) ✓
-- `plan/evidence/investigation.md` → `5ba079d2…5d194b7` (intent `modify`; hash identical to attempt 1 — unchanged) ✓
+- `plan/spec.md` → `4769da26…91e4f4` (modify) ✓
+- `plan/plan.md` → `50c66f34…5e424e` (modify) ✓
+- `plan/evidence/investigation.md` → `ce2f9a2d…ae1245` (modify) ✓
 
-History reconciled with the projection: Plan 1 invalidated, Review 1 invalidated (prior `approve` superseded), Apply 1 `returned`, Plan 2 completed, Review 2 active. The `return apply` commit `92adcf2` sits correctly between the two Plan attempts.
+History reconciled with the projection: Plan 1 & 2 invalidated; Review 1 & 2 invalidated (both prior `approve`s superseded); Apply 1 & 2 `returned`; Plan 3 completed; Review 3 active. The two Apply returns are distinct contract defects (read from `change.yaml` `stage-returned` events):
 
-Code citations verified by reading each cited file/line in full:
+- **Apply 1 → Plan 2**: the dependency-parser defects (reviewed and approved in Review 2; superseded).
+- **Apply 2 → Plan 3 (this attempt)**: T6 step 3 hardcoded `{"stage":"apply","attempt":1,...}` for the rehearsal, but the active Apply attempt was 2 → `CHANGE_CONFLICT: Session apply/1 is not the current attempt`.
 
-- `src/change/session.ts` (139 lines): `deriveItems` `:48-62`; `:49` single opaque item for every non-Apply stage; `:50-61` Apply `### T<n>` parse (`:53`) and `**Depends on:**` parse (`:57`); `:58` dependency parser with both defects; `validate()` `:19-46` incl. self-dep rejection at `:36`, cycle check `:37-44`, 256 KB bound `:45`; `loadOrDerive` `:81-93` (load path `:85-91` returns on-disk session untouched); `claimSessionItem` `:107-125`; `closeSessionItem` `:127-133`; `discardAndRebuildSession` `:135-139` (always re-derives all-open, reads `plan.md` never `apply/journal.md`); locking `:108`/`:128`. **All confirmed.**
-- `src/change/trace.ts` (104 lines): `TraceEntry` `:4-7` (3 variants); `append` `:53` with internal fail-open `:67-69`; `read` `:81-94` (structural cast, tolerates unknown shapes); `close` `:96-104`; 10 MB rotation `:10`. **All confirmed.**
-- `src/change/orchestrator.ts:254-259` `required` map (plan→spec.md+plan.md; review→report.md; apply→journal.md; verify→report.md); `:186` `try { trace.append(...) } catch { /* fire-and-forget */ }` pattern. **Confirmed.**
-- `src/cli/main.ts:58` traces `{kind:"command",command,args}` — `change session`'s `args` carries only `{id,input}`, so item-level actions are never traced (Finding 4). **Confirmed.**
-- `.gitignore:6` `.codepatrol/runtime/` covers both sessions and traces; `git check-ignore -v` hits a session path. **Confirmed.**
-- `skills/_shared/SESSION.md:11-12` "the accepted Change artifacts reconstruct it" (the unimplemented promise — Finding 1); `CONTEXT.md:34` Stage Session term; `scripts/skills-contract.test.mjs:30-31` existing SESSION.md assertions. **Confirmed.**
-- `src/change/change.test.ts:10` imports, `:102` prime, `:123-126` Apply derivation (`["T1","T2"]`), `:127` rebuild-guard, `:150-163` sessionStatus, `:190` no-write-on-read. **Confirmed.**
+Plan 3's diff (`4b99624` → `0ba351b`, plan content) was read in full. It makes three changes:
 
-First-hand evidence reproduced directly in this session:
+1. **T6 step 3 fix (the actual Apply-2 defect):** the rehearsal now reads the current Apply attempt via `change inspect`'s `data.attempt` and uses `<that number>`, with an explicit note that hardcoding fails at `session.ts:83`/`:137`. Correct and complete.
+2. **Finding 5 / AC-10 (attempt-scoped reconciliation) — a NEW latent defect in the Plan-2 design:** Plan-2's `itemIsDelivered` was attempt-blind — a prior *invalidated* attempt's artifact stays on disk and committed, so the current attempt would inherit a `closed` item for work it never did. Fix: a freshness gate (`staleHashes` built from `change.yaml`'s per-attempt `artifacts[].sha256`) — a candidate file counts only if its SHA-256 matches no prior-attempt binding for that path.
+3. **Finding 6 / AC-11 (persona-aware evidence):** Plan-2 keyed items on one exact filename; parallel personas write `report-<persona>.md` (per the skills), which would read `open`. Fix: prefix matching (`<basename>.md` + `<basename>-*.md`).
 
-- **Both T1 parser defects reproduced via `node -e`** against the literal cited lines: `T2 (… T3-exclusive.)` for task T3 → `["T2","T3"]` (self-dep, hard-blocks at `validate():36`); `None (docs/skills only; file-disjoint from T1–T3)` → guard tests the whole line (false) → `["T1","T3"]` (silent phantom deps). Happy path `T1, T2` → `["T1","T2"]` and `None` → `[]` parse unchanged. The T1 fix (leading-token guard + self-ref filter) yields the AC-9-expected `["T2"]` and `[]`.
-- **The handoff incident (Finding 2)** verified verbatim in the durable, git-tracked `2026-07-25-docs-consolidation` Apply journal (`:11`, `:109`): "a prior Apply session's Stage Session claimed T1–T4 'complete' with no journal, no artifacts, and no checkpoint… The session was stale/untrustworthy and was rebuilt".
-- **The cross-harness `### T<n> — … / Result: complete` convention (Finding 3)** verified in both journals under their terminal tags: commit-scoping (opencode/MiniMax-M3) and docs-consolidation (claude-sonnet-5) each carry `### T1…T4` with `- Result: complete`.
+## Verification of the new findings (executed this session)
+
+- **Finding 5 is concretely real on this Change's own state right now.** `review/report.md` on disk hashes to `ec2f8295eb7fad97…`, which `change.yaml` records as review attempt 2's binding; review attempt 2 is invalidated. Under Plan-2's attempt-blind predicate, priming a review-3 session would derive the `report` item `closed` for an attempt that has produced nothing — exactly the "todo list misrepresents reality" failure this Change exists to eliminate, reintroduced by the Change's own fix. The freshness gate resolves this: `ec2f8295…` is in the stale set → `open` until attempt 3 writes fresh content.
+- **The freshness gate is decidable from data already recorded.** `change.yaml` stores `artifacts[].sha256` per `stage-checkpointed` event (verified: review attempt 1 → `9dddb788…`, attempt 2 → `ec2f8295…` for the same path). `staleHashes(record, stage, attempt)` collects same-stage non-current-attempt bindings — no clocks, mtimes, or heuristics. Fail-safe direction confirmed: byte-identical content → `open` (re-derive rather than falsely skip).
+- **Finding 6 citations verified.** `skills/codepatrol-review/SKILL.md:29` → `review/report-security.md`; `skills/codepatrol-verify/SKILL.md:28` → `verify/report-security.md`; `src/change/orchestrator-parallel.test.ts:35,41` exercises `review/findings-security.md` / `findings-architecture.md` (test-fixture naming). The design's prefix `<basename>-*.md` matches the skill-prescribed production convention (`report-*`).
+- **ROLES.md:45** verified verbatim: "Independence is defined at the Stage Attempt level, not the vendor level." — grounds both the attempt-scoping rationale and the multi-harness compatibility note.
+- **Record threading is zero-new-I/O.** `loadOrDerive:82` and `discardAndRebuildSession:136` already call `readChangeRecord`; Plan 3 keeps the raw record reference (before `foldChange`) and passes it to `deriveItems`. `ChangeRecordV2` is a type from `./types.js` (already a session.ts dependency) — no new import.
+
+Code citations carried forward from Review 2 (production code unchanged at base `c8d8ddc`; Plan-only revision): `session.ts:48-62/58/85-91/107-133/135-139`, `trace.ts:4-7/53/67-69/81-94/96`, `orchestrator.ts:254-259/186`, `cli/main.ts:58`, `.gitignore:6`, `SESSION.md:11-12`, `CONTEXT.md:34`, `change.test.ts:99-190` — all still accurate. The two T1 parser defects remain reproduced (Review 2 evidence stands).
+
+## Assessment of the scope expansion
+
+The expansion is justified, not gold-plating. The attempt-blindness (Finding 5) is a genuine, serious defect: without it, the Change would ship a feature that demonstrably credits invalidated attempts' committed work — the precise failure class its spec's Problem statement condemns, applied to itself. Verify would very likely have caught it; Plan 3 fixing it proactively is correct. The persona-aware matching (Finding 6) shares the root cause (evidence bound to one fixed filename) and is a natural complement. Both fixes land inside T3's `itemIsDelivered` in `session.ts` (the file T3 already owns), add two module-private helpers + one internal parameter, introduce no new module/store/CLI verb/dependency, and preserve the frozen `SessionItem`/`StageSession` schemas. The surface delta does not grow beyond the Plan-2 forecast set. New ACs (AC-10, AC-11) are unambiguous and mapped to red-capable test cases (e) and (f).
 
 ## Findings
 
-None that block approval. One cosmetic observation recorded below; no bounded or material defect survives validation.
+None that block approval. Minor observations recorded below; no bounded or material defect survives validation.
 
-### minor — evidence (cosmetic, non-blocking) — AC ordering
+### minor — evidence (cosmetic, non-blocking) — AC list ordering
 
-`spec.md` lists AC-1…AC-7, then AC-9, then AC-8 (AC-9 precedes AC-8). `plan.md`'s acceptance-mapping table orders them AC-9, AC-1…AC-7, AC-8. All nine criteria are present, unambiguous, non-overlapping, and each maps to exactly one task and one red-capable verification; the reordering is purely typographical and does not affect implementability, verification, or coverage. No correction required for approval.
+`spec.md` orders the criteria AC-1, AC-10, AC-11, AC-2…AC-9; `plan.md`'s acceptance-mapping table orders AC-9, AC-1…AC-4, AC-10, AC-11, AC-5…AC-8. All eleven criteria (AC-1…AC-11) are present, unambiguous, non-overlapping, and each maps to exactly one task and one red-capable verification. The reordering is purely typographical; no correction required for approval.
 
 ## Artifact adjustments
 
@@ -53,52 +60,55 @@ None that block approval. One cosmetic observation recorded below; no bounded or
 
 | Criterion | Spec is unambiguous | Plan task(s) | Verification is red-capable | Result |
 |---|---|---|---|---|
-| AC-1 (multi-item checklist per stage; apply/close unchanged) | yes | T2 | yes — red: derivation still returns single `<stage>-work` (count/id mismatch) | covered |
-| AC-2 (artifact present→`closed` w/ `result`; absent→`open`) | yes | T3 | yes — red: reconciliation cases return items `open` | covered |
-| AC-3 (Apply `T<n>` closed iff journal has `### T<n>`) | yes | T3 | yes — red: strict-subset journal leaves the absent task `open`; exercised both directions in one fixture | covered |
-| AC-4 (rebuild keeps backed progress, drops unbacked claims) | yes | T3 | yes — red: rebuild-after-partial-work returns unbacked claim `closed` today | covered |
-| AC-5 (one `{kind:"session"}` trace entry per claim/close; fail-open) | yes | T4 | yes — red: no `session` entries exist in the trace today | covered |
-| AC-6 (abandoned-item recommendation present/absent) | yes | T4 | yes — red: recommendation absent today; both polarities asserted | covered |
-| AC-7 (SESSION.md + CONTEXT.md + 4 skills + contract test) | yes | T5 | yes — red: contract test fails on missing `/reconcil/i` and `/re-?prime/i`; `lint:skills` validates skill edits | covered |
-| AC-8 (`npm run verify` exit 0) | yes | T6 | yes — `applyGate` machine-gates the `implemented` checkpoint | covered |
-| AC-9 (no self-dep; leading-token `None` guard; happy path unchanged) | yes | T1 | yes — red reproduced this session: T3 self-dep throws `CHANGE_INVALID`; `None (…T1–T3)` yields phantom `["T1","T3"]` | covered |
+| AC-1 (multi-item checklist per stage; apply/close unchanged) | yes | T2 | yes — red: single `<stage>-work` item (count mismatch) | covered |
+| AC-2 (artifact present→`closed` w/ `result`; absent→`open`) | yes | T3 | yes — red: items `open` today | covered |
+| AC-3 (Apply `T<n>` closed iff journal has `### T<n>`) | yes | T3 | yes — strict-subset journal, both directions | covered |
+| AC-4 (rebuild keeps backed progress, drops unbacked claims) | yes | T3 | yes — red: rebuild returns unbacked claim `closed` today | covered |
+| AC-5 (one `{kind:"session"}` trace entry per claim/close; fail-open) | yes | T4 | yes — red: no `session` entries today | covered |
+| AC-6 (abandoned-item recommendation present/absent) | yes | T4 | yes — both polarities asserted | covered |
+| AC-7 (SESSION.md + CONTEXT.md + 4 skills + contract test) | yes | T5 | yes — contract test word mismatch; `lint:skills` | covered |
+| AC-8 (`npm run verify` exit 0) | yes | T6 | yes — `applyGate` | covered |
+| AC-9 (no self-dep; leading-token `None` guard; happy path unchanged) | yes | T1 | yes — reproduced this lineage: T3 self-dep throws; `None (…T1–T3)` → phantom `["T1","T3"]` | covered |
+| AC-10 (attempt-scoped: prior-attempt artifact does not close the current item) | yes | T3 | yes — case (e): stale-hash fixture; red = item wrongly `closed` (demonstrated live on this Change's own `ec2f8295…` report) | covered |
+| AC-11 (persona-aware evidence: `report-<persona>.md` counts) | yes | T3 | yes — case (f): two persona reports, no consolidated report; red = item `open` today | covered |
 
 ## Simplicity axis
 
-- Selected rung: **confirmed** — direct local change. One existing function (`deriveItems`) gains a narrowed dependency parse, a per-stage table, and a reconciliation predicate; two existing functions (`claim`/`close`) gain one traced line each; one existing report gains one aggregation. No new module, store, CLI verb, schema field, or dependency.
-- Reuse maximised: per-stage artifact set from `orchestrator.ts:254-259`; `### T<n>` heading already parsed at `session.ts:53` and already mandated by `plan.md`'s `**Task result:**`; the entire `trace.append → generateImprovementReport → Close-hook → backlog` pipeline used unmodified; existing `change.test.ts:99-190` fixtures.
-- Safety floor: session stays disposable, gitignored and non-governing (contract preserved, not amended — `SESSION.md`/`CONTEXT.md`/`AGENTS.md`); reconciliation is read-only and runs only on derivation (`loadOrDerive:85-91` return path untouched → in-flight `claimed` items never disturbed); trace stays fail-open (existing internal `try/catch` plus the defensive outer wrap); existing fail-closed validation, 256 KB bound, dependency-cycle check, and workspace locking untouched; checkpoint validation and `parseStatusPaths` untouched.
-- Surface delta: `src/change/{session,trace,improvement-report}.ts`, `src/change/{change,improvement-report}.test.ts`, `skills/_shared/SESSION.md`, `CONTEXT.md`, four `skills/codepatrol-{plan,review,apply,verify}/SKILL.md`, `scripts/skills-contract.test.mjs`. No new files, no config/runtime-state layout change — matches the spec forecast.
+- Selected rung: **confirmed** — still a direct local change. Plan 3 adds two module-private helpers (`staleHashes`, revised `itemIsDelivered`) and one internal parameter (`record`) to T3, all inside `session.ts`; no new module, store, CLI verb, schema field, or dependency. The freshness gate reuses `change.yaml` data already in memory; the prefix match reuses the existing artifact-entry shape.
+- Safety floor preserved: session stays disposable/gitignored/non-governing; reconciliation read-only and only on derivation (`loadOrDerive:85-91` return path untouched); freshness gate is fail-safe (identical→`open`); trace stays fail-open; existing validation/256 KB bound/cycle-check/locking untouched; checkpoint validation and `parseStatusPaths` untouched.
+- Surface delta unchanged from the Plan-2 forecast (`session.ts`, `trace.ts`, `improvement-report.ts`, `change.test.ts`, `improvement-report.test.ts`, `SESSION.md`, `CONTEXT.md`, 4 `SKILL.md`, `skills-contract.test.mjs`).
 
 | Category | Location | Removable surface or replacement | Safety/acceptance impact | Disposition |
 |---|---|---|---|---|
 | — | — | already sufficient | — | no finding survives validation on the simplicity axis |
 
-Deferred constraints all sound: DC-1 (cross-machine handoff — reads working-tree artifacts only; mid-stage commits would collide with checkpoint delta validation `orchestrator.ts:266-270`/`:291-292`); DC-2 (4 unrelated backlog items + transition-count recommendation); DC-3 (no ADR for the reject-merger decision — rationale lives in this spec). Each has a known ceiling, observable trigger, and bounded upgrade path.
+Deferred constraints sound, including the new DC-4 (persona *item ids* not derived — pre-existing `claim review-security` failure, unchanged by this Change; upgrade path via coordinator-declared prime-time items or `personaSubEvents` derivation).
 
 ## Executability audit
 
-- Paths/interfaces: all edits are internal to existing modules; `SessionItem`/`StageSession` schemas frozen (`schema_version` stays `1`); `TraceEntry` gains one variant — `trace.read` already tolerates unknown shapes and `generateImprovementReport` filters by `kind`, so older traces aggregate to zero abandoned items. No migration.
-- Dependency direction: `session.ts` gains only a `trace` import (same fire-and-forget import `orchestrator.ts:10` already uses); `improvement-report.ts` adds one aggregation over an input it already reads. No new module, no inversion.
-- Commands: gate `npm run verify` is the project's existing gate, re-enforced at Apply seal via `applyGate`.
-- Red/green: every task specifies a concrete expected red (T1 throws/mis-derives; T2 count mismatch; T3 items `open`; T4 no `session` trace + absent recommendation; T5 contract-test word mismatch) — all falsifiable, none dependent on a fixture-setup error.
-- Self-consistency: this Change's own `plan.md` `**Depends on:**` lines are all bare `None`/`T<n>` lists (T1 None; T2 T1; T3 T2; T4 T3; T5 None; T6 T1,T2,T3,T4,T5), so Apply can prime from it under the *current unhardened* parser before T1 lands — the Apply-1 block is resolved.
-- Rollback: revert the branch; sessions are disposable, so no state survives a revert to be repaired.
+- Paths/interfaces: all edits internal; `SessionItem`/`StageSession` frozen; `TraceEntry` gains one variant (`trace.read` tolerates unknown shapes). `deriveItems` gains `record` (already loaded — zero new I/O).
+- **Path-normalization detail (implementation, decidable):** `change.yaml` artifact paths are workspace-relative (`.codepatrol/changes/<id>/review/report.md`) while `STAGE_ITEMS` artifact entries are change-dir-relative (`review/report.md`); `staleHashes` ↔ `itemIsDelivered` must normalize to compare. Not specified explicitly, but trivial and unambiguous — the implementer resolves it. Does not block.
+- **Prefix over-matching (fail-safe):** `<basename>-*.md` would also match e.g. `report-draft.md`; such a file counts only if non-empty AND fresh, and only moves the item toward `closed` — the direction a reviewer intends. Acceptable.
+- **Uncommitted-stale edge case (residual):** a prior attempt that wrote an artifact then crashed/returned *before* checkpointing leaves an uncommitted file not present in any `change.yaml` binding, so the freshness gate would not flag it. Bounded by other lifecycle guards (transitions require clean trees / the file would be swept or block the next checkpoint) and far rarer than the committed-stale case the gate does catch. Noted as residual, not blocking.
+- Commands/gate: `npm run verify`, re-enforced at Apply seal via `applyGate`.
+- Red/green: every task specifies a concrete falsifiable red (T1 throws/mis-derives; T2 count mismatch; T3 cases a–f each specified with expected red including the stale-hash `closed` and persona `open`; T4 no session trace + absent recommendation; T5 word mismatch). T6 step 3's hardcoded-attempt defect is fixed and explains the failure mode.
+- Self-consistency: this Change's own `plan.md` `**Depends on:**` lines remain bare `None`/`T<n>` lists, so Apply can prime under the current parser before T1 lands.
+- Rollback: revert the branch; sessions disposable.
 - Unresolved assumption: none material.
 
 ## Verdict
 
 `approve`
 
-Plan attempt 2 resolves the Apply-1 contract defect both ways: it fixes the two reproduced dependency-parser defects in scope (T1, inside the same function T2/T3 already own — no new file/module/interface) and rewords this Change's own `plan.md` to be self-consistently parseable under the current parser. The technical design is sound and constraint-consistent — the session becomes a read-only projection reconciled from durable evidence (removing its competing source-of-truth claim), the one worthwhile unification (item-level trace lines → existing report → backlog) is built from existing machinery, disposability/gitignored/non-governing status is preserved, and all governing contracts (`SESSION.md`, `CONTEXT.md`, `AGENTS.md`) are honored. Every acceptance criterion AC-1…AC-9 is unambiguous and maps to a red-capable task and verification; first-hand evidence (the incident journal, the cross-harness convention, the reproduced defects) all check out. The Plan is complete enough for an independent implementer. Next permitted transition: Review checkpoint with result `approve`, advancing the Change to Apply. Next action: `codepatrol-apply 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff`.
+Plan attempt 3 resolves Apply-2's contract defect (T6's hardcoded attempt) and, in the same revision, fixes a genuine latent defect in the Plan-2 reconciliation design that would have made the Change's own feature credit invalidated attempts' committed work — concretely demonstrable on this Change's state today (the invalidated review-2 report on disk). The freshness-gate fix (AC-10) and the persona-aware prefix match (AC-11) are sound, decidable from data already recorded, fail-safe, red-capable, and localized to T3's file with no new module/store/dependency; the frozen session schemas, disposability, read-only-on-derivation invariant, and fail-open trace are all preserved. All eleven acceptance criteria are unambiguous and mapped to red-capable tasks; first-hand evidence (the live stale-report demonstration, the per-attempt hashes in `change.yaml`, the persona-naming skills, `ROLES.md:45`) checks out. The Plan is complete enough for an independent implementer. Next permitted transition: Review checkpoint with result `approve`, advancing to Apply. Next action: `codepatrol-apply 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff`.
 
 ## External evidence sufficiency
 
-Not required. No external/dependency/protocol claim governs the design. The semantics invoked — reading on-disk files to reconcile projection state, and an append-only trace feeding an aggregation — are internal to this codebase, established by its own conventions (the `### T<n>` journal format and the trace→report→backlog pipeline), and require no Reference Concept Analysis.
+Not required. No external/dependency/protocol claim governs the design. The semantics invoked — SHA-256 freshness comparison against recorded bindings, prefix-glob artifact matching, append-only trace feeding an aggregation — are internal to this codebase, established by its own conventions, and require no Reference Concept Analysis.
 
 ## Residual concerns and evidence gaps
 
-- Reconciliation marks an item `closed` on the strength of a non-empty artifact (a stub could satisfy it). Acknowledged in the spec and strictly better than today's unbacked in-memory claim; the stage's real gate (checkpoint artifact hashing + `applyGate`) is unchanged and still catches stub work before sealing. Does not block approval.
-- Cross-machine/fresh-clone mid-stage handoff remains unsolved (DC-1) — out of scope by design, not an oversight.
-- The defensive outer `try/catch` around `trace.append` in claim/close (T4) is redundant with `trace.append`'s own internal fail-open (`trace.ts:67-69`); harmless defense-in-depth, explicitly modeled on `orchestrator.ts:186`. Does not block approval.
-- Could not re-run the full baseline gate at `c8d8ddc` within this review (Review does not execute the candidate gate — that is Verify's job); the spec's baseline-green claim rests on the prior Change's terminal Close having run the same gate via `applyGate`, plus a clean typecheck of the cited files read here. Does not block approval.
+- Uncommitted-stale edge case (above) — residual, bounded by other lifecycle guards; the freshness gate covers the documented, concretely-reproduced committed-stale threat.
+- Path normalization between `change.yaml` (workspace-relative) and `STAGE_ITEMS` (change-dir-relative) is unspecified but trivially decidable at implementation time.
+- The investigation's Finding 6 cites the parallel test's `findings-<persona>.md` fixtures alongside the skills' `report-<persona>.md` convention; the implemented prefix (`review/report`) matches the skill/production convention exercised by AC-11 case (f), not the test-only `findings-*` naming. Consistent with the production contract; recorded for completeness.
+- Could not re-run the full baseline gate at `c8d8ddc` within this review (Review does not execute the candidate gate — Verify's role); baseline-green rests on the prior Change's terminal Close + clean typecheck of cited files. Does not block approval.
