@@ -387,3 +387,10 @@ events:
         sha256: e5b743f48aeeda247369cc3b8512950857c8a9770ca3cf86071c09af7a793109
         intent: create
     next_action: codepatrol-close 2026-07-25-session-handoff commit|rollback on codepatrol/2026-07-25-session-handoff
+  - id: 36467f4b-676a-468f-a263-7f2604cdfe50
+    at: 2026-07-25T18:15:04.771Z
+    actor: claude-opus-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: "Close 2026-07-25-session-handoff with commit+push: fast-forward main to the Verify commit candidate, tag codepatrol/committed/2026-07-25-session-handoff, delete the feature branch, push main to origin."
