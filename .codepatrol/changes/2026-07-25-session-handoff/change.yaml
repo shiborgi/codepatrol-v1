@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 1c35e75e-516b-40aa-b3b0-a00dc1f1768a
+    at: 2026-07-25T16:44:06.733Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 8061545870b4e7c1ff79df7444b9beedda89be13
+    tree: 832d2ad3ae8ec8b06bb13d45808ec73813b0ddcc
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-session-handoff/review/report.md
+        sha256: 9dddb78880065c33777b6a5247ef843501726913206a8e51df5f5ba6712d6421
+        intent: create
+    next_action: codepatrol-apply 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
