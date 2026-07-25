@@ -85,3 +85,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: "Re-plan after Review fix-first return: widen AC-6 to both Kanban render paths, add the status case + render-kanban.mjs to T7, and make T7 depend on T6; clear the invalidated review report."
+  - id: 8a291526-606c-4b30-a597-6d57335904b3
+    at: 2026-07-25T01:39:40.016Z
+    actor: opencode
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-20260725T012936Z
+      started_at: 2026-07-25T01:29:36Z
+      finished_at: 2026-07-25T01:39:29Z
+      elapsed_ms: 593000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
