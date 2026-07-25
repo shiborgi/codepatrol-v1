@@ -174,3 +174,10 @@ events:
         sha256: af9ea5d2c18cde6ff7ef0b8d0fc1e8307852cd3f6ec43d77f23efaa070a0db97
         intent: create
     next_action: codepatrol-close 2026-07-25-docs-consolidation commit|rollback on codepatrol/2026-07-25-docs-consolidation
+  - id: 3b2432af-6717-4bc4-9853-82e3e6d7c658
+    at: 2026-07-25T15:12:42.607Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: "Close 2026-07-25-docs-consolidation with commit+push: fast-forward main to the Verify commit candidate, tag codepatrol/committed/2026-07-25-docs-consolidation, delete the feature branch, push main to origin."
