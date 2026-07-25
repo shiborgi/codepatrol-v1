@@ -85,3 +85,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: "Re-plan after Review fix-first return: replace every 2026-07-24-docs-consolidation citation with the correct 2026-07-25-docs-consolidation in spec.md and investigation.md; no design change."
+  - id: e3b36fae-6567-442e-aba2-8f6b0e25b038
+    at: 2026-07-25T15:37:20.304Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-20260725T153658Z
+      started_at: 2026-07-25T15:34:33Z
+      finished_at: 2026-07-25T15:37:14Z
+      elapsed_ms: 161000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
