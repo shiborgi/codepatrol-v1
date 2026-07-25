@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-24-backlog-subsystem on codepatrol/2026-07-24-backlog-subsystem
+  - id: 1be4ba75-d81e-455b-9751-95ffc66b5db8
+    at: 2026-07-25T01:15:17.418Z
+    actor: opencode
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-20260725T010958Z
+      started_at: 2026-07-25T01:09:58Z
+      finished_at: 2026-07-25T01:14:59Z
+      elapsed_ms: 301000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
