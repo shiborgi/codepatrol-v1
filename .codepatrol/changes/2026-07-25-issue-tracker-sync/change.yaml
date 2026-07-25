@@ -140,3 +140,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 4b0ffc6a-70b7-45cf-99ac-a2cc9f622945
+    at: 2026-07-25T22:32:32.450Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-checkpointed
+    result: approve
+    checkpoint: cfab0e517c5122c64c13087eced9c682391682b5
+    tree: 9891fb898fbbfc9b63606d16d4c21b304e698050
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-issue-tracker-sync/review/report.md
+        sha256: 3bc9ea6fbdd209140d86c67e87bf0757d03913b523976e4ac0576b9c466e01e1
+        intent: create
+    next_action: codepatrol-apply 2026-07-25-issue-tracker-sync on codepatrol/2026-07-25-issue-tracker-sync
