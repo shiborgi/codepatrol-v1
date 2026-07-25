@@ -264,3 +264,26 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 65fe4bc7-3ddf-41f7-ba39-7bba9e4a42da
+    at: 2026-07-25T02:56:34.719Z
+    actor: opencode
+    stage: apply
+    attempt: 2
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: ca17feedf82655a858d975c05d72c03d7cc88d09
+    tree: e976fc00dc0b6ac8c86a8aaba0168c30d0ba0dae
+    artifacts:
+      - path: .codepatrol/changes/2026-07-24-backlog-subsystem/apply/journal.md
+        sha256: 3bb8f966fdafb28ba51910aaef561521bb792b44b66d3e32e01492ef9843eaf7
+        intent: modify
+    changes:
+      - src/change/backlog-close-integration.test.ts
+      - src/change/backlog.ts
+      - src/change/orchestrator.ts
+    next_action: codepatrol-verify 2026-07-24-backlog-subsystem on codepatrol/2026-07-24-backlog-subsystem
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 17494
+      at: 2026-07-25T02:56:34.657Z
