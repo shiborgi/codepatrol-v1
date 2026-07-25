@@ -221,3 +221,10 @@ events:
     to_stage: plan
     reason: "Contract defect (blocking, found before production mutation): T6 step 3 hardcodes a Stage Session rebuild for apply attempt 1, but the current accepted Apply attempt is 2 after Apply attempt 1 returned. The literal accepted input fails with CHANGE_CONFLICT: Session apply/1 is not the current attempt. Required correction: change the rehearsal input to attempt 2 (or explicitly use the projected current Apply attempt) and keep the rehearsal scoped to that current attempt. No source or stage artifact was edited; the tracked tree is clean."
     next_action: "codepatrol-plan 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff: correct T6 step 3 from apply attempt 1 to the projected current Apply attempt 2, then Review again"
+  - id: 99e342a4-2b86-4dc6-8782-ad16049fc5b9
+    at: 2026-07-25T17:15:21.062Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 3
+    type: stage-began
+    next_action: "Re-plan after Apply attempt 2 returned: fix T6 step 3 attempt hardcoding, and fold in three validated defects found by the multi-model/persona compatibility review (attempt-blind reconciliation AC-10, persona-blind evidence AC-11, persona item ids DC-4)."
