@@ -283,3 +283,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 9994019f-ae6a-4c6d-bbbc-40c70a353e91
+    at: 2026-07-25T17:21:17.515Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 3
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 97273981f58555d201c0a8fb3f7d26e49cd06830
+    tree: b634430c8924732e828770fee42fdcbd2a912597
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-session-handoff/review/report.md
+        sha256: 22e540b99994273d00bc16450435d650e173b69c6ab7073ada3673d40b5d1ba5
+        intent: modify
+    next_action: codepatrol-apply 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
