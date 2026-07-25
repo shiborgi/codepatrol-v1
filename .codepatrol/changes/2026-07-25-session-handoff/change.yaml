@@ -408,3 +408,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 74bff367-ba75-4da6-b73c-6a771133c54b
+    at: 2026-07-25T18:15:25.040Z
+    actor: claude-opus-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: d529a68a9e9950284f05d3a2cbbda1b00a435572
+    tag: codepatrol/committed/2026-07-25-session-handoff
+    receipt: close/receipt.md
