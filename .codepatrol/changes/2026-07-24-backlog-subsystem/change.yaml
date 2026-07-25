@@ -161,3 +161,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Apply the structured backlog subsystem: T1 amend governing docs, T2 backlog.ts module, T3 CLI add/list, T4 Close hook, T5 change start linkage, T6 next --stage plan, T7 Kanban Backlog column, T8 Plan skill, T9 verify."
+  - id: 7fcddbad-4dd5-4072-a6ae-8f5b700be969
+    at: 2026-07-25T02:07:49.275Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-20260725T014601Z
+      started_at: 2026-07-25T01:46:01Z
+      finished_at: 2026-07-25T02:07:33Z
+      elapsed_ms: 1292000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
