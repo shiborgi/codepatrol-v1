@@ -83,3 +83,10 @@ events:
         sha256: 20cf22c7828640d181720991f56c27d03ecf88b9fcd2861768cb70c483b496cb
         intent: create
     next_action: codepatrol-apply 2026-07-25-remove-duplicate-reader on codepatrol/2026-07-25-remove-duplicate-reader
+  - id: ab22a54c-6c15-409f-8901-c6cff269e6a0
+    at: 2026-07-25T18:47:26.872Z
+    actor: minimax-m3
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: Execute accepted Apply tasks T1-T3 for 2026-07-25-remove-duplicate-reader
