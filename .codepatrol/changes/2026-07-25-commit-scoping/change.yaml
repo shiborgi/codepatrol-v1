@@ -208,3 +208,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-verify 2026-07-25-commit-scoping on codepatrol/2026-07-25-commit-scoping
+  - id: c6be7124-6b6e-4109-8409-6db4ace2fae2
+    at: 2026-07-25T16:14:40.257Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260725T160911Z
+      started_at: 2026-07-25T16:09:11Z
+      finished_at: 2026-07-25T16:15:00Z
+      elapsed_ms: 349000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
