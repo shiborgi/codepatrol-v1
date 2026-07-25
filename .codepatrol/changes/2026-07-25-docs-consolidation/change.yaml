@@ -83,3 +83,10 @@ events:
         sha256: 76ed7804ccbb29b6f0b2adec7293d6482a8bb8e16a0429e56fe09239db8d7ac1
         intent: create
     next_action: codepatrol-apply 2026-07-25-docs-consolidation on codepatrol/2026-07-25-docs-consolidation
+  - id: 07c55bb7-1d2f-488b-9de9-d554ff6c0e7e
+    at: 2026-07-25T14:03:42.494Z
+    actor: opencode-apply
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: apply 2026-07-25-docs-consolidation on codepatrol/2026-07-25-docs-consolidation
