@@ -146,3 +146,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Verify the docs-consolidation implementation against spec.md/plan.md AC-1..AC-8: audit T1-T4 diff, re-verify backlog items and assessments removal, re-run the mirror-relocation blast radius independently, run full gate, blast radius, regressions, unplanned changes, Git/ref safety."
+  - id: 488cc2be-3f63-44a3-924f-0ce13be2db51
+    at: 2026-07-25T15:02:25.202Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-20260725T145843Z
+      started_at: 2026-07-25T14:58:43Z
+      finished_at: 2026-07-25T15:02:17Z
+      elapsed_ms: 214000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
