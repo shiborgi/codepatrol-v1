@@ -175,3 +175,34 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 21bbccee-4628-47de-a263-cc1406365790
+    at: 2026-07-25T23:15:34.797Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 43801af018052d2cf757ea6cc100918cc2bb1830
+    tree: 620f69d67bc9137724101b8cf76675d0119f4bf7
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-issue-tracker-sync/apply/journal.md
+        sha256: cbd0e5318d3667302ef62dfb80c264ef41fdff833d09fb2a903faa6bec0b6d88
+        intent: create
+    changes:
+      - scripts/skills-contract.test.mjs
+      - skills/catalog.yaml
+      - skills/codepatrol-git/SKILL.md
+      - src/change/backlog.test.ts
+      - src/change/backlog.ts
+      - src/change/issue-sync.test.ts
+      - src/change/issue-sync.ts
+      - src/cli/args.ts
+      - src/cli/commands.ts
+      - src/cli/issues-sync.test.ts
+      - src/cli/output.ts
+    next_action: codepatrol-verify 2026-07-25-issue-tracker-sync on codepatrol/2026-07-25-issue-tracker-sync
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 19240
+      at: 2026-07-25T23:15:34.726Z
