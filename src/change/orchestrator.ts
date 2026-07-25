@@ -92,8 +92,9 @@ function eventMatchesIntent(event: ChangeEvent | undefined, intent: TransitionIn
 	if (intent.type === "block") return event.type === "stage-blocked" && event.actor === intent.actor && event.reason === intent.reason && event.next_action === intent.nextAction;
 	return event.type === "stage-resumed" && event.actor === intent.actor && event.next_action === intent.nextAction;
 }
-async function commitMetadata(git: GitAdapter, workId: string, message: string, signal?: AbortSignal): Promise<string> {
-	await git.add([relativeRecord(workId)], signal); return git.commit(message, false, signal);
+async function commitMetadata(git: GitAdapter, workId: string, message: string, signal?: AbortSignal, extraPaths: string[] = []): Promise<string> {
+	const paths = [relativeRecord(workId), ...extraPaths];
+	await git.add(paths, signal); return git.commit(message, false, signal);
 }
 
 function baselineRef(record: ChangeRecordV2, checkpoint?: string): string {
@@ -182,8 +183,11 @@ async function startChangeLocked(workspace: string, input: StartChangeInput, opt
 	try {
 		await git.createBranch(branch, base, options.signal);
 		branchCreated = true; recordOwned = true;
-		writeChangeRecord(workspace, record); try { trace.append(workspace, input.workId, { kind: "event", at: now(options).toISOString(), stage: "plan", attempt: 1, type: "change-started" }); } catch { /* trace is fire-and-forget */ } await commitMetadata(git, input.workId, `chore(codepatrol): start ${input.workId}`, options.signal);
+		writeChangeRecord(workspace, record); try { trace.append(workspace, input.workId, { kind: "event", at: now(options).toISOString(), stage: "plan", attempt: 1, type: "change-started" }); } catch { /* trace is fire-and-forget */ }
 		if (input.backlogItemId) linkBacklogItem(workspace, input.backlogItemId, input.workId, now(options));
+		const backlogFile = backlogPath(workspace);
+		const extraPaths = input.backlogItemId && existsSync(backlogFile) ? [backlogFile] : [];
+		await commitMetadata(git, input.workId, `chore(codepatrol): start ${input.workId}`, options.signal, extraPaths);
 		return foldChange(record);
 	} catch (cause) {
 		if (recordOwned) {
@@ -258,11 +262,11 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 		if (missing.length) throw new CodepatrolError("CHANGE_INVALID", `Checkpoint is missing required ${intent.stage} artifacts: ${missing.join(", ")}.`, 4);
 		if (!personaCheckpoint) await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal);
 		const paths = [...intent.artifacts.filter((item) => item.intent !== "delete").map((item) => item.path), ...(intent.changes ?? [])]; paths.forEach(ensurePath);
-		const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId)]);
+		const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId), ".codepatrol/backlog/items.yaml"]);
 		const prior = baselineRef(record); const dirty = parseStatusPaths(await git.status(options.signal)); const committed = await git.changedPaths(prior, "HEAD", options.signal); const candidate = [...new Set([...committed, ...dirty])];
 		const unexpected = candidate.filter((path) => !allowed.has(path));
 		if (unexpected.length && !personaCheckpoint) throw new CodepatrolError("CHANGE_CONFLICT", `Checkpoint has undeclared worktree paths: ${unexpected.join(", ")}.`, 4);
-		const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`)).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
+		const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
 		if (!personaCheckpoint && JSON.stringify(actualProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Apply changes do not match the complete candidate production delta.", 4);
 		
 		let gateSummary: GateResult | undefined;
@@ -284,7 +288,7 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 
 		await git.add([...new Set([...paths, ...intent.artifacts.map((item) => item.path)])], options.signal);
 		const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal); const tree = await git.tree(checkpoint, options.signal);
-		const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`)).sort();
+		const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort();
 		if (unexpectedFinal.length || JSON.stringify(finalProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Checkpoint commit does not match its declared artifact and production paths.", 4);
 		event = { ...eventBase(view, intent.actor, options), type: "stage-checkpointed", stage: intent.stage, result: intent.result, checkpoint, tree, artifacts: intent.artifacts, ...(intent.stage === "apply" ? { changes: intent.changes ?? [] } : {}), next_action: intent.nextAction, ...(persona ? { persona } : {}), ...(gateSummary ? { gate: gateSummary } : {}) };
 	} else if (intent.type === "begin") event = { ...eventBase(view, intent.actor, options), type: "stage-began", next_action: intent.nextAction };

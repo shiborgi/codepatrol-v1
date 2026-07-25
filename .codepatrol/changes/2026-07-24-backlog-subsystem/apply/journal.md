@@ -213,3 +213,47 @@ The previous apply taught `parseStatusPaths` to ignore `.codepatrol/backlog/` so
 ### Note on Finding 2 (minor, optional)
 
 `verify/report.md` Finding 2 (AC-6 wording vs `status --format` flag — `--format markdown` is not accepted, only `text`/`json`) is optional and not addressed here. The substantive intent (both Kanban render paths show the Backlog column) is met; the AC text's mention of `--format markdown` is a Plan-pass wording issue, not an Apply-introduced defect. Deferred to a future Plan revision.
+
+## T1C (rework) — Extend Finding-1 fix to `change start` and `backlog add` paths
+
+- Claim/workflow item: T1C
+- Started: 2026-07-25T03:06:47Z
+- Files changed: `src/change/orchestrator.ts`, `src/change/start-backlog-link.test.ts`, `src/cli/cli.test.ts`, `skills/codepatrol-plan/SKILL.md`
+- Simplicity check: surgical extension of the T1B fix scope — same `commitMetadata` extra-paths pattern is reused for the `change start` path; the `backlog add` CLI path follows the documented manual-commit contract (no new code, just clearer SKILL.md text).
+- Surface delta: 4 modified files (1 prod code + 2 tests + 1 skill doc); net +~30 LOC.
+
+### Root cause (per `verify/report.md` attempt 2)
+
+T1B's fix only covered the `close` path. The other two write paths — `change start` calling `linkBacklogItem` and the standalone `backlog add` CLI — still left the file untracked, and the reverted `parseStatusPaths` filter now turned those into hard `CHANGE_CONFLICT` failures at the next checkpoint. The test suite missed this because `start-backlog-link.test.ts`'s `initRepo` exempted `.codepatrol/backlog/` from gitignore, hiding the issue.
+
+### Implementation
+
+1. **`src/change/orchestrator.ts`** — extended the existing `commitMetadata` helper to accept `extraPaths: string[] = []`; `startChangeLocked` now includes `backlogFile` in `commitMetadata`'s extra paths when `input.backlogItemId` is set and the file exists; reordered `linkBacklogItem` to run BEFORE `commitMetadata` so the link's write is captured by the same commit. Also extended the orchestrator's `allowed` set and `actualProduction`/`finalProduction` filters to exclude `.codepatrol/backlog/items.yaml` (the canonical backlog path) — so a committed backlog file is always allowed, never flagged as unexpected.
+2. **`src/change/start-backlog-link.test.ts`** — correct `initRepo`: removed `.codepatrol/backlog/` from the test's `.gitignore` so the test repo now matches the real project's gitignore; added a regression test (`regression: Plan checkpoint succeeds immediately after change start with backlogItemId`) that drives a full Plan checkpoint after `startChange --backlogItemId` and asserts the starter commit includes the backlog file.
+3. **`src/cli/cli.test.ts`** — added a regression test (`regression: Plan checkpoint succeeds after backlog add CLI when the caller commits the file`) covering the `backlog add` path: the CLI writes the file, the caller commits it, then the Plan checkpoint succeeds. Documents the manual-commit contract.
+4. **`skills/codepatrol-plan/SKILL.md`** — updated the paragraph that tells Plan to call `backlog add` for split follow-ups; explicitly documents that the caller MUST commit `.codepatrol/backlog/items.yaml` before the next Change transition, and quotes the `CHANGE_CONFLICT` error the operator would otherwise see.
+
+### Evidence
+
+- `node --test --import jiti/register src/change/backlog-close-integration.test.ts` — 2/2 pass (existing T1B tests still green).
+- `node --test --import jiti/register src/change/start-backlog-link.test.ts` — 5/5 pass (4 existing + 1 new regression test).
+- `node --test --import jiti/register src/cli/cli.test.ts` — 12/12 pass (10 existing + 2 new tests: the T6 backlog section test + the new backlog-add regression test).
+- `npm run typecheck` — clean.
+- `npm run verify` — exit 0, **175/175 tests pass** (was 173, now 175 with the two new regression tests).
+- `npm run lint:skills` — clean.
+
+### What did NOT change
+
+- The `close` path's T1B fix (conditional backlog commit in `closeChangeLocked`) is unchanged.
+- The `Change`/`backlog` module APIs are unchanged.
+- No new dependencies, config, or events.
+- `bin/` and `docs/codepatrol/assessments/` are still untouched.
+
+### Residual risks (unchanged from T1B)
+
+- DC-1, DC-2, DC-3, DC-4 — none activated.
+- Finding 2 (minor, AC-6 wording vs `status --format` flag) is still optional and not addressed (deferred to a future Plan revision).
+
+### Note on the backlog subsystem design
+
+The choice taken here for the `backlog add` CLI path is **option (b) from the Verify report**: the CLI does not commit on its own; the caller is responsible for committing the file before the next checkpoint. This is consistent with the existing `transition` and `start` semantics (which accept input payloads but don't auto-commit arbitrary file changes), and it leaves the design simple: every write path that touches a tracked file is either auto-committed (close, start-with-link) or explicitly the caller's responsibility (backlog add standalone). The Plan skill's T8 instruction is now self-explanatory about this contract.

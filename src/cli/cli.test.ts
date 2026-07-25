@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -242,5 +243,25 @@ test("codepatrol next --stage plan includes the backlog section; --stage verify 
     assert.match(planText, /test-backlog-item-for-next/);
     const verifyText = run(["next","--stage","verify","--workspace",root]).stdout;
     assert.doesNotMatch(verifyText, /Backlog:/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("regression: Plan checkpoint succeeds after backlog add CLI when the caller commits the file", () => {
+  const root = workspace();
+  try {
+    const input = JSON.stringify({ title: "Split followup", area: "workflow", priority: "p2", evidence: [], source: { kind: "plan-followup", workId: "2026-07-24-cli-add-regress" } });
+    assert.equal(run(["backlog","add","--input","-","--workspace",root,"--format=json"], input).status, 0);
+    execFileSync("git", ["-C", root, "add", ".codepatrol/backlog/"]);
+    execFileSync("git", ["-C", root, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "backlog"]);
+    const id2 = "2026-07-24-cli-add-regress";
+    assert.equal(run(["change","start","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: id2, title: "Regress", targetBranch: "main", actor: "codex" })).status, 0);
+    mkdirSync(join(root, ".codepatrol/changes", id2, "plan"), { recursive: true });
+    writeFileSync(join(root, ".codepatrol/changes", id2, "plan/spec.md"), "spec\n");
+    writeFileSync(join(root, ".codepatrol/changes", id2, "plan/plan.md"), "plan\n");
+    assert.equal(run(["change","transition","--id",id2,"--input","-","--workspace",root,"--format=json"], JSON.stringify({ type: "usage", actor: "codex", stage: "plan", run: { id: "plan-usage", started_at: "2026-07-24T03:00:00Z", finished_at: "2026-07-24T03:00:01Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } })).status, 0);
+    const specSha = createHash("sha256").update("spec\n").digest("hex");
+    const planSha = createHash("sha256").update("plan\n").digest("hex");
+    const transitionRes = run(["change","transition","--id",id2,"--input","-","--workspace",root,"--format=json"], JSON.stringify({ type: "checkpoint", actor: "codex", stage: "plan", result: "ready", artifacts: [{ path: ".codepatrol/changes/" + id2 + "/plan/spec.md", sha256: specSha, intent: "create" }, { path: ".codepatrol/changes/" + id2 + "/plan/plan.md", sha256: planSha, intent: "create" }], nextAction: "codepatrol-review" }));
+    assert.equal(transitionRes.status, 0, transitionRes.stderr || transitionRes.stdout);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
