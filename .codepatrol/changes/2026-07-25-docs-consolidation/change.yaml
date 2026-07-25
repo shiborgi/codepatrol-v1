@@ -104,3 +104,38 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 0f9b8bdf-ef41-4733-bcc8-987c461838d5
+    at: 2026-07-25T14:47:42.788Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 88e868d4146146cc97640c8e83911bd6ba778bce
+    tree: 11f38964b93bb2f7a1dd4f7b874e69c7a370b417
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-docs-consolidation/apply/journal.md
+        sha256: 8f0316478f58591307c9d5c376d5ef7112c2fa2af06ead5b73925c488f559d4c
+        intent: create
+    changes:
+      - .gitignore
+      - AGENTS.md
+      - docs/codepatrol/assessments/2026-07-24-architecture-v2.md
+      - docs/codepatrol/assessments/2026-07-24-architecture-workflow.md
+      - docs/runtime-state.md
+      - skills/codepatrol-plan/SKILL.md
+      - src/change/apply-gate-enforcement.test.ts
+      - src/change/backlog-close-integration.test.ts
+      - src/change/close-integration.test.ts
+      - src/change/close-push.test.ts
+      - src/change/git.test.ts
+      - src/change/improvement-report.test.ts
+      - src/change/improvement-report.ts
+      - src/change/orchestrator-parallel.test.ts
+      - src/change/orchestrator.ts
+    next_action: codepatrol-verify 2026-07-25-docs-consolidation on codepatrol/2026-07-25-docs-consolidation
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 18302
+      at: 2026-07-25T14:47:42.715Z
