@@ -99,3 +99,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 71bc5f84-3900-4ba5-927b-d84408ed10e3
+    at: 2026-07-25T22:28:48.611Z
+    actor: claude
+    stage: plan
+    attempt: 2
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 519eb412e2ddbb3e391afba037862fae20d26e36
+    tree: 87fbf414d0d30db78a7048a2eb46bb2096de9625
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-issue-tracker-sync/plan/spec.md
+        sha256: 3b4a667d681de4dc3ecc834c6f3376c90f5c2e6b870449fae5aef48d3cb8144c
+        intent: modify
+      - path: .codepatrol/changes/2026-07-25-issue-tracker-sync/plan/plan.md
+        sha256: 643b490d5f308dcda244af57d3b0327f1a647d55fc0606bb8f93bf150c0cdf1e
+        intent: modify
+      - path: .codepatrol/changes/2026-07-25-issue-tracker-sync/plan/evidence/investigation.md
+        sha256: c10bde51ef4fa248789f785957be017c6cf58b764824723c3fc09fde663c7299
+        intent: modify
+    next_action: codepatrol-review 2026-07-25-issue-tracker-sync on codepatrol/2026-07-25-issue-tracker-sync
