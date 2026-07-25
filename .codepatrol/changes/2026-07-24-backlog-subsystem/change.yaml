@@ -397,3 +397,10 @@ events:
         sha256: 5077b101e522e014960207e0329b1d5e43381ce1675ac2db87cbd0432a4636cb
         intent: create
     next_action: codepatrol-close 2026-07-24-backlog-subsystem commit|rollback on codepatrol/2026-07-24-backlog-subsystem
+  - id: 1a23799d-64aa-405e-88ce-9eb3648d4983
+    at: 2026-07-25T10:12:11.764Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: "Close 2026-07-24-backlog-subsystem with commit+push: fast-forward main to the Verify attempt 3 commit candidate, tag codepatrol/committed/2026-07-24-backlog-subsystem, delete the feature branch, push main to origin."
