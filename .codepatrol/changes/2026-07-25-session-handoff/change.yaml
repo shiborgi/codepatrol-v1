@@ -120,3 +120,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: "Re-plan after Apply returned a contract defect: fix plan.md Depends-on prose so it parses under the shipped deriveItems parser, and fold the parser hardening (self-dep filter + leading-token None guard) into scope as T1 with AC-9."
+  - id: 8d9877d5-78ad-4af7-907b-96b6e774ee7d
+    at: 2026-07-25T16:52:41.670Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-20260725T164845Z
+      started_at: 2026-07-25T16:48:45Z
+      finished_at: 2026-07-25T16:52:17Z
+      elapsed_ms: 212000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
