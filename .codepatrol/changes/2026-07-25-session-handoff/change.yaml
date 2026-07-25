@@ -48,3 +48,10 @@ events:
         sha256: 5ba079d2ba134ed387ef65d808f1d6d214bac87537bf88e818ddc2a7a5d194b7
         intent: create
     next_action: codepatrol-review 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
+  - id: 336708fa-8809-4e2b-927c-d3df533f7852
+    at: 2026-07-25T16:43:50.816Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-25-session-handoff on codepatrol/2026-07-25-session-handoff
