@@ -181,3 +181,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: "Close 2026-07-25-docs-consolidation with commit+push: fast-forward main to the Verify commit candidate, tag codepatrol/committed/2026-07-25-docs-consolidation, delete the feature branch, push main to origin."
+  - id: 9081f69f-ab3b-4190-82a0-12571ac23727
+    at: 2026-07-25T15:12:53.941Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-20260725T151238Z
+      started_at: 2026-07-25T15:12:38Z
+      finished_at: 2026-07-25T15:12:45Z
+      elapsed_ms: 7000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative provider usage hook
