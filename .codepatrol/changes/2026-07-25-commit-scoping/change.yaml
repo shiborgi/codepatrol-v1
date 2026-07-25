@@ -222,3 +222,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative provider usage hook
+  - id: 3d57d085-1083-4e09-a7bf-120ccf8751d1
+    at: 2026-07-25T16:14:50.189Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: 1ed8e86a7d01e28dc0bf437a6aba59f9e1b49302
+    tree: 481458be7f2625e947df0796d7132bb43c98373a
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-commit-scoping/verify/report.md
+        sha256: 2fd4a7bb96455cb29e7134f7893b95acf2bee4b92be91b3ac06723e187d5ce2a
+        intent: create
+    next_action: codepatrol-close 2026-07-25-commit-scoping commit|rollback on codepatrol/2026-07-25-commit-scoping
