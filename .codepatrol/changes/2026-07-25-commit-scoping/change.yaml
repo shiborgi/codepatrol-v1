@@ -78,3 +78,10 @@ events:
     to_stage: plan
     reason: "fix-first: spec.md and plan/evidence/investigation.md systematically cite the originating closed Change as 2026-07-24-docs-consolidation; the actual id (and the one used by its improvement report, terminal tag codepatrol/committed/2026-07-25-docs-consolidation, and all durable artifacts) is 2026-07-25-docs-consolidation. Cited evidence paths therefore do not resolve. Required correction: replace every 2026-07-24-docs-consolidation with 2026-07-25-docs-consolidation in spec.md and investigation.md. Technical diagnosis, scope, simplicity choice, ACs, and the red-capable test plan are independently verified and unaffected; no design change."
     next_action: codepatrol-plan 2026-07-25-commit-scoping on codepatrol/2026-07-25-commit-scoping
+  - id: 95c80f24-91e8-40ab-a7bb-a268c1b83c7a
+    at: 2026-07-25T15:37:11.123Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: "Re-plan after Review fix-first return: replace every 2026-07-24-docs-consolidation citation with the correct 2026-07-25-docs-consolidation in spec.md and investigation.md; no design change."
