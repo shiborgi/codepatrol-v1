@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 952bbe83-4257-42eb-ab6a-90d7739b687c
+    at: 2026-07-26T13:31:19.306Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 59f54f8933aec26b2452da6f1882a7053544a7ef
+    tree: 3adedd2f6e91c708da1e7710764870bc47ab0ede
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-remove-dead-path-builders/plan/spec.md
+        sha256: f5c93f44571fde7de1c95a69fc817f2e40a9607db1328d489398d70c65a8413e
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-remove-dead-path-builders/plan/plan.md
+        sha256: 3c95ad99cf8f8c2ca1912ba1343a6d429b7f918910d380130e054fe40cc4c03e
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-remove-dead-path-builders/plan/evidence/investigation.md
+        sha256: 7cf57e111c9beb9146b1ef317da91a28d12924e90174bbf9380014bfd6610415
+        intent: create
+    next_action: codepatrol-review 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
