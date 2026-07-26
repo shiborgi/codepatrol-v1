@@ -5,10 +5,11 @@ import { atomicWriteFile } from "../shared/atomic-store.js";
 import { CodepatrolError } from "../shared/errors.js";
 import { withWorkspaceLock } from "../shared/lock.js";
 import { resolveInside } from "../shared/workspace.js";
+import { changeRecordRelativePath, changesRootRelativePath } from "../shared/state.js";
 import { assertChangeRecord, foldChange, migrateRecord } from "./model.js";
 import type { ChangeEvent, ChangeRecordV2, OperationOptions } from "./types.js";
 
-export function changeRecordPath(workspace: string, workId: string): string { return resolveInside(workspace, `.codepatrol/changes/${workId}/change.yaml`); }
+export function changeRecordPath(workspace: string, workId: string): string { return resolveInside(workspace, changeRecordRelativePath(workId)); }
 export function readChangeRecord(workspace: string, workId: string): ChangeRecordV2 {
 	const path = changeRecordPath(workspace, workId);
 	if (!existsSync(path)) throw new CodepatrolError("CHANGE_NOT_FOUND", `Change not found: ${workId}.`, 4);
@@ -27,6 +28,6 @@ export async function appendChangeEvent(workspace: string, workId: string, event
 	}, { signal: options.signal });
 }
 export function listWorkingTreeChangeIds(workspace: string): string[] {
-	const root = resolveInside(workspace, ".codepatrol/changes"); if (!existsSync(root)) return [];
-	return readdirSync(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync(resolveInside(workspace, `.codepatrol/changes/${entry.name}/change.yaml`))).map((entry) => entry.name).sort();
+	const root = resolveInside(workspace, changesRootRelativePath()); if (!existsSync(root)) return [];
+	return readdirSync(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync(resolveInside(workspace, changeRecordRelativePath(entry.name)))).map((entry) => entry.name).sort();
 }

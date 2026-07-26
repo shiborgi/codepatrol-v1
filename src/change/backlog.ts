@@ -3,6 +3,7 @@ import { parse, stringify } from "yaml";
 import { atomicWriteFile } from "../shared/atomic-store.js";
 import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
+import { backlogRelativePath } from "../shared/state.js";
 
 export type BacklogPriority = "p0" | "p1" | "p2" | "p3";
 export type BacklogArea = "architecture" | "workflow" | "skills";
@@ -44,7 +45,7 @@ function isStatus(value: unknown): value is BacklogStatus { return typeof value 
 function isSourceKind(value: unknown): value is BacklogSourceKind { return typeof value === "string" && VALID_SOURCE_KINDS.has(value as BacklogSourceKind); }
 
 export function backlogPath(workspace: string): string {
-	return resolveInside(workspace, ".codepatrol/backlog/items.yaml");
+	return resolveInside(workspace, backlogRelativePath());
 }
 
 function validateSource(source: unknown, itemId: string): BacklogSource {

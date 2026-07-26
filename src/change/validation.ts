@@ -3,6 +3,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from "
 import { relative } from "node:path";
 import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
+import { changeStageRelativePrefix } from "../shared/state.js";
 import type { ArtifactBinding, ChangeRecordV2, Stage } from "./types.js";
 
 export interface ValidationResult { valid: boolean; errors: string[] }
@@ -21,7 +22,7 @@ function filesBelow(root: string): string[] {
 
 function validateWithReader(record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], reader: ArtifactReader, baseline?: BaselineReader): ValidationResult {
 	const errors: string[] = [];
-	const prefix = `.codepatrol/changes/${record.identity.work_id}/${stage}/`;
+	const prefix = changeStageRelativePrefix(record.identity.work_id, stage);
 	const declared = new Set<string>();
 	for (const binding of bindings) {
 		if (!binding.path.startsWith(prefix) || binding.path.includes("..")) { errors.push(`Artifact is not owned by ${stage}: ${binding.path}`); continue; }
@@ -40,7 +41,7 @@ function validateWithReader(record: ChangeRecordV2, stage: Stage, bindings: Arti
 }
 
 export function validateArtifactBindings(workspace: string, record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], baseline?: BaselineReader): ValidationResult {
-	const prefix = `.codepatrol/changes/${record.identity.work_id}/${stage}/`;
+	const prefix = changeStageRelativePrefix(record.identity.work_id, stage);
 	const reader: ArtifactReader = {
 		read: (path) => { const absolute = resolveInside(workspace, path); if (!existsSync(absolute)) return undefined; if (!lstatSync(absolute).isFile()) return null; return readFileSync(absolute); },
 		files: () => { const stageRoot = resolveInside(workspace, prefix.slice(0, -1)); return filesBelow(stageRoot).map((absolute) => relative(realpathSync(workspace), absolute).split("\\").join("/")); },

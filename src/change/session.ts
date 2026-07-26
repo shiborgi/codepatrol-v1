@@ -4,7 +4,7 @@ import { basename, dirname } from "node:path";
 import { atomicWriteJson } from "../shared/atomic-store.js";
 import { CodepatrolError } from "../shared/errors.js";
 import { withWorkspaceLock } from "../shared/lock.js";
-import { stageSessionPath } from "../shared/state.js";
+import { changeDirectoryRelativePath, changeStageRelativePrefix, stageSessionPath } from "../shared/state.js";
 import { resolveInside } from "../shared/workspace.js";
 import { foldChange } from "./model.js";
 import { readChangeRecord } from "./store.js";
@@ -70,7 +70,7 @@ function staleHashes(record: ChangeRecordV2, stage: Stage, attempt: number): Map
 	return stale;
 }
 function itemIsDelivered(workspace: string, workId: string, stage: Stage, item: { id: string; artifact?: string }, stale: Map<string, Set<string>>): { delivered: boolean; evidence?: string } {
-	const changePrefix = `.codepatrol/changes/${workId}/`;
+	const changePrefix = `${changeDirectoryRelativePath(workId)}/`;
 	const qualifyingFile = (evidencePath: string): string | undefined => {
 		const bindingPath = `${changePrefix}${evidencePath}`;
 		const absolute = resolveInside(workspace, bindingPath);
@@ -120,7 +120,7 @@ function deriveItems(workspace: string, workId: string, stage: Stage, attempt: n
 	const stageItems = STAGE_ITEMS[stage];
 	if (stageItems) return stageItems.map(reconcile);
 	if (stage !== "apply") return [{ id: `${stage}-work`, title: `Complete ${stage} stage contract`, status: "open", dependencies: [] }];
-	const planPath = resolveInside(workspace, `.codepatrol/changes/${workId}/plan/plan.md`);
+	const planPath = resolveInside(workspace, `${changeStageRelativePrefix(workId, "plan")}plan.md`);
 	if (!existsSync(planPath)) return [{ id: "apply-work", title: "Complete apply stage contract", status: "open", dependencies: [] }];
 	const source = readFileSync(planPath, "utf8");
 	const matches = [...source.matchAll(/^### (T\d+)\s+[—-]\s+(.+)$/gm)];

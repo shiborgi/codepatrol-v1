@@ -10,6 +10,7 @@ import { changeRecordPath, listWorkingTreeChangeIds, readChangeRecord, writeChan
 import * as trace from "./trace.js";
 import { writeImprovementReport, mirrorImprovementReport, generateImprovementReport } from "./improvement-report.js";
 import { upsertBacklogItem, findBacklogItem, linkBacklogItem, backlogPath, readBacklog, resolveBacklogItem } from "./backlog.js";
+import { changeDirectoryRelativePath, changeRecordRelativePath, changeStageRelativePrefix, backlogRelativePath, backlogRelativePrefix, runtimeRelativePrefix } from "../shared/state.js";
 import { loadConfig } from "../shared/config.js";
 import { defaultGateRunner, gateOutputTail } from "./apply-gate.js";
 import type { GateResult } from "./types.js";
@@ -21,10 +22,10 @@ import { STAGES } from "./types.js";
 function now(options: OperationOptions): Date { return options.now ?? new Date(); }
 function eventBase(view: ChangeView, actor: string, options: OperationOptions) { return { id: randomUUID(), at: now(options).toISOString(), actor, stage: view.stage, attempt: view.attempt }; }
 function gitFor(workspace: string, options: OperationOptions): GitAdapter { return options.git ?? new NodeGitAdapter(workspace); }
-function relativeRecord(workId: string): string { return `.codepatrol/changes/${workId}/change.yaml`; }
-function parseStatusPaths(status: string): string[] { return status.split("\n").filter(Boolean).map((line) => line.slice(3).split(" -> ").at(-1)!).filter((path) => Boolean(path) && path !== ".codepatrol/" && !path.startsWith(".codepatrol/runtime/")); }
+function relativeRecord(workId: string): string { return changeRecordRelativePath(workId); }
+function parseStatusPaths(status: string): string[] { return status.split("\n").filter(Boolean).map((line) => line.slice(3).split(" -> ").at(-1)!).filter((path) => Boolean(path) && path !== ".codepatrol/" && !path.startsWith(runtimeRelativePrefix())); }
 function ensurePath(path: string): void {
-	if (!path || /[\0\r\n]/.test(path) || path.startsWith("/") || path.split("/").includes("..") || path.startsWith(".codepatrol/runtime/")) throw new CodepatrolError("CHANGE_INVALID", `Unsafe checkpoint path: ${path}.`, 4);
+	if (!path || /[\0\r\n]/.test(path) || path.startsWith("/") || path.split("/").includes("..") || path.startsWith(runtimeRelativePrefix())) throw new CodepatrolError("CHANGE_INVALID", `Unsafe checkpoint path: ${path}.`, 4);
 }
 function requireObject(value: unknown, label: string): Record<string, unknown> {
 	if (!value || typeof value !== "object" || Array.isArray(value)) throw new CodepatrolError("INVALID_ARGUMENT", `${label} must be a JSON object.`, 2);
@@ -120,7 +121,7 @@ async function validateWorkspaceArtifacts(git: GitAdapter, workspace: string, re
 
 async function validateRefArtifacts(git: GitAdapter, record: ChangeRecordV2, stage: Stage, attempt: StageAttempt, ref: string, signal?: AbortSignal): Promise<void> {
 	if (!attempt.checkpoint) throw new CodepatrolError("CHANGE_DRIFT", `Accepted ${stage} attempt has no checkpoint.`, 4);
-	const prefix = `.codepatrol/changes/${record.identity.work_id}/${stage}/`;
+	const prefix = changeStageRelativePrefix(record.identity.work_id, stage);
 	const [contentEntries, files, baseline] = await Promise.all([
 		Promise.all(attempt.artifacts.map(async (binding) => { const [exists, content] = await Promise.all([git.pathExists(ref, binding.path, signal), git.readFile(ref, binding.path, signal)]); return [binding.path, exists ? content ?? null : undefined] as const; })),
 		git.files(ref, prefix, signal),
@@ -204,7 +205,7 @@ async function startChangeLocked(workspace: string, input: StartChangeInput, opt
 }
 
 function changeDirectoryForCleanup(workspace: string, workId: string): string {
-	return resolveInside(workspace, `.codepatrol/changes/${workId}`);
+	return resolveInside(workspace, changeDirectoryRelativePath(workId));
 }
 
 async function assertCurrentBranch(git: GitAdapter, view: ChangeView, signal?: AbortSignal): Promise<void> {
@@ -252,21 +253,21 @@ function assertPersonaStageMatch(record: ChangeRecordV2, view: ChangeView, inten
 
 async function buildCheckpointEvent(git: GitAdapter, workspace: string, workId: string, record: ChangeRecordV2, view: ChangeView, intent: Extract<TransitionIntent, { type: "checkpoint" }>, persona: string | undefined, options: OperationOptions): Promise<ChangeEvent> {
 	const required: Record<string, string[]> = {
-		plan: [`.codepatrol/changes/${workId}/plan/spec.md`, `.codepatrol/changes/${workId}/plan/plan.md`],
-		review: [`.codepatrol/changes/${workId}/review/report.md`],
-		apply: [`.codepatrol/changes/${workId}/apply/journal.md`],
-		verify: [`.codepatrol/changes/${workId}/verify/report.md`],
+		plan: [`${changeStageRelativePrefix(workId, "plan")}spec.md`, `${changeStageRelativePrefix(workId, "plan")}plan.md`],
+		review: [`${changeStageRelativePrefix(workId, "review")}report.md`],
+		apply: [`${changeStageRelativePrefix(workId, "apply")}journal.md`],
+		verify: [`${changeStageRelativePrefix(workId, "verify")}report.md`],
 	};
 	const personaCheckpoint = persona && (intent.stage === "review" || intent.stage === "verify");
 	const missing = personaCheckpoint ? [] : required[intent.stage].filter((path) => !intent.artifacts.some((item) => item.path === path && item.intent !== "delete"));
 	if (missing.length) throw new CodepatrolError("CHANGE_INVALID", `Checkpoint is missing required ${intent.stage} artifacts: ${missing.join(", ")}.`, 4);
 	if (!personaCheckpoint) await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal);
 	const paths = [...intent.artifacts.filter((item) => item.intent !== "delete").map((item) => item.path), ...(intent.changes ?? [])]; paths.forEach(ensurePath);
-	const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId), ".codepatrol/backlog/items.yaml"]);
+	const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId), backlogRelativePath()]);
 	const prior = baselineRef(record); const dirty = parseStatusPaths(await git.status(options.signal)); const committed = await git.changedPaths(prior, "HEAD", options.signal); const candidate = [...new Set([...committed, ...dirty])];
 	const unexpected = candidate.filter((path) => !allowed.has(path));
 	if (unexpected.length && !personaCheckpoint) throw new CodepatrolError("CHANGE_CONFLICT", `Checkpoint has undeclared worktree paths: ${unexpected.join(", ")}.`, 4);
-	const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
+	const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`${changeDirectoryRelativePath(workId)}/`) && !path.startsWith(backlogRelativePrefix())).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
 	if (!personaCheckpoint && JSON.stringify(actualProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Apply changes do not match the complete candidate production delta.", 4);
 
 	let gateSummary: GateResult | undefined;
@@ -289,7 +290,7 @@ async function buildCheckpointEvent(git: GitAdapter, workspace: string, workId: 
 	const committedPaths = [...new Set([...paths, ...intent.artifacts.map((item) => item.path)])];
 	await git.add(committedPaths, options.signal);
 	const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal, committedPaths); const tree = await git.tree(checkpoint, options.signal);
-	const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort();
+	const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`${changeDirectoryRelativePath(workId)}/`) && !path.startsWith(backlogRelativePrefix())).sort();
 	if (unexpectedFinal.length || JSON.stringify(finalProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Checkpoint commit does not match its declared artifact and production paths.", 4);
 	return { ...eventBase(view, intent.actor, options), type: "stage-checkpointed", stage: intent.stage, result: intent.result, checkpoint, tree, artifacts: intent.artifacts, ...(intent.stage === "apply" ? { changes: intent.changes ?? [] } : {}), next_action: intent.nextAction, ...(persona ? { persona } : {}), ...(gateSummary ? { gate: gateSummary } : {}) };
 }
@@ -381,8 +382,8 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	let view = foldChange(record); await validateCheckpointLineage(git, record, existingTag ?? "HEAD", options.signal);
 	if (view.state === "terminal") {
 		if (view.outcome !== requestedOutcome) throw new CodepatrolError("CHANGE_CONFLICT", `Change is already ${view.outcome}.`, 4);
-		await assertVerifiedCandidate(git, view, existingTag ?? "HEAD", [relativeRecord(workId), `.codepatrol/changes/${workId}/close/receipt.md`, `.codepatrol/changes/${workId}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`], options.signal);
-		const recoveryPaths = parseStatusPaths(await git.status(options.signal)); const allowedRecovery = existingTag ? new Set<string>([relativeRecord(workId), `.codepatrol/changes/${workId}/close/receipt.md`, `.codepatrol/changes/${workId}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`]) : new Set([relativeRecord(workId)]); const unexpectedRecovery = recoveryPaths.filter((path) => !allowedRecovery.has(path));
+		await assertVerifiedCandidate(git, view, existingTag ?? "HEAD", [relativeRecord(workId), `${changeDirectoryRelativePath(workId)}/close/receipt.md`, `${changeDirectoryRelativePath(workId)}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`], options.signal);
+		const recoveryPaths = parseStatusPaths(await git.status(options.signal)); const allowedRecovery = existingTag ? new Set<string>([relativeRecord(workId), `${changeDirectoryRelativePath(workId)}/close/receipt.md`, `${changeDirectoryRelativePath(workId)}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`]) : new Set([relativeRecord(workId)]); const unexpectedRecovery = recoveryPaths.filter((path) => !allowedRecovery.has(path));
 		if (unexpectedRecovery.length) throw new CodepatrolError("CHANGE_CONFLICT", `Close recovery found unrelated worktree paths: ${unexpectedRecovery.join(", ")}.`, 4);
 		let tag = existingTag;
 		if (!tag) {
@@ -405,12 +406,12 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	await assertCurrentBranch(git, view, options.signal);
 	if (view.stage !== "close" || view.state !== "active" || !view.attempts.close.at(-1)?.runs.some((run) => run.finished_at)) throw new CodepatrolError("CHANGE_CONFLICT", "Close must be active with a finished run.", 4);
 	await assertVerifiedCandidate(git, view, "HEAD", [relativeRecord(workId)], options.signal);
-	const receiptPath = `.codepatrol/changes/${workId}/close/receipt.md`;
+	const receiptPath = `${changeDirectoryRelativePath(workId)}/close/receipt.md`;
 	const statusPaths = parseStatusPaths(await git.status(options.signal));
 	if (statusPaths.some((path) => path !== receiptPath)) throw new CodepatrolError("CHANGE_CONFLICT", `Close requires a clean worktree; found ${statusPaths.join(", ")}.`, 4);
 	const targetHead = await git.head(view.identity.target_branch, options.signal); if (targetHead !== view.identity.base_commit) throw new CodepatrolError("TARGET_ADVANCED", `Target advanced from ${view.identity.base_commit} to ${targetHead}.`, 4);
 	const outcome = requestedOutcome; const tag = requestedTag; const at = now(options).toISOString();
-	const absolute = resolveInside(workspace, receiptPath); mkdirSync(resolveInside(workspace, `.codepatrol/changes/${workId}/close`), { recursive: true });
+	const absolute = resolveInside(workspace, receiptPath); mkdirSync(resolveInside(workspace, `${changeDirectoryRelativePath(workId)}/close`), { recursive: true });
 	writeFileSync(absolute, `# Close receipt\n\n- Work: \`${workId}\`\n- Outcome: \`${outcome}\`\n- Target: \`${view.identity.target_branch}\`\n- Base: \`${view.identity.base_commit}\`\n- Authority: ${input.authority}\n- Recorded at: \`${at}\`\n`, "utf8");
 	await git.add([receiptPath], options.signal); const receiptCommit = await git.commit(`chore(codepatrol): ${outcome} receipt ${workId}`, false, options.signal, [receiptPath]);
 	const event: ChangeEvent = { ...eventBase(view, input.actor, { ...options, now: new Date(at) }), type: "change-closed", stage: "close", outcome, commit: receiptCommit, tag, receipt: "close/receipt.md" };
