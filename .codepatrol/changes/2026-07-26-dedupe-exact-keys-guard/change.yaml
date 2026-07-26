@@ -215,3 +215,10 @@ events:
       exit_code: 0
       elapsed_ms: 23978
       at: 2026-07-26T23:10:44.371Z
+  - id: 781c47fe-53e2-4fad-b9e9-32e9b35bfbe6
+    at: 2026-07-26T23:18:26.186Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: Independently verify candidate cbd0f0feac0e668c98f33de9d1f4ed3d2c80e77c for 2026-07-26-dedupe-exact-keys-guard
