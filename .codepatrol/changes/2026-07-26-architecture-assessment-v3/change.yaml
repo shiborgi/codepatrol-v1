@@ -131,3 +131,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-verify 2026-07-26-architecture-assessment-v3 on codepatrol/2026-07-26-architecture-assessment-v3
+  - id: 2901508d-d9a5-4872-ae6c-72570d4c0634
+    at: 2026-07-26T13:23:26.537Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-1
+      started_at: 2026-07-26T04:16:00.000Z
+      finished_at: 2026-07-26T04:22:00.000Z
+      elapsed_ms: 360000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token hook
