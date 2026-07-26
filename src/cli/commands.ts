@@ -9,7 +9,7 @@ import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOvervie
 import { closeChange, inspectChanges, startChange, transitionChange } from "../change/orchestrator.js";
 import { projectKanban, renderKanbanMarkdown } from "../change/board.js";
 import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStageSession, readStageSession, sessionStatus } from "../change/session.js";
-import { listBacklog, upsertBacklogItem, readBacklog, type BacklogArea, type BacklogPriority, type BacklogSource, type BacklogStatus } from "../change/backlog.js";
+import { listBacklog, upsertBacklogItem, readBacklog, resolveBacklogItem, type BacklogArea, type BacklogPriority, type BacklogSource, type BacklogStatus } from "../change/backlog.js";
 import { syncIssues, type GhAdapter, type SyncDirection } from "../change/issue-sync.js";
 import type { CloseInput, Stage, StartChangeInput, TransitionIntent } from "../change/types.js";
 import { STAGES } from "../change/types.js";
@@ -195,6 +195,13 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 			if (status !== undefined && !["candidate", "scheduled", "done", "dismissed"].includes(status)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog list --status must be one of candidate|scheduled|done|dismissed, got ${status}.`, 2);
 			const items = listBacklog(workspace, status ? { status } : {});
 			return { data: items, text: renderBacklogList(items) };
+		}
+		case "backlog.resolve": {
+			const id = requireValue(args.id, "id");
+			const status = args.status;
+			if (status !== "done" && status !== "dismissed") throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog resolve --status must be done or dismissed, got ${status}.`, 2);
+			const item = resolveBacklogItem(workspace, id, status);
+			return { data: { id: item.id, status: item.status }, text: `${item.id} -> ${item.status}` };
 		}
 		case "issues.sync": {
 			const direction = (args.direction ?? "both") as SyncDirection;

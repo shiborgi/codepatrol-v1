@@ -228,6 +228,30 @@ test("codepatrol backlog add and list dedupe, classify, and filter", () => {
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test("CLI backlog resolve marks an item done or dismissed, rejects bad status/id/already-terminal", () => {
+  const root = workspace();
+  try {
+    const add = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "Resolve me", area: "workflow", evidence: [], source: { kind: "close-trace", workId: "2026-07-26-x" } })).stdout).data;
+    const ok = run(["backlog","resolve","--id",add.id,"--status","done","--workspace",root,"--format=json"]);
+    assert.equal(ok.status, 0, ok.stderr || ok.stdout);
+    const okData = JSON.parse(ok.stdout).data;
+    assert.equal(okData.id, add.id);
+    assert.equal(okData.status, "done");
+
+    const badStatus = run(["backlog","resolve","--id",add.id,"--status","bogus","--workspace",root,"--format=json"]);
+    assert.equal(badStatus.status, 2, badStatus.stdout);
+    assert.equal(JSON.parse(badStatus.stdout).error.code, "INVALID_ARGUMENT");
+
+    const badId = run(["backlog","resolve","--id","does-not-exist","--status","done","--workspace",root,"--format=json"]);
+    assert.equal(badId.status, 4, badId.stdout);
+    assert.equal(JSON.parse(badId.stdout).error.code, "CHANGE_INVALID");
+
+    const alreadyDone = run(["backlog","resolve","--id",add.id,"--status","dismissed","--workspace",root,"--format=json"]);
+    assert.equal(alreadyDone.status, 4, alreadyDone.stdout);
+    assert.equal(JSON.parse(alreadyDone.stdout).error.code, "CHANGE_CONFLICT");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test("codepatrol next --stage plan includes the backlog section; --stage verify omits it", () => {
   const root = workspace();
   try {

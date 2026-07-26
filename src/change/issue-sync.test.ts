@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { stringify, parse } from "yaml";
 import { syncIssues, type GhAdapter, type RemoteIssue } from "./issue-sync.js";
-import { backlogPath, readBacklog } from "./backlog.js";
+import { backlogPath, readBacklog, resolveBacklogItem } from "./backlog.js";
 
 function workspace(): string {
 	const root = mkdtempSync(join(tmpdir(), "codepatrol-issue-sync-"));
@@ -78,6 +78,20 @@ test("AC-2: pull reopens a dismissed item whose linked issue is open again", asy
 		assert.equal(after.status, "candidate");
 		assert.equal(after.title, "Reopened");
 		assert.deepEqual(result.pulled.reopened, ["gh-issue-8"]);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("AC-6 (2026-07-26-backlog-resolve): push closes the GitHub issue for an item resolved via resolveBacklogItem, with no issue-sync.ts change", async () => {
+	const root = workspace();
+	const gh = new FakeGhAdapter([{ number: 9, title: "Fixed thing", url: URL(9), state: "open" }]);
+	try {
+		seed(root, [{ id: "fixed-thing", title: "Fixed thing", priority: "p2", area: "architecture", status: "scheduled", evidence: [], source: { kind: "plan-followup", workId: "2026-07-25-example" }, externalRef: { provider: "github", number: 9, url: URL(9) }, workId: "2026-07-25-example", count: 1, firstSeenAt: "2026-07-25T00:00:00.000Z", lastSeenAt: "2026-07-25T00:00:00.000Z" }]);
+		resolveBacklogItem(root, "fixed-thing", "done", new Date("2026-07-26T00:00:00.000Z"));
+		const result = await syncIssues(root, "push", { gh });
+		assert.deepEqual(result.pushed.closed, [9]);
+		assert.deepEqual(gh.closed, [{ number: 9, reason: "completed" }]);
+		const after = itemAt(root, "fixed-thing");
+		assert.equal(after.status, "done");
 	} finally { rmSync(root, { recursive: true, force: true }); }
 });
 

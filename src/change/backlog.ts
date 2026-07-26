@@ -172,6 +172,18 @@ export function linkBacklogItem(workspace: string, itemId: string, workId: strin
 	return updated;
 }
 
+export function resolveBacklogItem(workspace: string, itemId: string, status: "done" | "dismissed", now: Date = new Date()): BacklogItem {
+	if (typeof itemId !== "string" || !itemId.trim()) throw new CodepatrolError("CHANGE_INVALID", "Backlog item id must be a non-empty string.", 4);
+	const current = readBacklog(workspace);
+	const existing = current.items.find((entry) => entry.id === itemId);
+	if (!existing) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item not found: ${itemId}.`, 4);
+	if (existing.status === "done" || existing.status === "dismissed") throw new CodepatrolError("CHANGE_CONFLICT", `CHANGE_CONFLICT: Backlog item ${itemId} is already ${existing.status}.`, 4);
+	const updated: BacklogItem = { ...existing, status, lastSeenAt: now.toISOString() };
+	const items = current.items.map((entry) => entry.id === itemId ? updated : entry);
+	writeBacklog(workspace, { schema_version: 1, items });
+	return updated;
+}
+
 export interface ListOptions { status?: BacklogStatus; open?: boolean }
 
 export function listBacklog(workspace: string, options: ListOptions = {}): BacklogItem[] {

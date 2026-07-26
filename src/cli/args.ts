@@ -56,6 +56,7 @@ const COMMAND_OPTIONS = new Map<string, Set<string>>([
 	["change.summary", new Set(["id"])],
 	["backlog.add", new Set(["input"])],
 	["backlog.list", new Set(["status"])],
+	["backlog.resolve", new Set(["id", "status"])],
 	["issues.sync", new Set(["direction", "dry-run"])],
 ]);
 

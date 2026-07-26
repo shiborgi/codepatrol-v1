@@ -48,6 +48,7 @@ Change lifecycle commands:
   change close --id <work-id> --input <file|->
   backlog add --input <file|->
   backlog list [--status <candidate|scheduled|done|dismissed>]
+  backlog resolve --id <item-id> --status done|dismissed
 
 Issue sync commands:
   issues sync [--direction pull|push|both] [--dry-run]

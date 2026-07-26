@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { stringify } from "yaml";
-import { classifyPriority, dedupKey, findBacklogItem, linkBacklogItem, listBacklog, readBacklog, upsertBacklogItem } from "./backlog.js";
+import { classifyPriority, dedupKey, findBacklogItem, linkBacklogItem, listBacklog, readBacklog, resolveBacklogItem, upsertBacklogItem } from "./backlog.js";
 
 function workspace(): string {
 	const root = mkdtempSync(join(tmpdir(), "codepatrol-backlog-"));
@@ -87,6 +87,35 @@ test("linkBacklogItem sets workId and status, throws on missing or dismissed", (
 		items[0]!.status = "dismissed";
 		writeFileSync(join(root, ".codepatrol/backlog/items.yaml"), stringify({ schema_version: 1, items }, { lineWidth: 0 }));
 		assert.throws(() => linkBacklogItem(root, created.id, "2026-07-24-other"), /CHANGE_CONFLICT/);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("resolveBacklogItem marks a candidate done or dismissed, throws on missing or already-terminal", () => {
+	const root = workspace();
+	try {
+		const created = upsertBacklogItem(root, { title: "Z", area: "workflow", evidence: [], source: SOURCE });
+		const resolved = resolveBacklogItem(root, created.id, "done");
+		assert.equal(resolved.status, "done");
+		assert.equal(resolved.id, created.id);
+		assert.equal(resolved.priority, created.priority);
+		assert.equal(resolved.title, created.title);
+		assert.notEqual(resolved.lastSeenAt, created.lastSeenAt);
+		const persisted = readBacklog(root).items[0]!;
+		assert.equal(persisted.status, "done");
+
+		assert.throws(() => resolveBacklogItem(root, "does-not-exist", "done"), /CHANGE_INVALID/);
+		assert.throws(() => resolveBacklogItem(root, created.id, "dismissed"), /CHANGE_CONFLICT/);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("resolveBacklogItem accepts dismissed and preserves a scheduled item's workId", () => {
+	const root = workspace();
+	try {
+		const created = upsertBacklogItem(root, { title: "W", area: "workflow", evidence: [], source: SOURCE });
+		const linked = linkBacklogItem(root, created.id, "2026-07-26-linked");
+		const resolved = resolveBacklogItem(root, linked.id, "dismissed");
+		assert.equal(resolved.status, "dismissed");
+		assert.equal(resolved.workId, "2026-07-26-linked");
 	} finally { rmSync(root, { recursive: true, force: true }); }
 });
 
