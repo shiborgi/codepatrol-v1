@@ -78,3 +78,10 @@ events:
     to_stage: plan
     reason: "fix-first: T1 omits accepted optional checkpoint/return fields despite AC-1 field-completeness, and Scope conflicts with T1/T2 on insertion location; see review/report.md."
     next_action: codepatrol-plan 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
+  - id: 36b5ea44-9296-4782-b675-54b89caf1739
+    at: 2026-07-26T23:37:54.484Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
