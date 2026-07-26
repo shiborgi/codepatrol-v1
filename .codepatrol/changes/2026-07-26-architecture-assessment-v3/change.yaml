@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-26-architecture-assessment-v3 on codepatrol/2026-07-26-architecture-assessment-v3
+  - id: 7a3691d8-fad4-4b8f-b87c-9c12a7100027
+    at: 2026-07-26T04:08:11.691Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-26T04:06:28Z
+      finished_at: 2026-07-26T04:08:05Z
+      elapsed_ms: 97000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
