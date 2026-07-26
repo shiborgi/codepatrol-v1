@@ -130,3 +130,10 @@ events:
       exit_code: 0
       elapsed_ms: 23681
       at: 2026-07-26T15:35:11.686Z
+  - id: 68ff4154-fc41-42f4-8f16-9bc87d6c31a2
+    at: 2026-07-26T15:36:56.241Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-verify 2026-07-26-centralize-codepatrol-paths on codepatrol/2026-07-26-centralize-codepatrol-paths
