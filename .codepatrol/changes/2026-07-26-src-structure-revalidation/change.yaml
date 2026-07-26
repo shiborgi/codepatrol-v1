@@ -124,3 +124,10 @@ events:
       exit_code: 0
       elapsed_ms: 23750
       at: 2026-07-26T14:49:12.048Z
+  - id: 4ebd457e-72c1-45fd-96b9-35317d9c298d
+    at: 2026-07-26T14:52:32.843Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-verify 2026-07-26-src-structure-revalidation on codepatrol/2026-07-26-src-structure-revalidation
