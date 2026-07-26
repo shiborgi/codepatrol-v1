@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 90461055-41f2-4212-942e-7cda08dd4d7d
+    at: 2026-07-26T13:35:59.120Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 4858d00c2ed70f35871b56fbafb630b7941c1d4a
+    tree: 8282d17949170db9841c61de698951811b42eec4
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-remove-dead-path-builders/review/report.md
+        sha256: de42bf6cdfdc7a3a1f49b923f01730ac5fe7a2f30ed102448860030e9f36cbe3
+        intent: create
+    next_action: codepatrol-apply 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
