@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token hook
+  - id: b1f6d858-3069-4c22-8d43-ea8e7246ef94
+    at: 2026-07-26T03:28:29.554Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: bd00708a042f3dc0ffde393b93fe585a80dda781
+    tree: 5589af1ac7c452933929b4f2cfb4de964a2cadbd
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-close-resolves-backlog/review/report.md
+        sha256: c5c808fc966dec3b6479a6f84030bfbec9d188eae6b2c6b82f2505def5a7b219
+        intent: create
+    next_action: codepatrol-apply 2026-07-26-close-resolves-backlog on codepatrol/2026-07-26-close-resolves-backlog
