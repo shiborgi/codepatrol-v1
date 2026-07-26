@@ -180,3 +180,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: f9f6074d-d813-46c4-828f-f1c91386289a
+    at: 2026-07-26T15:03:04.255Z
+    actor: claude-opus-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 8ea3c6d4135daaa9df257292d6be76e6f79ea848
+    tag: codepatrol/committed/2026-07-26-src-structure-revalidation
+    receipt: close/receipt.md

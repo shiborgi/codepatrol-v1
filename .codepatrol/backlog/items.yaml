@@ -152,9 +152,9 @@ items:
       number: 8
       url: https://github.com/shiborgi/codepatrol/issues/8
     workId: null
-    count: 5
+    count: 6
     firstSeenAt: 2026-07-25T21:28:20.522Z
-    lastSeenAt: 2026-07-26T14:28:30.038Z
+    lastSeenAt: 2026-07-26T15:03:04.315Z
   - id: close-does-not-auto-resolve-the-backlog-item-it-was-started-against-a-change-linked-via-backlogitemid-stays-scheduled-forever-after-a-successful-commit-close
     title: Close does not auto-resolve the backlog item it was started against — a Change linked via --backlogItemId stays scheduled forever after a successful commit close
     priority: p2
@@ -216,9 +216,9 @@ items:
       kind: close-trace
       workId: 2026-07-26-decompose-transition-change
     workId: null
-    count: 1
+    count: 2
     firstSeenAt: 2026-07-26T14:28:30.028Z
-    lastSeenAt: 2026-07-26T14:28:30.028Z
+    lastSeenAt: 2026-07-26T15:03:04.305Z
   - id: path-layout-knowledge-for-codepatrol-has-no-owning-module-hardcoded-literals-across-files-with-change-yaml-built-in-places-and-the-stage-artifact-prefix-in-despite-shared-state-ts-existing-to-own-path-construction
     title: "Path-layout knowledge for .codepatrol/ has no owning module: ~28 hardcoded literals across 8 files, with change.yaml built in 2 places and the stage-artifact prefix in 3, despite shared/state.ts existing to own path construction"
     priority: p2
