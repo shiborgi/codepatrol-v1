@@ -219,3 +219,76 @@ items:
     count: 1
     firstSeenAt: 2026-07-26T14:28:30.028Z
     lastSeenAt: 2026-07-26T14:28:30.028Z
+  - id: path-layout-knowledge-for-codepatrol-has-no-owning-module-hardcoded-literals-across-files-with-change-yaml-built-in-places-and-the-stage-artifact-prefix-in-despite-shared-state-ts-existing-to-own-path-construction
+    title: "Path-layout knowledge for .codepatrol/ has no owning module: ~28 hardcoded literals across 8 files, with change.yaml built in 2 places and the stage-artifact prefix in 3, despite shared/state.ts existing to own path construction"
+    priority: p2
+    area: architecture
+    status: candidate
+    evidence:
+      - src/shared/state.ts:5 (stateRoot, the designated home for path construction)
+      - src/change/orchestrator.ts:24 and src/change/store.ts:11 both build .codepatrol/changes/<id>/change.yaml
+      - src/change/orchestrator.ts:123, src/change/validation.ts:24, src/change/validation.ts:43 all build the .codepatrol/changes/<id>/<stage>/ prefix
+      - src/change/backlog.ts:47 owns backlogPath but src/change/orchestrator.ts:265,269,292 re-inline the literal
+      - src/change/orchestrator.ts:255-258 inline the 4 required stage-artifact paths; src/change/session.ts:123 independently hardcodes plan/plan.md
+      - the F1 helpers removed by 2026-07-26-remove-dead-path-builders were abandoned attempts at exactly this centralization
+      - fix will touch ~6 files including orchestrator.ts, the highest-blast-radius module
+    source:
+      kind: plan-followup
+      workId: 2026-07-26-src-structure-revalidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-26T14:46:48.305Z
+    lastSeenAt: 2026-07-26T14:46:48.305Z
+  - id: the-reject-unknown-keys-schema-guard-is-reimplemented-times-across-files-including-two-byte-identical-private-functions-under-different-names-orchestrator-ts-exactinput-and-model-ts-exactkeys
+    title: The reject-unknown-keys schema guard is reimplemented 10 times across 6 files, including two byte-identical private functions under different names (orchestrator.ts exactInput and model.ts exactKeys)
+    priority: p2
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/orchestrator.ts:33-35 (exactInput) and src/change/model.ts:10-12 (exactKeys) are byte-identical bodies
+      - "other sites: backlog.ts:52, backlog.ts:66, backlog.ts:76, backlog.ts:95, session.ts:25, session.ts:26, session.ts:33, usage.ts:17"
+      - companion non-empty-string idiom re-inlined 8x in backlog.ts, 2x in orchestrator.ts, 1x in cli/commands.ts
+      - "a shared helper must be parameterised on error code: INVALID_ARGUMENT exit 2 for CLI input vs CHANGE_INVALID exit 4 for persisted records"
+      - 2026-07-26-architecture-assessment-v3 declined to file this at a 2-site count; the full-codebase count is 10 across 6 files
+    source:
+      kind: plan-followup
+      workId: 2026-07-26-src-structure-revalidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-26T14:46:54.775Z
+    lastSeenAt: 2026-07-26T14:46:54.775Z
+  - id: cli-command-registration-is-split-across-three-parallel-registries-with-no-compile-time-link-args-ts-command-options-commands-ts-switch-output-ts-help-text
+    title: "CLI command registration is split across three parallel registries with no compile-time link: args.ts COMMAND_OPTIONS, commands.ts switch, output.ts help text"
+    priority: p3
+    area: architecture
+    status: candidate
+    evidence:
+      - src/cli/args.ts:41 (COMMAND_OPTIONS), the executeCommand switch in src/cli/commands.ts, and the help block in src/cli/output.ts must be edited together
+      - "currently in sync: 19 case labels and 19 COMMAND_OPTIONS keys, set-difference empty both directions"
+      - "latent not live: sync is held by discipline, not by the type system"
+      - "lived evidence: 2026-07-26-backlog-resolve Apply hit Unknown command: backlog.resolve because the case landed before the args.ts entry"
+    source:
+      kind: plan-followup
+      workId: 2026-07-26-src-structure-revalidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-26T14:47:00.361Z
+    lastSeenAt: 2026-07-26T14:47:00.361Z
+  - id: graph-link-ts-lines-has-no-direct-test-extending-the-known-n-coverage-gap-which-names-only-atomic-store-ts-languages-ts-and-queries-ts
+    title: graph/link.ts (235 lines) has no direct test, extending the known N2 coverage gap which names only atomic-store.ts, languages.ts and queries.ts
+    priority: p3
+    area: architecture
+    status: candidate
+    evidence:
+      - src/graph/link.ts is the largest production file in the repo with no test file importing it
+      - "it owns edge resolution: turning extracted symbols into imports/calls/inherits edges"
+      - silent misbehaviour would degrade graph impact blast-radius output that Verify stages rely on
+      - extends existing backlog item core-module-test-coverage-gaps-atomic-store-ts-graph-languages-ts-graph-queries-ts-lack-dedicated-tests rather than duplicating it
+      - cli/main.ts and cli/output.ts also lack direct tests but are legitimately covered by subprocess CLI tests; version.ts is a one-line constant
+    source:
+      kind: plan-followup
+      workId: 2026-07-26-src-structure-revalidation
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-26T14:47:06.622Z
+    lastSeenAt: 2026-07-26T14:47:06.622Z
