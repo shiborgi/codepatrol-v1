@@ -170,3 +170,35 @@ items:
     count: 1
     firstSeenAt: 2026-07-26T02:07:44.040Z
     lastSeenAt: 2026-07-26T03:46:19.283Z
+  - id: dead-duplicated-codepatrol-changes-path-builder-helpers-changedirectory-store-ts-and-changeroot-state-ts-are-both-unreferenced-the-one-real-caller-hardcodes-the-literal-path-instead
+    title: "Dead, duplicated .codepatrol/changes path-builder helpers: changeDirectory (store.ts) and changeRoot (state.ts) are both unreferenced; the one real caller hardcodes the literal path instead"
+    priority: p3
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/store.ts:11 (changeDirectory, zero callers)
+      - src/shared/state.ts:17 (changeRoot, zero callers)
+      - src/change/store.ts:31 (listWorkingTreeChangeIds hardcodes the literal path instead of using either helper)
+    source:
+      kind: plan-followup
+      workId: 2026-07-26-architecture-assessment-v3
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-26T04:06:39.795Z
+    lastSeenAt: 2026-07-26T04:06:39.795Z
+  - id: redundant-non-throwing-validators-in-validation-ts-validateartifactbindingsfromreader-has-zero-callers-anywhere-validateartifactbindings-is-only-imported-by-one-test-never-by-production-code
+    title: "Redundant non-throwing validators in validation.ts: validateArtifactBindingsFromReader has zero callers anywhere; validateArtifactBindings is only imported by one test, never by production code"
+    priority: p3
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/validation.ts:51 (validateArtifactBindingsFromReader, zero importers anywhere)
+      - src/change/validation.ts:42 (validateArtifactBindings, imported only by src/change/change.test.ts:14)
+      - src/change/orchestrator.ts:16,118,130 (production code calls only the throwing pair, validateStageArtifacts/validateStageArtifactsFromReader)
+    source:
+      kind: plan-followup
+      workId: 2026-07-26-architecture-assessment-v3
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-26T04:06:41.523Z
+    lastSeenAt: 2026-07-26T04:06:41.523Z
