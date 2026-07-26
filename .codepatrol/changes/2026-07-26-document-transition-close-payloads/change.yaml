@@ -69,3 +69,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 887cd1a1-1563-43b3-b95c-c43c20c74781
+    at: 2026-07-26T23:35:29.599Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: T1 omits accepted optional checkpoint/return fields despite AC-1 field-completeness, and Scope conflicts with T1/T2 on insertion location; see review/report.md."
+    next_action: codepatrol-plan 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
