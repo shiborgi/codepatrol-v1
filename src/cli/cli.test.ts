@@ -265,3 +265,50 @@ test("regression: Plan checkpoint succeeds after backlog add CLI when the caller
     assert.equal(transitionRes.status, 0, transitionRes.stderr || transitionRes.stdout);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test("CLI change session rejects an invalid stage before touching session state", () => {
+  const root = workspace();
+  try {
+    const result = run(["change", "session", "--id", "does-not-matter", "--input", "-", "--workspace", root, "--format=json"], JSON.stringify({ action: "prime", stage: "bogus", attempt: 1 }));
+    assert.equal(result.status, 2, result.stderr || result.stdout);
+    const error = JSON.parse(result.stdout).error;
+    assert.equal(error.code, "INVALID_ARGUMENT");
+    assert.match(error.message, /stage/i);
+    assert.match(error.message, /change inspect/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI change session rejects a missing or invalid attempt before touching session state", () => {
+  const root = workspace();
+  try {
+    const missing = run(["change", "session", "--id", "does-not-matter", "--input", "-", "--workspace", root, "--format=json"], JSON.stringify({ action: "prime", stage: "plan" }));
+    assert.equal(missing.status, 2, missing.stderr || missing.stdout);
+    const missingError = JSON.parse(missing.stdout).error;
+    assert.equal(missingError.code, "INVALID_ARGUMENT");
+    assert.match(missingError.message, /attempt/i);
+    assert.match(missingError.message, /change inspect/);
+
+    const zero = run(["change", "session", "--id", "does-not-matter", "--input", "-", "--workspace", root, "--format=json"], JSON.stringify({ action: "prime", stage: "plan", attempt: 0 }));
+    assert.equal(zero.status, 2, zero.stderr || zero.stdout);
+    assert.equal(JSON.parse(zero.stdout).error.code, "INVALID_ARGUMENT");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI change session still reports CHANGE_CONFLICT for a well-formed but stale stage/attempt", () => {
+  const root = workspace();
+  try {
+    const id = "2026-07-25-stale-attempt";
+    const started = run(["change", "start", "--input", "-", "--workspace", root, "--format=json"], JSON.stringify({ workId: id, title: "Stale attempt regression", targetBranch: "main", actor: "codex" }));
+    assert.equal(started.status, 0, started.stderr || started.stdout);
+
+    const wrongStage = run(["change", "session", "--id", id, "--input", "-", "--workspace", root, "--format=json"], JSON.stringify({ action: "prime", stage: "review", attempt: 1 }));
+    assert.equal(wrongStage.status, 4, wrongStage.stderr || wrongStage.stdout);
+    const wrongStageError = JSON.parse(wrongStage.stdout).error;
+    assert.equal(wrongStageError.code, "CHANGE_CONFLICT");
+    assert.equal(wrongStageError.message, "Session review/1 is not the current attempt.");
+
+    const wrongAttempt = run(["change", "session", "--id", id, "--input", "-", "--workspace", root, "--format=json"], JSON.stringify({ action: "prime", stage: "plan", attempt: 2 }));
+    assert.equal(wrongAttempt.status, 4, wrongAttempt.stderr || wrongAttempt.stdout);
+    assert.equal(JSON.parse(wrongAttempt.stdout).error.code, "CHANGE_CONFLICT");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});

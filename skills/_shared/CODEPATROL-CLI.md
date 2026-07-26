@@ -20,6 +20,23 @@ codepatrol graph neighbors --file src/example.ts --relation tests --workspace "$
 codepatrol graph impact --since-ref HEAD~30 --workspace "$PWD" --format json
 ```
 
+`session.json` for `change session` carries `action`, `stage`, `attempt`, and
+the fields that action needs (`itemId`/`actor` for `claim`; `itemId`/`result`/
+`artifacts` for `close`); `stage`/`attempt` must come from a fresh `change
+inspect` projection, never assumed or hardcoded:
+
+```json
+{
+  "action": "close",
+  "stage": "apply",
+  "attempt": 1,
+  "itemId": "t1-note-store",
+  "actor": "claude-sonnet-5",
+  "result": "note store implemented, tests green",
+  "artifacts": ["src/store/note-store.ts"]
+}
+```
+
 Lifecycle commands require an explicit work id; none select by recency. All
 durable lifecycle mutations pass through the four-function Change seam. Status
 and the Kanban script share one pure projector. Stage Sessions are rebuildable;

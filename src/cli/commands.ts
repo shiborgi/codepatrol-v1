@@ -12,6 +12,7 @@ import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStag
 import { listBacklog, upsertBacklogItem, readBacklog, type BacklogArea, type BacklogPriority, type BacklogSource, type BacklogStatus } from "../change/backlog.js";
 import { syncIssues, type GhAdapter, type SyncDirection } from "../change/issue-sync.js";
 import type { CloseInput, Stage, StartChangeInput, TransitionIntent } from "../change/types.js";
+import { STAGES } from "../change/types.js";
 
 export interface CommandResult {
 	data: unknown;
@@ -32,6 +33,17 @@ function requireSeed(args: ParsedArgs): void {
 	if (!args.files.length && !args.symbols.length && !args.sinceRef) {
 		throw new CodepatrolError("INVALID_ARGUMENT", "Pass at least one --file, --symbol, or --since-ref.", 2);
 	}
+}
+
+function requireSessionCoordinates(payload: { stage?: unknown; attempt?: unknown }, id: string): { stage: Stage; attempt: number } {
+	const hint = `Run \`codepatrol change inspect --id ${id}\` to read the current stage and attempt.`;
+	if (typeof payload.stage !== "string" || !STAGES.includes(payload.stage as Stage)) {
+		throw new CodepatrolError("INVALID_ARGUMENT", `Session stage must be one of ${STAGES.join(", ")}; got ${JSON.stringify(payload.stage) ?? "(missing)"}. ${hint}`, 2);
+	}
+	if (typeof payload.attempt !== "number" || !Number.isSafeInteger(payload.attempt) || payload.attempt < 1) {
+		throw new CodepatrolError("INVALID_ARGUMENT", `Session attempt must be a positive integer; got ${JSON.stringify(payload.attempt) ?? "(missing)"}. ${hint}`, 2);
+	}
+	return { stage: payload.stage as Stage, attempt: payload.attempt };
 }
 
 function renderSync(data: Awaited<ReturnType<typeof graphSync>>): string {
@@ -128,15 +140,16 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 			return { data, text: data.nextAction ?? `${data.identity.work_id} ${data.state}` };
 		}
 		case "change.session": {
-			const id = requireValue(args.id, "id"); const payload = readJsonInput(workspace, requireValue(args.input, "input"), "Session") as { action: "prime" | "claim" | "close" | "rebuild" | "status"; stage: Stage; attempt: number; itemId?: string; actor?: string; result?: string; artifacts?: string[] };
+			const id = requireValue(args.id, "id"); const payload = readJsonInput(workspace, requireValue(args.input, "input"), "Session") as { action: "prime" | "claim" | "close" | "rebuild" | "status"; stage: unknown; attempt: unknown; itemId?: string; actor?: string; result?: string; artifacts?: string[] };
+			const { stage, attempt } = requireSessionCoordinates(payload, id);
 			let data;
 			let text;
-			if (payload.action === "prime") { data = primeStageSession(workspace, id, payload.stage, payload.attempt); text = data.next_action; }
-			else if (payload.action === "claim") { data = await claimSessionItem(workspace, id, payload.stage, payload.attempt, requireValue(payload.itemId, "itemId"), requireValue(payload.actor, "actor")); text = data.next_action; }
-			else if (payload.action === "close") { data = await closeSessionItem(workspace, id, payload.stage, payload.attempt, requireValue(payload.itemId, "itemId"), requireValue(payload.result, "result"), payload.artifacts); text = data.next_action; }
-			else if (payload.action === "rebuild") { data = discardAndRebuildSession(workspace, id, payload.stage, payload.attempt); text = data.next_action; }
+			if (payload.action === "prime") { data = primeStageSession(workspace, id, stage, attempt); text = data.next_action; }
+			else if (payload.action === "claim") { data = await claimSessionItem(workspace, id, stage, attempt, requireValue(payload.itemId, "itemId"), requireValue(payload.actor, "actor")); text = data.next_action; }
+			else if (payload.action === "close") { data = await closeSessionItem(workspace, id, stage, attempt, requireValue(payload.itemId, "itemId"), requireValue(payload.result, "result"), payload.artifacts); text = data.next_action; }
+			else if (payload.action === "rebuild") { data = discardAndRebuildSession(workspace, id, stage, attempt); text = data.next_action; }
 			else if (payload.action === "status") {
-				const session = readStageSession(workspace, id, payload.stage, payload.attempt);
+				const session = readStageSession(workspace, id, stage, attempt);
 				const status = sessionStatus(session);
 				data = { session, status };
 				text = `Ready: ${status.ready.map(i => i.id).join(", ") || "(none)"}\n` +
