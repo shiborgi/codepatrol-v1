@@ -9,6 +9,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-24-backlog-subsystem
+    externalRef:
+      provider: github
+      number: 2
+      url: https://github.com/shiborgi/codepatrol/issues/2
     workId: null
     count: 3
     firstSeenAt: 2026-07-25T10:12:35.558Z
@@ -22,6 +26,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-24-backlog-subsystem
+    externalRef:
+      provider: github
+      number: 3
+      url: https://github.com/shiborgi/codepatrol/issues/3
     workId: null
     count: 5
     firstSeenAt: 2026-07-25T10:12:35.564Z
@@ -52,6 +60,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-25-docs-consolidation
+    externalRef:
+      provider: github
+      number: 4
+      url: https://github.com/shiborgi/codepatrol/issues/4
     workId: null
     count: 1
     firstSeenAt: 2026-07-25T10:21:16.121Z
@@ -69,6 +81,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-25-docs-consolidation
+    externalRef:
+      provider: github
+      number: 5
+      url: https://github.com/shiborgi/codepatrol/issues/5
     workId: null
     count: 1
     firstSeenAt: 2026-07-25T10:21:16.198Z
@@ -84,6 +100,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-25-docs-consolidation
+    externalRef:
+      provider: github
+      number: 6
+      url: https://github.com/shiborgi/codepatrol/issues/6
     workId: null
     count: 1
     firstSeenAt: 2026-07-25T10:21:16.279Z
@@ -97,6 +117,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-25-docs-consolidation
+    externalRef:
+      provider: github
+      number: 7
+      url: https://github.com/shiborgi/codepatrol/issues/7
     workId: null
     count: 1
     firstSeenAt: 2026-07-25T15:13:00.612Z
@@ -123,6 +147,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-25-remove-duplicate-reader
+    externalRef:
+      provider: github
+      number: 8
+      url: https://github.com/shiborgi/codepatrol/issues/8
     workId: null
     count: 2
     firstSeenAt: 2026-07-25T21:28:20.522Z
