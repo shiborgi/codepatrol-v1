@@ -30,17 +30,17 @@ items:
     title: Unsafe duplicate YAML reader in improvement-report.ts bypasses migrateRecord normalization
     priority: p1
     area: architecture
-    status: candidate
+    status: done
     evidence:
       - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N4 (High)
       - src/change/improvement-report.ts:33
     source:
       kind: plan-followup
       workId: 2026-07-25-docs-consolidation
-    workId: null
+    workId: 2026-07-25-remove-duplicate-reader
     count: 1
     firstSeenAt: 2026-07-25T10:21:16.044Z
-    lastSeenAt: 2026-07-25T10:21:16.044Z
+    lastSeenAt: 2026-07-26T02:00:00.000Z
   - id: orchestrator-transitionchangelocked-is-dense-and-mixes-validation-persona-semantics-and-storage-responsibilities
     title: Orchestrator transitionChangeLocked is dense and mixes validation, persona semantics, and storage responsibilities
     priority: p2
