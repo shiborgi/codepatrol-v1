@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-26-src-structure-revalidation
+  title: "Revalidate src/ structure: module cohesion, boundaries, testability and extensibility assessment"
+  created_at: 2026-07-26T14:32:42.590Z
+  branch: codepatrol/2026-07-26-src-structure-revalidation
+  target_branch: main
+  base_commit: 5f569dbbde70c060bcac566568bdb408732be0c1
+events:
+  - id: 0f2626af-cff8-446f-9d65-617e4b7617f7
+    type: change-started
+    at: 2026-07-26T14:32:42.590Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-26-src-structure-revalidation on codepatrol/2026-07-26-src-structure-revalidation
