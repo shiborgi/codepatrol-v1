@@ -126,3 +126,10 @@ events:
       exit_code: 0
       elapsed_ms: 23665
       at: 2026-07-26T13:43:08.270Z
+  - id: 0aaea815-6ab1-497d-85fa-44170492aa5d
+    at: 2026-07-26T13:45:50.740Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-verify 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
