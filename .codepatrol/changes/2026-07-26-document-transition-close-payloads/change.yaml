@@ -48,3 +48,10 @@ events:
         sha256: 911f07ca5de0352e4c95d0699e809a7786db9a2759e0d232704248854d8ad1bd
         intent: create
     next_action: codepatrol-review 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
+  - id: f78e8b51-5c5b-4a62-ae02-1fd4e8654d79
+    at: 2026-07-26T23:34:20.122Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: Review Plan revision 1 for 2026-07-26-document-transition-close-payloads
