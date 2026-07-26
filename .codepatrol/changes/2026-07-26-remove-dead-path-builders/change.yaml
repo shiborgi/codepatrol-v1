@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
+  - id: 5e581187-13d5-4cdc-bc9d-1db4aceea48c
+    at: 2026-07-26T13:31:06.471Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-1
+      started_at: 2026-07-26T13:28:42Z
+      finished_at: 2026-07-26T13:30:57Z
+      elapsed_ms: 135000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
