@@ -145,3 +145,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: d3c5b3a4-a481-4618-8f75-0ba2738798c8
+    at: 2026-07-26T14:58:51.438Z
+    actor: antigravity
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: eeeeb0d3abc644e94d8d3d511bccedeedf90f078
+    tree: 7c2f196ef7393a33dbd38b44b2e16ca321b89696
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-src-structure-revalidation/verify/report.md
+        sha256: e5f17096f0bcadf3b85e4473af503cd272cf7a692cba19e383bb291a6ab88477
+        intent: create
+    next_action: codepatrol-close 2026-07-26-src-structure-revalidation commit on codepatrol/2026-07-26-src-structure-revalidation
