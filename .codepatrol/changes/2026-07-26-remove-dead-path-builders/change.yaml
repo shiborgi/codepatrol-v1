@@ -48,3 +48,10 @@ events:
         sha256: 7cf57e111c9beb9146b1ef317da91a28d12924e90174bbf9380014bfd6610415
         intent: create
     next_action: codepatrol-review 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
+  - id: 0d04bac8-4c0b-47f4-af71-d6908411f996
+    at: 2026-07-26T13:35:21.775Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
