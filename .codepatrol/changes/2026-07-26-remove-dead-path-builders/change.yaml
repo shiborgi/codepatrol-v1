@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-26-remove-dead-path-builders
+  title: Remove dead .codepatrol/changes path-builder helpers (changeDirectory, changeRoot)
+  created_at: 2026-07-26T13:28:42.815Z
+  branch: codepatrol/2026-07-26-remove-dead-path-builders
+  target_branch: main
+  base_commit: 948905dfd872b1ef31ec9b5fe5ba4a82cea05f46
+events:
+  - id: 5b976018-8d66-47de-9bd5-e08c91c93744
+    type: change-started
+    at: 2026-07-26T13:28:42.815Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders

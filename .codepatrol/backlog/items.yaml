@@ -174,7 +174,7 @@ items:
     title: "Dead, duplicated .codepatrol/changes path-builder helpers: changeDirectory (store.ts) and changeRoot (state.ts) are both unreferenced; the one real caller hardcodes the literal path instead"
     priority: p3
     area: architecture
-    status: candidate
+    status: scheduled
     evidence:
       - src/change/store.ts:11 (changeDirectory, zero callers)
       - src/shared/state.ts:17 (changeRoot, zero callers)
@@ -182,10 +182,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-26-architecture-assessment-v3
-    workId: null
+    workId: 2026-07-26-remove-dead-path-builders
     count: 1
     firstSeenAt: 2026-07-26T04:06:39.795Z
-    lastSeenAt: 2026-07-26T04:06:39.795Z
+    lastSeenAt: 2026-07-26T13:28:42.837Z
   - id: redundant-non-throwing-validators-in-validation-ts-validateartifactbindingsfromreader-has-zero-callers-anywhere-validateartifactbindings-is-only-imported-by-one-test-never-by-production-code
     title: "Redundant non-throwing validators in validation.ts: validateArtifactBindingsFromReader has zero callers anywhere; validateArtifactBindings is only imported by one test, never by production code"
     priority: p3
