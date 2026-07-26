@@ -243,7 +243,7 @@ items:
     title: The reject-unknown-keys schema guard is reimplemented 10 times across 6 files, including two byte-identical private functions under different names (orchestrator.ts exactInput and model.ts exactKeys)
     priority: p2
     area: architecture
-    status: candidate
+    status: scheduled
     evidence:
       - src/change/orchestrator.ts:33-35 (exactInput) and src/change/model.ts:10-12 (exactKeys) are byte-identical bodies
       - "other sites: backlog.ts:52, backlog.ts:66, backlog.ts:76, backlog.ts:95, session.ts:25, session.ts:26, session.ts:33, usage.ts:17"
@@ -253,10 +253,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-26-src-structure-revalidation
-    workId: null
+    workId: 2026-07-26-dedupe-exact-keys-guard
     count: 1
     firstSeenAt: 2026-07-26T14:46:54.775Z
-    lastSeenAt: 2026-07-26T14:46:54.775Z
+    lastSeenAt: 2026-07-26T15:57:24.720Z
   - id: cli-command-registration-is-split-across-three-parallel-registries-with-no-compile-time-link-args-ts-command-options-commands-ts-switch-output-ts-help-text
     title: "CLI command registration is split across three parallel registries with no compile-time link: args.ts COMMAND_OPTIONS, commands.ts switch, output.ts help text"
     priority: p3

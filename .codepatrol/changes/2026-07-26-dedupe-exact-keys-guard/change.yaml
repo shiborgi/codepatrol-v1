@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-26-dedupe-exact-keys-guard
+  title: Extract a shared exact-keys schema guard, parameterized on error code
+  created_at: 2026-07-26T15:57:24.702Z
+  branch: codepatrol/2026-07-26-dedupe-exact-keys-guard
+  target_branch: main
+  base_commit: 45ba75af405918af899487659042d1e092560460
+events:
+  - id: cd1e0de9-314e-4945-b375-d439e450cadc
+    type: change-started
+    at: 2026-07-26T15:57:24.702Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-26-dedupe-exact-keys-guard on codepatrol/2026-07-26-dedupe-exact-keys-guard
