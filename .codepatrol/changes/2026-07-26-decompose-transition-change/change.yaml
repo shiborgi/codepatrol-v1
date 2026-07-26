@@ -132,3 +132,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-verify 2026-07-26-decompose-transition-change on codepatrol/2026-07-26-decompose-transition-change
+  - id: b472e645-b7fd-4af1-b867-2b22fbc31d10
+    at: 2026-07-26T14:26:13.664Z
+    actor: antigravity
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: run-ver1
+      started_at: 2026-07-26T14:25:00.000Z
+      finished_at: 2026-07-26T14:27:00.000Z
+      elapsed_ms: 120000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
