@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: bef5961d-9e88-4220-9b0f-6b73ab176de0
+    at: 2026-07-26T23:32:24.809Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: a3a98a0b26f7672130d8154f07bd07791370a7af
+    tree: dfeb5d1fb2e26740be09a6472ee935c9f0530cfe
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-document-transition-close-payloads/plan/spec.md
+        sha256: 6e85788441e0ecde66ef92fba5ae0f5a8a075d17611637d68842c9471763f4ba
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-document-transition-close-payloads/plan/plan.md
+        sha256: 6f50cdce9954de3483483d11dabb1e7046c82b65cffd3f7e21ed7913053e03b6
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-document-transition-close-payloads/plan/evidence/investigation.md
+        sha256: 911f07ca5de0352e4c95d0699e809a7786db9a2759e0d232704248854d8ad1bd
+        intent: create
+    next_action: codepatrol-review 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
