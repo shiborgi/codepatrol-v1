@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-25-session-input-validation
+  title: Validate change session stage/attempt at the CLI boundary so a missing or wrong field surfaces an actionable INVALID_ARGUMENT instead of a generic CHANGE_CONFLICT
+  created_at: 2026-07-26T01:36:14.390Z
+  branch: codepatrol/2026-07-25-session-input-validation
+  target_branch: main
+  base_commit: 5bd9e307dba2e5e82a9051abbde70846549c48f4
+events:
+  - id: 8b665dd0-91b7-467f-96d6-85ab14d9c023
+    type: change-started
+    at: 2026-07-26T01:36:14.390Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-25-session-input-validation on codepatrol/2026-07-25-session-input-validation
