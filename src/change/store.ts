@@ -8,7 +8,6 @@ import { resolveInside } from "../shared/workspace.js";
 import { assertChangeRecord, foldChange, migrateRecord } from "./model.js";
 import type { ChangeEvent, ChangeRecordV2, OperationOptions } from "./types.js";
 
-export function changeDirectory(workspace: string, workId: string): string { return resolveInside(workspace, `.codepatrol/changes/${workId}`); }
 export function changeRecordPath(workspace: string, workId: string): string { return resolveInside(workspace, `.codepatrol/changes/${workId}/change.yaml`); }
 export function readChangeRecord(workspace: string, workId: string): ChangeRecordV2 {
 	const path = changeRecordPath(workspace, workId);

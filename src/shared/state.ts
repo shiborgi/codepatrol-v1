@@ -14,10 +14,6 @@ export function lockPath(workspace: string, name: string): string {
 	return resolveInside(workspace, `.codepatrol/runtime/locks/${name}.lock`);
 }
 
-export function changeRoot(workspace: string): string {
-	return resolveInside(workspace, ".codepatrol/changes");
-}
-
 export function stageSessionPath(workspace: string, workId: string, stage: string, attempt: number): string {
 	return resolveInside(workspace, `.codepatrol/runtime/sessions/${workId}/${stage}/${attempt}.json`);
 }
