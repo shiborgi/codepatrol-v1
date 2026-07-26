@@ -181,3 +181,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 3cc861e8-618f-4b89-b20d-03fcb7c37ae3
+    at: 2026-07-26T14:28:29.977Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: ee640e7255dd6aa61dfdb28be2a8586232f23c17
+    tag: codepatrol/committed/2026-07-26-decompose-transition-change
+    receipt: close/receipt.md
