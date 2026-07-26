@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
 import { basename, dirname } from "node:path";
 import { atomicWriteJson } from "../shared/atomic-store.js";
-import { CodepatrolError } from "../shared/errors.js";
+import { CodepatrolError, assertExactKeys } from "../shared/errors.js";
 import { withWorkspaceLock } from "../shared/lock.js";
 import { changeDirectoryRelativePath, changeStageRelativePrefix, stageSessionPath } from "../shared/state.js";
 import { resolveInside } from "../shared/workspace.js";
@@ -30,7 +30,7 @@ function validate(session: StageSession): void {
 	const ids = new Set<string>();
 	for (const item of session.items) {
 		const allowed = new Set(["id", "title", "status", "dependencies", "claim", "result", "artifacts"]);
-		for (const key of Object.keys(item)) if (!allowed.has(key)) throw new CodepatrolError("CHANGE_INVALID", `Session item ${item.id ?? "?"} contains unknown field ${key}.`, 4);
+		assertExactKeys(item, allowed, `Session item ${item.id ?? "?"}`);
 		if (!item.id?.trim() || ids.has(item.id) || !item.title?.trim() || !["open", "claimed", "closed"].includes(item.status) || !Array.isArray(item.dependencies)) throw new CodepatrolError("CHANGE_INVALID", "Stage Session item is invalid or duplicated.", 4);
 		ids.add(item.id);
 		if (item.result && item.result.length > 4000) throw new CodepatrolError("CHANGE_INVALID", `Session item ${item.id} result exceeds 4000 characters.`, 4);

@@ -1,4 +1,4 @@
-import { CodepatrolError } from "../shared/errors.js";
+import { CodepatrolError, assertExactKeys } from "../shared/errors.js";
 import { aggregateUsage } from "./usage.js";
 import { validateRun } from "./usage.js";
 import { STAGES, type ArtifactBinding, type ChangeEvent, type ChangeRecordV2, type ChangeView, type Stage, type StageAttempt } from "./types.js";
@@ -8,7 +8,7 @@ function iso(value: string, label: string): void { if (!value || !Number.isFinit
 function next(stage: Stage): Stage | undefined { return STAGES[STAGES.indexOf(stage) + 1]; }
 function emptyAttempts(): Record<Stage, StageAttempt[]> { return { plan: [], review: [], apply: [], verify: [], close: [] }; }
 function exactKeys(value: object, allowed: string[], label: string): void {
-	for (const key of Object.keys(value)) if (!allowed.includes(key)) invalid(`${label} contains unknown field ${key}.`);
+	assertExactKeys(value, allowed, `CHANGE_INVALID: ${label}`, "CHANGE_INVALID", 4);
 }
 function bindings(value: unknown, label: string): ArtifactBinding[] {
 	if (!Array.isArray(value)) invalid(`${label} must be an array.`);

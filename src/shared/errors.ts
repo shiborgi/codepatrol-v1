@@ -33,6 +33,11 @@ export class CodepatrolError extends Error {
 	}
 }
 
+export function assertExactKeys(value: object, allowed: readonly string[] | ReadonlySet<string>, label: string, code: ErrorCode = "CHANGE_INVALID", exitCode: 2 | 4 = 4): void {
+	const isAllowed = (key: string) => Array.isArray(allowed) ? allowed.includes(key) : (allowed as ReadonlySet<string>).has(key);
+	for (const key of Object.keys(value)) if (!isAllowed(key)) throw new CodepatrolError(code, `${label} contains unknown field ${key}.`, exitCode);
+}
+
 export function operationalError(error: unknown): CodepatrolError {
 	if (error instanceof CodepatrolError) return error;
 	if (error instanceof Error && error.name === "AbortError") {

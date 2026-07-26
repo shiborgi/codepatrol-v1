@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { parse } from "yaml";
-import { CodepatrolError } from "../shared/errors.js";
+import { CodepatrolError, assertExactKeys } from "../shared/errors.js";
 import { withWorkspaceLock } from "../shared/lock.js";
 import { resolveInside } from "../shared/workspace.js";
 import { NodeGitAdapter, type GitAdapter } from "./git.js";
@@ -32,7 +32,7 @@ function requireObject(value: unknown, label: string): Record<string, unknown> {
 	return value as Record<string, unknown>;
 }
 function exactInput(value: Record<string, unknown>, allowed: string[], label: string): void {
-	for (const key of Object.keys(value)) if (!allowed.includes(key)) throw new CodepatrolError("INVALID_ARGUMENT", `${label} contains unknown field ${key}.`, 2);
+	assertExactKeys(value, allowed, label, "INVALID_ARGUMENT", 2);
 }
 function textInput(value: unknown, field: string): string {
 	if (typeof value !== "string" || !value.trim()) throw new CodepatrolError("INVALID_ARGUMENT", `${field} must be a non-empty string.`, 2);

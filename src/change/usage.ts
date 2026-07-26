@@ -1,4 +1,4 @@
-import { CodepatrolError } from "../shared/errors.js";
+import { CodepatrolError, assertExactKeys } from "../shared/errors.js";
 import type { RunUsage, UsageSummary } from "./types.js";
 
 function nonNegative(value: number | undefined, name: string): number {
@@ -14,7 +14,7 @@ function add(left: number, right: number, name: string): number {
 
 export function validateRun(run: RunUsage): void {
 	if (!run || typeof run !== "object" || Array.isArray(run)) throw new CodepatrolError("CHANGE_INVALID", "Run must be an object.", 4);
-	for (const key of Object.keys(run)) if (!["id", "started_at", "finished_at", "elapsed_ms", "characters"].includes(key)) throw new CodepatrolError("CHANGE_INVALID", `Run contains unknown field ${key}.`, 4);
+	assertExactKeys(run, ["id", "started_at", "finished_at", "elapsed_ms", "characters"], "Run");
 	if (!run.id || !run.started_at || !Number.isFinite(Date.parse(run.started_at))) throw new CodepatrolError("CHANGE_INVALID", "Run id and started_at are required.", 4);
 	if (run.finished_at !== undefined && !Number.isFinite(Date.parse(run.finished_at))) throw new CodepatrolError("CHANGE_INVALID", "Run finished_at must be ISO time.", 4);
 	if ((run.finished_at === undefined) !== (run.elapsed_ms === undefined)) throw new CodepatrolError("CHANGE_INVALID", "Finished runs require elapsed_ms; interrupted runs omit both.", 4);
@@ -25,12 +25,12 @@ export function validateRun(run: RunUsage): void {
 	}
 	if (!run.characters || typeof run.characters !== "object" || Array.isArray(run.characters)) throw new CodepatrolError("CHANGE_INVALID", "Run characters must be an object.", 4);
 	if (run.characters.status === "measured") {
-		for (const key of Object.keys(run.characters)) if (!["status", "source", "input", "output", "cacheRead", "cacheWrite", "reasoning", "total", "model", "harness"].includes(key)) throw new CodepatrolError("CHANGE_INVALID", `Measured characters contain unknown field ${key}.`, 4);
+		assertExactKeys(run.characters, ["status", "source", "input", "output", "cacheRead", "cacheWrite", "reasoning", "total", "model", "harness"], "Measured characters");
 		if (run.characters.source !== "provider" && run.characters.source !== "harness") throw new CodepatrolError("CHANGE_INVALID", "Measured character source must be provider or harness.", 4);
 		nonNegative(run.characters.input, "characters.input"); nonNegative(run.characters.output, "characters.output"); nonNegative(run.characters.total, "characters.total");
 		for (const key of ["cacheRead", "cacheWrite", "reasoning"] as const) if (run.characters[key] !== undefined) nonNegative(run.characters[key], `characters.${key}`);
 	} else if (run.characters.status === "unavailable") {
-		for (const key of Object.keys(run.characters)) if (!["status", "reason", "model", "harness"].includes(key)) throw new CodepatrolError("CHANGE_INVALID", `Unavailable characters contain unknown field ${key}.`, 4);
+		assertExactKeys(run.characters, ["status", "reason", "model", "harness"], "Unavailable characters");
 		if (!run.characters.reason?.trim()) throw new CodepatrolError("CHANGE_INVALID", "Unavailable usage requires a reason.", 4);
 	} else throw new CodepatrolError("CHANGE_INVALID", "Character status must be measured or unavailable.", 4);
 }

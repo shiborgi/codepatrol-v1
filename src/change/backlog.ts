@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { parse, stringify } from "yaml";
 import { atomicWriteFile } from "../shared/atomic-store.js";
-import { CodepatrolError } from "../shared/errors.js";
+import { CodepatrolError, assertExactKeys } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
 import { backlogRelativePath } from "../shared/state.js";
 
@@ -50,7 +50,7 @@ export function backlogPath(workspace: string): string {
 
 function validateSource(source: unknown, itemId: string): BacklogSource {
 	if (!source || typeof source !== "object" || Array.isArray(source)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} source must be an object.`, 4);
-	for (const key of Object.keys(source as Record<string, unknown>)) if (!ALLOWED_SOURCE_KEYS.has(key)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} source contains unknown field ${key}.`, 4);
+	assertExactKeys(source as Record<string, unknown>, ALLOWED_SOURCE_KEYS, `CHANGE_INVALID: Backlog item ${itemId} source`);
 	const obj = source as Record<string, unknown>;
 	if (!isSourceKind(obj.kind)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} source.kind is invalid.`, 4);
 	if (obj.kind === "github-issue") {
@@ -64,7 +64,7 @@ function validateSource(source: unknown, itemId: string): BacklogSource {
 function validateExternalRef(ref: unknown, itemId: string): ExternalRef | undefined {
 	if (ref === undefined) return undefined;
 	if (!ref || typeof ref !== "object" || Array.isArray(ref)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef must be an object.`, 4);
-	for (const key of Object.keys(ref as Record<string, unknown>)) if (!ALLOWED_EXTERNAL_REF_KEYS.has(key)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef contains unknown field ${key}.`, 4);
+	assertExactKeys(ref as Record<string, unknown>, ALLOWED_EXTERNAL_REF_KEYS, `CHANGE_INVALID: Backlog item ${itemId} externalRef`);
 	const obj = ref as Record<string, unknown>;
 	if (obj.provider !== "github") throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef.provider must be "github".`, 4);
 	if (!Number.isSafeInteger(obj.number) || (obj.number as number) < 1) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog item ${itemId} externalRef.number must be a positive integer.`, 4);
@@ -74,7 +74,7 @@ function validateExternalRef(ref: unknown, itemId: string): ExternalRef | undefi
 
 function validateItem(raw: unknown, index: number): BacklogItem {
 	if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new CodepatrolError("CHANGE_INVALID", `Backlog item at index ${index} must be an object.`, 4);
-	for (const key of Object.keys(raw as Record<string, unknown>)) if (!ALLOWED_ITEM_KEYS.has(key)) throw new CodepatrolError("CHANGE_INVALID", `Backlog item at index ${index} contains unknown field ${key}.`, 4);
+	assertExactKeys(raw as Record<string, unknown>, ALLOWED_ITEM_KEYS, `Backlog item at index ${index}`);
 	const item = raw as Record<string, unknown>;
 	if (typeof item.id !== "string" || !item.id.trim()) throw new CodepatrolError("CHANGE_INVALID", `Backlog item at index ${index} id must be a non-empty string.`, 4);
 	if (typeof item.title !== "string" || !item.title.trim()) throw new CodepatrolError("CHANGE_INVALID", `Backlog item at index ${index} title must be a non-empty string.`, 4);
@@ -93,7 +93,7 @@ function validateItem(raw: unknown, index: number): BacklogItem {
 
 function validate(root: unknown): Backlog {
 	if (!root || typeof root !== "object" || Array.isArray(root)) throw new CodepatrolError("CHANGE_INVALID", "CHANGE_INVALID: Backlog root must be an object.", 4);
-	for (const key of Object.keys(root as Record<string, unknown>)) if (!ALLOWED_ROOT_KEYS.has(key)) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog root contains unknown field ${key}.`, 4);
+	assertExactKeys(root as Record<string, unknown>, ALLOWED_ROOT_KEYS, "CHANGE_INVALID: Backlog root");
 	const obj = root as Record<string, unknown>;
 	if (obj.schema_version !== 1) throw new CodepatrolError("CHANGE_INVALID", `CHANGE_INVALID: Backlog schema_version must be 1, got ${obj.schema_version}.`, 4);
 	if (!Array.isArray(obj.items)) throw new CodepatrolError("CHANGE_INVALID", "CHANGE_INVALID: Backlog items must be an array.", 4);
