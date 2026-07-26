@@ -9,7 +9,7 @@ import { foldChange, migrateRecord } from "./model.js";
 import { changeRecordPath, listWorkingTreeChangeIds, readChangeRecord, writeChangeRecord, appendChangeEvent } from "./store.js";
 import * as trace from "./trace.js";
 import { writeImprovementReport, mirrorImprovementReport, generateImprovementReport } from "./improvement-report.js";
-import { upsertBacklogItem, findBacklogItem, linkBacklogItem, backlogPath } from "./backlog.js";
+import { upsertBacklogItem, findBacklogItem, linkBacklogItem, backlogPath, readBacklog, resolveBacklogItem } from "./backlog.js";
 import { loadConfig } from "../shared/config.js";
 import { defaultGateRunner, gateOutputTail } from "./apply-gate.js";
 import type { GateResult } from "./types.js";
@@ -413,6 +413,15 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 			catch (cause) { process.stderr.write(`[close] backlog upsert failed for "${rec.slice(0, 80)}": ${(cause as Error).message}\n`); }
 		}
 	} catch (cause) { process.stderr.write(`[close] improvement report failed: ${(cause as Error).message}\n`); }
+	if (outcome === "committed") {
+		try {
+			const linkedItems = readBacklog(workspace).items.filter((item) => item.workId === workId && item.status === "scheduled");
+			for (const item of linkedItems) {
+				try { resolveBacklogItem(workspace, item.id, "done", now(options)); }
+				catch (cause) { process.stderr.write(`[close] backlog resolve failed for "${item.id}": ${(cause as Error).message}\n`); }
+			}
+		} catch (cause) { process.stderr.write(`[close] backlog resolution lookup failed: ${(cause as Error).message}\n`); }
+	}
 	const pathsToCommit = [relativeRecord(workId)]; if (reportPath) pathsToCommit.push(reportPath);
 	const backlogFile = backlogPath(workspace);
 	if (existsSync(backlogFile)) pathsToCommit.push(backlogFile);
