@@ -48,3 +48,10 @@ events:
         sha256: 7537ef317fd1de71233aed14ff9ceb1a97783bc608eb6e8232344be0d83ae931
         intent: create
     next_action: codepatrol-review 2026-07-26-close-resolves-backlog on codepatrol/2026-07-26-close-resolves-backlog
+  - id: ac7c38e0-f98a-478e-b7d8-5fcbab057bbf
+    at: 2026-07-26T03:28:17.779Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-26-close-resolves-backlog on codepatrol/2026-07-26-close-resolves-backlog
