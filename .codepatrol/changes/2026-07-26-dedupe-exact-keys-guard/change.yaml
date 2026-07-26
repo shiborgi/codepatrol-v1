@@ -154,3 +154,10 @@ events:
         sha256: 7b3f510de6d989f2dac6b2a748f02d8876043f366000c3b662c8cf22a2f70c37
         intent: create
     next_action: codepatrol-apply 2026-07-26-dedupe-exact-keys-guard on codepatrol/2026-07-26-dedupe-exact-keys-guard
+  - id: 0418b9e2-eb01-4724-b911-9627d3c9b3e5
+    at: 2026-07-26T21:24:14.754Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: Execute accepted Apply tasks T1-T7 for 2026-07-26-dedupe-exact-keys-guard
