@@ -161,3 +161,10 @@ events:
         sha256: 2794833b98747778af5d1eed670ea6d6f2eda1c344e60a3bfe1412e65d8d94bd
         intent: create
     next_action: codepatrol-close 2026-07-26-remove-dead-path-builders commit|rollback on codepatrol/2026-07-26-remove-dead-path-builders
+  - id: c9bc01a3-d376-441b-81d8-d8e798469963
+    at: 2026-07-26T13:48:36.153Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-26-remove-dead-path-builders commit+push on codepatrol/2026-07-26-remove-dead-path-builders
