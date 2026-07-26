@@ -4,7 +4,7 @@ items:
     title: "Top error code: INVALID_ARGUMENT (8). Investigate the first occurrence's args and stage context."
     priority: p1
     area: workflow
-    status: candidate
+    status: scheduled
     evidence: []
     source:
       kind: close-trace
@@ -13,10 +13,10 @@ items:
       provider: github
       number: 2
       url: https://github.com/shiborgi/codepatrol/issues/2
-    workId: null
+    workId: 2026-07-26-document-transition-close-payloads
     count: 5
     firstSeenAt: 2026-07-25T10:12:35.558Z
-    lastSeenAt: 2026-07-26T23:23:06.369Z
+    lastSeenAt: 2026-07-26T23:28:32.606Z
   - id: command-change-transition-was-invoked-times-consider-caching-or-batching-repeated-invocations
     title: Command "change.transition" was invoked 52 times — consider caching or batching repeated invocations.
     priority: p3
