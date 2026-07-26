@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: codepatrol-plan 2026-07-26-src-structure-revalidation on codepatrol/2026-07-26-src-structure-revalidation
+  - id: 471d7a5d-9220-4c74-a6d2-8020af7e6038
+    at: 2026-07-26T14:39:52.992Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-1
+      started_at: 2026-07-26T14:30:00Z
+      finished_at: 2026-07-26T14:39:43Z
+      elapsed_ms: 583000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
