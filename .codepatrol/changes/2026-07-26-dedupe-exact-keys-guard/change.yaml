@@ -271,3 +271,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 870bb350-ef70-47ca-b94b-eb0f52c485c2
+    at: 2026-07-26T23:23:06.314Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 54520f23ee340a9918836c288b343da63329e8c7
+    tag: codepatrol/committed/2026-07-26-dedupe-exact-keys-guard
+    receipt: close/receipt.md
