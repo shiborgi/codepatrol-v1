@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 21c8068e-be88-4dfc-b4fc-8aaf5fb325ed
+    at: 2026-07-26T15:15:25.412Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 45eb0719df6f9ecba98ca887e9c0e288e5279041
+    tree: 7596e44f34cde4bcbdb3c200d256a1b4c164fcab
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-centralize-codepatrol-paths/plan/spec.md
+        sha256: c6366a4225b7e743ad54f5127d676fe613a537c02f2294096fa3feab298ada5d
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-centralize-codepatrol-paths/plan/plan.md
+        sha256: cd94ef4689d40ea22bc9ab080576817e54443c4732936277f862e8f2c70cf2ac
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-centralize-codepatrol-paths/plan/evidence/investigation.md
+        sha256: ee0475185dbba6cc22aa915939c4711c3b3b260feaebd1dc0bfcabb53cd48b42
+        intent: create
+    next_action: codepatrol-review 2026-07-26-centralize-codepatrol-paths on codepatrol/2026-07-26-centralize-codepatrol-paths
