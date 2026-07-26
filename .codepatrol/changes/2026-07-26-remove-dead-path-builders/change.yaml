@@ -182,3 +182,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 9c7653e0-cbbc-469d-b573-6d49d5b90af4
+    at: 2026-07-26T13:48:51.536Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 2e4daa990ad0587173d70d5430c00b183a54d8de
+    tag: codepatrol/committed/2026-07-26-remove-dead-path-builders
+    receipt: close/receipt.md
