@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token hook
+  - id: bb50702c-c196-4a8e-8413-7ea92513b29e
+    at: 2026-07-26T04:03:44.241Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 69d2a0dd4604cc50402503212a55d95b886b843a
+    tree: 7d95335c08a24e646d97372a88e9bbbc6132aa5b
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-architecture-assessment-v3/review/report.md
+        sha256: 0838585cee6075354e3f686d4c5ef8f9d038f503e0062b4bd6b55d574e35e7c8
+        intent: create
+    next_action: codepatrol-apply 2026-07-26-architecture-assessment-v3 on codepatrol/2026-07-26-architecture-assessment-v3
