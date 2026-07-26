@@ -161,3 +161,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Execute accepted Apply tasks T1-T7 for 2026-07-26-dedupe-exact-keys-guard
+  - id: 9309e972-891d-45f2-81db-439845462116
+    at: 2026-07-26T21:28:17.686Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-26T21:10:06Z
+      finished_at: 2026-07-26T21:28:06Z
+      elapsed_ms: 1080000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
