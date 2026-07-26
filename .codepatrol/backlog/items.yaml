@@ -152,9 +152,9 @@ items:
       number: 8
       url: https://github.com/shiborgi/codepatrol/issues/8
     workId: null
-    count: 2
+    count: 3
     firstSeenAt: 2026-07-25T21:28:20.522Z
-    lastSeenAt: 2026-07-26T01:26:11.897Z
+    lastSeenAt: 2026-07-26T03:14:47.454Z
   - id: close-does-not-auto-resolve-the-backlog-item-it-was-started-against-a-change-linked-via-backlogitemid-stays-scheduled-forever-after-a-successful-commit-close
     title: Close does not auto-resolve the backlog item it was started against — a Change linked via --backlogItemId stays scheduled forever after a successful commit close
     priority: p2
