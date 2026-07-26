@@ -85,3 +85,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: Revise Plan artifacts for 2026-07-26-dedupe-exact-keys-guard
+  - id: 4d0ecae5-2829-4d25-af66-b939b1fc2c48
+    at: 2026-07-26T21:01:40.285Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-2
+      started_at: 2026-07-26T20:55:00Z
+      finished_at: 2026-07-26T21:01:27Z
+      elapsed_ms: 387000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
