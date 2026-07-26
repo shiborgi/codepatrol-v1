@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-26-decompose-transition-change on codepatrol/2026-07-26-decompose-transition-change
+  - id: e41340dd-5716-4faf-a5e4-c74780b06869
+    at: 2026-07-26T14:18:35.658Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-26T14:08:00.000Z
+      finished_at: 2026-07-26T14:15:00.000Z
+      elapsed_ms: 420000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
