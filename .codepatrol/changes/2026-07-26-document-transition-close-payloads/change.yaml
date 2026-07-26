@@ -85,3 +85,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: codepatrol-plan 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
+  - id: 6d539fff-a9d1-40b6-bf5d-b4a5c06ce465
+    at: 2026-07-26T23:40:58.672Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-2
+      started_at: 2026-07-26T23:37:48Z
+      finished_at: 2026-07-26T23:40:53Z
+      elapsed_ms: 185000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
