@@ -78,3 +78,10 @@ events:
     to_stage: plan
     reason: "fix-first: Plan evidence undercounted the duplicated exact-keys idiom (claimed 9 sites/5 files, actual 10 pure sites/5 files) by missing usage.ts:28 and :33, both inside validateRun (the same function T6 already opens). AC-3 as written cannot pass after T6 as scoped -- re-ran the exact AC-3/T7-step-1 grep against the current tree and both missed sites are present. Design, wrapper approach, and DC-1/DC-2 deferrals are unaffected; T6 needs two more assertExactKeys call-site replacements in the same file, and spec.md evidence/AC-3 counts need correcting."
     next_action: codepatrol-plan 2026-07-26-dedupe-exact-keys-guard on codepatrol/2026-07-26-dedupe-exact-keys-guard
+  - id: 89ce7778-a7b3-4bf5-bb10-085da4aa9dd5
+    at: 2026-07-26T20:25:44.616Z
+    actor: opencode
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: Revise Plan artifacts for 2026-07-26-dedupe-exact-keys-guard
