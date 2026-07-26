@@ -48,3 +48,10 @@ events:
         sha256: ee0475185dbba6cc22aa915939c4711c3b3b260feaebd1dc0bfcabb53cd48b42
         intent: create
     next_action: codepatrol-review 2026-07-26-centralize-codepatrol-paths on codepatrol/2026-07-26-centralize-codepatrol-paths
+  - id: b5e474b8-40c4-40ed-9fae-7eed77ed95a1
+    at: 2026-07-26T15:16:54.457Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-26-centralize-codepatrol-paths on codepatrol/2026-07-26-centralize-codepatrol-paths
