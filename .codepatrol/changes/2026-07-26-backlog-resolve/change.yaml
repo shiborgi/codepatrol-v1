@@ -104,3 +104,30 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: b36a6f2e-cd83-45bc-aa86-1580f263fd55
+    at: 2026-07-26T02:20:35.360Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 67566bfbe32576e0e11ef03199425794fb504369
+    tree: 2d246edb060bc6449f3dfc6052029d9d2bbd9559
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-backlog-resolve/apply/journal.md
+        sha256: 8f3f33040218cc574d4552f7e6d616ba3052d79323a810e04001d44753d3ad7d
+        intent: create
+    changes:
+      - src/change/backlog.ts
+      - src/change/backlog.test.ts
+      - src/change/issue-sync.test.ts
+      - src/cli/args.ts
+      - src/cli/commands.ts
+      - src/cli/output.ts
+      - src/cli/cli.test.ts
+    next_action: codepatrol-verify 2026-07-26-backlog-resolve on codepatrol/2026-07-26-backlog-resolve
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 23441
+      at: 2026-07-26T02:20:35.296Z
