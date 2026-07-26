@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-review 2026-07-26-src-structure-revalidation on codepatrol/2026-07-26-src-structure-revalidation
+  - id: 8fe6d1d4-ad3f-4091-a792-0c129090f8bd
+    at: 2026-07-26T14:45:48.541Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: run-rev1
+      started_at: 2026-07-26T14:40:00.000Z
+      finished_at: 2026-07-26T14:46:00.000Z
+      elapsed_ms: 360000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
