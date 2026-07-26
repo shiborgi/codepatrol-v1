@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: b455ea20-1e05-4ef0-9cd2-344c3d71c5be
+    at: 2026-07-26T14:05:58.349Z
+    actor: antigravity
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: b462bc37f6968fc926491b6bd553f88e8173cfb6
+    tree: d18a21e4b0fc1cfd75e93fa7b52f3038121b64f0
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-decompose-transition-change/review/report.md
+        sha256: 78fd93fae63b3eb1999d7451a5fae3c9890a51d92a136d4f33594fd835e47d95
+        intent: create
+    next_action: codepatrol-apply 2026-07-26-decompose-transition-change on codepatrol/2026-07-26-decompose-transition-change
