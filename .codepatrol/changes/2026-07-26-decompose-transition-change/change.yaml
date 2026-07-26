@@ -104,3 +104,24 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 3ef411db-7940-4b9b-9f8f-6792b3ffbe33
+    at: 2026-07-26T14:19:12.950Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: b41e08d4e3c09924257299a2e4643fa53638af56
+    tree: d0058180a5ef91bcd2544113a739b32207ef1efe
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-decompose-transition-change/apply/journal.md
+        sha256: d83b299c3736a5e606e98894d52e8662cca26be1aaec4d85529cf958e29093aa
+        intent: create
+    changes:
+      - src/change/orchestrator.ts
+    next_action: codepatrol-verify 2026-07-26-decompose-transition-change on codepatrol/2026-07-26-decompose-transition-change
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 23696
+      at: 2026-07-26T14:19:12.891Z
