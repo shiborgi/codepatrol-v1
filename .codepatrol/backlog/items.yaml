@@ -223,7 +223,7 @@ items:
     title: "Path-layout knowledge for .codepatrol/ has no owning module: ~28 hardcoded literals across 8 files, with change.yaml built in 2 places and the stage-artifact prefix in 3, despite shared/state.ts existing to own path construction"
     priority: p2
     area: architecture
-    status: candidate
+    status: scheduled
     evidence:
       - src/shared/state.ts:5 (stateRoot, the designated home for path construction)
       - src/change/orchestrator.ts:24 and src/change/store.ts:11 both build .codepatrol/changes/<id>/change.yaml
@@ -235,10 +235,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-26-src-structure-revalidation
-    workId: null
+    workId: 2026-07-26-centralize-codepatrol-paths
     count: 1
     firstSeenAt: 2026-07-26T14:46:48.305Z
-    lastSeenAt: 2026-07-26T14:46:48.305Z
+    lastSeenAt: 2026-07-26T15:06:31.892Z
   - id: the-reject-unknown-keys-schema-guard-is-reimplemented-times-across-files-including-two-byte-identical-private-functions-under-different-names-orchestrator-ts-exactinput-and-model-ts-exactkeys
     title: The reject-unknown-keys schema guard is reimplemented 10 times across 6 files, including two byte-identical private functions under different names (orchestrator.ts exactInput and model.ts exactKeys)
     priority: p2
