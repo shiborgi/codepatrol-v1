@@ -111,9 +111,9 @@ items:
       kind: close-trace
       workId: 2026-07-25-commit-scoping
     workId: null
-    count: 2
+    count: 3
     firstSeenAt: 2026-07-25T16:19:10.317Z
-    lastSeenAt: 2026-07-25T21:28:20.513Z
+    lastSeenAt: 2026-07-26T01:26:11.890Z
   - id: command-change-session-was-invoked-times-consider-caching-or-batching-repeated-invocations
     title: Command "change.session" was invoked 36 times — consider caching or batching repeated invocations.
     priority: p3
@@ -124,6 +124,6 @@ items:
       kind: close-trace
       workId: 2026-07-25-remove-duplicate-reader
     workId: null
-    count: 1
+    count: 2
     firstSeenAt: 2026-07-25T21:28:20.522Z
-    lastSeenAt: 2026-07-25T21:28:20.522Z
+    lastSeenAt: 2026-07-26T01:26:11.897Z
