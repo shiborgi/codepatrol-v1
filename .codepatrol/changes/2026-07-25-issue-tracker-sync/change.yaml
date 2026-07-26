@@ -248,3 +248,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-close 2026-07-25-issue-tracker-sync commit+push on codepatrol/2026-07-25-issue-tracker-sync
+  - id: 0555b8ff-2082-440c-8e74-74d9369206f8
+    at: 2026-07-26T01:26:08.036Z
+    actor: claude
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-1
+      started_at: 2026-07-26T01:26:04.000Z
+      finished_at: 2026-07-26T01:26:20.000Z
+      elapsed_ms: 16000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
