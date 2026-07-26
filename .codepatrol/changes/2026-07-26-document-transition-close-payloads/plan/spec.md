@@ -9,15 +9,15 @@
 - Substrate state: graph not consulted — this is a documentation-only fix, no symbol-level design decisions depend on it
 - Improvement signals (from `.codepatrol/docs/improvement-reports/2026-07-26-dedupe-exact-keys-guard.md`, most recent by mtime): "Top error code: INVALID_ARGUMENT (6). Investigate the first occurrence's args and stage context." (this Change directly addresses it); "Command `change.session` was invoked 43 times — consider caching or batching repeated invocations." (workflow/tooling concern, unrelated file, not actionable here); "Session item(s) claimed but never closed: review/1/report, review/2/report." (harness-handoff artifact, self-resolves on re-prime, not a code defect).
 - Problem: `INVALID_ARGUMENT` is the recurring top error code across at least 9 independent Changes' `close/improvement-report.md` files, with sample messages spanning multiple distinct lifecycle payloads. `session.json`'s share of this pattern was already fixed by `2026-07-25-session-input-validation` (closed): it added a fenced worked example to `skills/_shared/CODEPATROL-CLI.md` and a CLI-boundary validator, and explicitly deferred the analogous `transition.json` gap. `transition.json` and `close.json` remain the only two lifecycle payloads with zero worked example in the repo — only a one-line command invocation each. This session independently reproduced both gaps first-hand: `Transition contains unknown field next_action.` (correct field is `nextAction`, camelCase) and `Close contains unknown field action.` (correct field is `outcome`) — both guessed wrong on the first attempt for lack of an example to copy, exactly the failure mode the prior Change fixed for `session.json`.
-- Outcome: `skills/_shared/CODEPATROL-CLI.md` gains one fenced JSON example per `TransitionIntent` variant (six: `begin`, `usage`, `checkpoint`, `return`, `block`, `resume`) and one fenced JSON example for `close.json`, each showing every field that variant accepts, sourced directly from `src/change/types.ts` and `src/change/orchestrator.ts`'s validators — closing the same documentation gap `session.json` already had fixed, for the two payloads that still have it.
+- Outcome: `skills/_shared/CODEPATROL-CLI.md` gains a field table plus one fenced JSON example per `TransitionIntent` variant (six: `begin`, `usage`, `checkpoint`, `return`, `block`, `resume`, plus a second `checkpoint` example for the apply-only `changes` array), and one fenced JSON example for `close.json` — every field each variant accepts (required or optional) is named either in an example or the accompanying table/prose, sourced directly from `src/change/types.ts` and `src/change/orchestrator.ts`'s validators — closing the same documentation gap `session.json` already had fixed, for the two payloads that still have it.
 
 ## Scope
 
 ### In scope
 
-- Add a `transition.json` section to `skills/_shared/CODEPATROL-CLI.md` with six fenced JSON examples (one per `TransitionIntent` variant), each field-complete and using `nextAction` (not `next_action`), and a one-line note on the `checkpoint` variant's stage-locked `result` values and the `apply`-only `changes` array.
+- Add a `transition.json` section to `skills/_shared/CODEPATROL-CLI.md` with: a compact field table listing every variant's required and optional fields (sourced from `assertTransitionIntent`'s per-type field set and `TransitionIntent`'s own optionality), one fenced JSON example per variant demonstrating its required fields, a second `checkpoint` example on `stage: "apply"` demonstrating the `changes` array, and one-line prose on `persona` (marks a per-persona sub-checkpoint/sub-return, e.g. `review-security`) and `reasons` (populated on a consolidating return that aggregates multiple personas' individual reasons).
 - Add a `close.json` section with one fenced JSON example showing all four fields (`outcome`, `actor`, `authority`, `push`).
-- Both additions placed directly under their existing one-line command references (lines 9 and 12), mirroring `session.json`'s existing placement and tone (lines 23-38).
+- Both additions placed directly after the existing `session.json` block (after line 38), mirroring `session.json`'s existing placement and tone.
 
 ### Out of scope
 
@@ -37,6 +37,7 @@ Key facts restated:
 - `TransitionIntent` has six variants, each with a distinct exact field set enforced by `exactInput` in `assertTransitionIntent` — no variant accepts a superset or subset of its own listed fields.
 - `checkpoint`'s `result` is stage-locked (`plan`→`ready`, `review`→`approve`, `apply`→`implemented`, `verify`→`commit`); its `changes` array is required exactly when `stage: "apply"` and forbidden otherwise; `artifacts[].intent` is `create`/`modify`/`delete` only, no default.
 - `CloseInput` has exactly four fields: `outcome` (`"commit"|"rollback"`), `actor`, `authority`, `push?`.
+- `checkpoint`'s optional `persona` and `return`'s optional `persona`/`reasons` (`orchestrator.ts:49,53`; `types.ts:48-49`) are for multi-persona parallel review/verify: `persona` marks a per-persona sub-checkpoint/sub-return (e.g. `review-security`, per `skills/codepatrol-review/SKILL.md:17-18`); `reasons` is populated on a later *consolidating* (non-persona) return that aggregates each sub-persona's individual reason string — confirmed by `src/change/orchestrator-parallel.test.ts:88`, `"a non-persona return aggregates persona sub-event reasons into reasons[]"`.
 
 ## Proposed design
 
@@ -46,11 +47,17 @@ its exact prose pattern (one sentence stating what the payload carries, then
 a fenced JSON example):
 
 1. **`transition.json`** — one intro sentence noting the six `type` variants
-   share `type`/`actor`/`stage` but each has its own additional required
-   fields, then six small fenced examples (one per variant), each using the
-   exact field names from `types.ts` (`nextAction`, not `next_action`).
-   Include one sentence on `checkpoint`'s stage-locked `result` and
-   `apply`-only `changes`.
+   share `type`/`actor`/`stage` but each has its own additional field set;
+   a compact table (variant × required fields × optional fields) transcribed
+   from `assertTransitionIntent`'s per-type field list and `TransitionIntent`'s
+   own optionality; six small fenced examples (one per variant, each using
+   the exact field names from `types.ts` — `nextAction`, not `next_action`);
+   a seventh fenced example: `checkpoint` on `stage: "apply"` with a
+   `changes` array, demonstrating the one field whose presence is
+   stage-conditional; one sentence each on `checkpoint`'s stage-locked
+   `result` mapping, `persona` (marks a per-persona sub-checkpoint/sub-return,
+   e.g. `review-security`), and `reasons` (populated on a consolidating
+   return aggregating multiple personas' individual reasons).
 2. **`close.json`** — one intro sentence, one fenced example with all four
    fields (`outcome`, `actor`, `authority`, `push`).
 
@@ -96,9 +103,10 @@ current source exactly.
   transcribed from current source, not memory or inference — verified by a
   final side-by-side diff against `types.ts`/`orchestrator.ts` before
   sealing (AC-5).
-- Expected surface delta: `skills/_shared/CODEPATROL-CLI.md` only, +~70
-  lines (six small `transition.json` examples + one `close.json` example +
-  ~3 sentences of prose). No new files, no dependency, no code change.
+- Expected surface delta: `skills/_shared/CODEPATROL-CLI.md` only, +~90
+  lines (one field table + seven small `transition.json` examples + one
+  `close.json` example + ~5 sentences of prose). No new files, no
+  dependency, no code change.
 
 ## Deferred constraints
 
@@ -130,11 +138,11 @@ current source exactly.
 
 ## Acceptance criteria
 
-- AC-1: `skills/_shared/CODEPATROL-CLI.md` contains six fenced JSON examples for `transition.json`, one per `TransitionIntent` variant (`begin`, `usage`, `checkpoint`, `return`, `block`, `resume`), each using exactly the field names and required/optional status from `src/change/types.ts:45-51`.
-- AC-2: The `checkpoint` example (or accompanying prose) states the stage-locked `result` mapping (`plan`→`ready`, `review`→`approve`, `apply`→`implemented`, `verify`→`commit`) and that `changes` is required only for `stage: "apply"`.
+- AC-1: `skills/_shared/CODEPATROL-CLI.md` contains: a field table naming every `TransitionIntent` variant's required and optional fields (matching `src/change/types.ts:45-51` and `orchestrator.ts`'s per-type field set exactly), one fenced JSON example per variant (`begin`, `usage`, `checkpoint`, `return`, `block`, `resume`) demonstrating that variant's required fields, and a seventh fenced example (`checkpoint` on `stage: "apply"`) demonstrating the `changes` array — every field named in the table appears in at least one example or in the accompanying prose (`persona`, `reasons`), none is silently omitted.
+- AC-2: The `checkpoint` table row or accompanying prose states the stage-locked `result` mapping (`plan`→`ready`, `review`→`approve`, `apply`→`implemented`, `verify`→`commit`) and that `changes` is required only for `stage: "apply"` and forbidden otherwise.
 - AC-3: `skills/_shared/CODEPATROL-CLI.md` contains one fenced JSON example for `close.json` with all four fields (`outcome`, `actor`, `authority`, `push`) matching `src/change/types.ts:54`.
 - AC-4: `npm run lint:skills` (skill catalog, frontmatter, dependencies, portability, relative-links check) passes unchanged — this Change adds prose inside an existing file, no catalog/frontmatter/link change.
-- AC-5: A direct side-by-side comparison of every field name and enum value in the new examples against current `src/change/types.ts`/`src/change/orchestrator.ts` source shows zero divergence (performed and recorded at Apply/Verify, not merely asserted here).
+- AC-5: A direct side-by-side comparison of every field name, required/optional status, and enum value in the new field table, all seven `transition.json` examples, and the `close.json` example against current `src/change/types.ts`/`src/change/orchestrator.ts` source shows zero divergence (performed and recorded at Apply/Verify, not merely asserted here).
 
 ## Decisions and open questions
 

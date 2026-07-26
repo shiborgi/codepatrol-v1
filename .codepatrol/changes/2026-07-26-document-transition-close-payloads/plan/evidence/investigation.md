@@ -129,6 +129,40 @@ type plus the CLI's own runtime validator, and explicitly deferred
 `transition.json`'s analogous gap as future work rather than scope-creeping
 its own bounded Change. This Change picks up that explicit deferral.
 
+## Returned-review correction
+
+Attempt 1 was returned `fix-first` (`review/report.md`) on two findings,
+both independently re-verified against current source before correcting:
+
+1. **Placement contradiction**: `spec.md`'s Scope bullet said the new
+   sections go "directly under their existing one-line command references
+   (lines 9 and 12)" — those lines sit *inside* the fenced bash command
+   block (lines 5-21), so inserting new Markdown content there is
+   structurally impossible. `spec.md`'s own Proposed design and `plan.md`'s
+   T1/T2 already correctly said "after line 38" (after the whole
+   `session.json` block). Confirmed by direct re-read of `spec.md:20` vs.
+   `spec.md:44`/`plan.md:68`: a genuine self-contradiction, not a
+   reviewer misreading. Fixed by correcting the Scope bullet to match the
+   already-correct Proposed design/plan.md wording — no plan.md change
+   needed for this finding.
+2. **Optional-field gap**: `checkpoint`'s optional `persona` (and the
+   apply-only conditional `changes`) and `return`'s optional
+   `persona`/`reasons` were absent from every T1 example, while AC-1 as
+   originally written demanded "every field that variant accepts." Re-ran
+   `grep -n "reasons" src/change/*.ts` fresh: confirmed `persona` marks a
+   per-persona sub-checkpoint/sub-return (`skills/codepatrol-review/SKILL.md:17-18`
+   documents `review-security`/`review-architecture` as example persona
+   values) and `reasons` is populated on a later *consolidating*
+   (non-persona) return that aggregates each sub-persona's individual
+   reason string, confirmed by the test name itself:
+   `src/change/orchestrator-parallel.test.ts:88`,
+   `"a non-persona return aggregates persona sub-event reasons into reasons[]"`.
+   Fixed by extending scope/AC-1/AC-2/AC-5 to require a field table (every
+   variant's required + optional fields) plus a seventh example
+   (`checkpoint` on `stage: "apply"` with `changes`) plus one-line prose on
+   `persona`/`reasons`, rather than trying to cram every optional field
+   into a single misleading combined example.
+
 ## Constraint
 
 `skills/_shared/CODEPATROL-CLI.md` is documentation only, not executable —

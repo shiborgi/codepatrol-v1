@@ -9,7 +9,9 @@
 `skills/_shared/CODEPATROL-CLI.md` documents `session.json`'s full shape but
 not `transition.json`'s six variants or `close.json`'s four fields — the
 two payloads a harness most often gets `INVALID_ARGUMENT` on, per aggregated
-evidence across 9+ Changes. Add fenced worked examples for both, transcribed
+evidence across 9+ Changes. Add a field table plus fenced worked examples
+for both (including the optional `changes`/`persona`/`reasons` fields
+`transition.json`'s `checkpoint`/`return` variants accept), transcribed
 directly from `src/change/types.ts`/`orchestrator.ts`, mirroring
 `session.json`'s existing treatment. Doc-only; no code change.
 
@@ -30,14 +32,14 @@ directly from `src/change/types.ts`/`orchestrator.ts`, mirroring
   two payloads that lack it.
 - Forbidden speculative surface: no CLI-boundary validator changes (DC-1), no
   command-name-typo handling (DC-2), no restructuring of existing prose.
-- Expected surface delta: `skills/_shared/CODEPATROL-CLI.md` only, +~70
+- Expected surface delta: `skills/_shared/CODEPATROL-CLI.md` only, +~90
   lines.
 
 ## Acceptance mapping
 
 | Criterion | Task(s) | Verification |
 |---|---|---|
-| AC-1 | T1 | Read the six new `transition.json` examples against `types.ts:45-51` |
+| AC-1 | T1 | Read the field table and seven new `transition.json` examples against `types.ts:45-51` |
 | AC-2 | T1 | Read the `checkpoint` example/prose for the stage-locked result mapping and apply-only `changes` |
 | AC-3 | T2 | Read the new `close.json` example against `types.ts:54` |
 | AC-4 | T3 | `npm run lint:skills` |
@@ -50,8 +52,8 @@ final verification of the fully-assembled diff).
 
 ### T1 — Add `transition.json` section
 
-**Purpose:** Document all six `TransitionIntent` variants. Satisfies AC-1,
-AC-2.
+**Purpose:** Document all six `TransitionIntent` variants, including every
+optional field each accepts. Satisfies AC-1, AC-2.
 
 **Depends on:** None
 
@@ -71,9 +73,23 @@ AC-2.
 
    ```markdown
    `transition.json` for `change transition` has six `type` variants, each
-   with its own exact field set (`begin`, `usage`, `checkpoint`, `return`,
-   `block`, `resume` — every field name below is required for its variant
-   unless marked optional; no variant accepts a field outside its own list):
+   with its own exact field set (no variant accepts a field outside its own
+   list):
+
+   | Variant | Required fields | Optional fields |
+   |---|---|---|
+   | `begin` | `type`, `actor`, `stage`, `nextAction` | — |
+   | `usage` | `type`, `actor`, `stage`, `run` | — |
+   | `checkpoint` | `type`, `actor`, `stage`, `result`, `artifacts`, `nextAction` | `changes` (required when `stage: "apply"`, forbidden otherwise), `persona` |
+   | `return` | `type`, `actor`, `stage`, `toStage`, `reason`, `nextAction` | `persona`, `reasons` |
+   | `block` | `type`, `actor`, `stage`, `reason`, `nextAction` | — |
+   | `resume` | `type`, `actor`, `stage`, `nextAction` | — |
+
+   `persona` (checkpoint/return) marks a per-persona sub-checkpoint or
+   sub-return within a parallel Review/Verify (e.g. `review-security`,
+   `review-architecture`). `reasons` (return only) is populated on a later
+   *consolidating* (non-persona) return that aggregates each sub-persona's
+   individual reason string — it is not set on a single-persona return.
 
    ```json
    { "type": "begin", "actor": "claude-sonnet-5", "stage": "plan", "nextAction": "codepatrol-review <work-id> on codepatrol/<work-id>" }
@@ -85,6 +101,10 @@ AC-2.
 
    ```json
    { "type": "checkpoint", "actor": "claude-sonnet-5", "stage": "plan", "result": "ready", "artifacts": [ { "path": ".codepatrol/changes/<work-id>/plan/spec.md", "sha256": "<64-hex>", "intent": "create" } ], "nextAction": "codepatrol-review <work-id> on codepatrol/<work-id>" }
+   ```
+
+   ```json
+   { "type": "checkpoint", "actor": "claude-sonnet-5", "stage": "apply", "result": "implemented", "artifacts": [ { "path": ".codepatrol/changes/<work-id>/apply/journal.md", "sha256": "<64-hex>", "intent": "create" } ], "changes": ["src/example.ts"], "nextAction": "codepatrol-verify <work-id> on codepatrol/<work-id>" }
    ```
 
    ```json
@@ -101,17 +121,16 @@ AC-2.
 
    `checkpoint`'s `result` is stage-locked: `plan`→`"ready"`,
    `review`→`"approve"`, `apply`→`"implemented"`, `verify`→`"commit"`
-   (`close` never checkpoints via `transition`). Its `changes` array
-   (production file paths) is required when `stage: "apply"` and forbidden
-   for every other stage. Each `artifacts[]` entry's `intent` is
-   `"create"`, `"modify"`, or `"delete"` — no default, no `"update"`.
-   `return`'s `stage` is only `review`/`apply`/`verify`; its `toStage` is
-   only `plan`/`apply`.
+   (`close` never checkpoints via `transition`). Each `artifacts[]` entry's
+   `intent` is `"create"`, `"modify"`, or `"delete"` — no default, no
+   `"update"`. `return`'s `stage` is only `review`/`apply`/`verify`; its
+   `toStage` is only `plan`/`apply`.
    ```
 
 3. No `npm test`/typecheck applicable (markdown-only edit); confirm the file
    still parses as valid Markdown by rendering it mentally / checking fence
-   balance (each ` ``` ` opened is closed).
+   balance (each ` ``` ` opened is closed, including the table's own pipe
+   syntax not breaking any surrounding fence).
 
 **Task result:** diff appended to `apply/journal.md`.
 
@@ -160,10 +179,14 @@ valid. Satisfies AC-4, AC-5.
    frontmatter, dependencies, portability, relative-links all still valid —
    this Change touches no frontmatter/catalog/link, only prose inside an
    already-linked file).
-2. Side-by-side comparison: for every field name and enum value in the six
-   new `transition.json` examples and the one `close.json` example, confirm
-   it appears verbatim in current `src/change/types.ts:11-12,45-51,54` or
-   `src/change/orchestrator.ts:47-79`. Zero divergence expected.
+2. Side-by-side comparison: for every field name, required/optional status,
+   and enum value in the new field table, the seven `transition.json`
+   examples, and the one `close.json` example, confirm it appears verbatim
+   in current `src/change/types.ts:11-12,45-51,54` or
+   `src/change/orchestrator.ts:47-79`. Zero divergence expected. Confirm no
+   field named in the table is missing from every example (each of
+   `changes`, `persona`, `reasons` must appear in at least one example or
+   the accompanying prose).
 3. Confirm `git diff --stat` against base (`d088fdb`) touches exactly one
    file: `skills/_shared/CODEPATROL-CLI.md`.
 4. Confirm the file's existing content (lines 1-38, the pre-existing
