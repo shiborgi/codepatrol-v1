@@ -167,3 +167,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-close 2026-07-26-decompose-transition-change commit+push on codepatrol/2026-07-26-decompose-transition-change
+  - id: 22059089-c019-41bd-9a58-00b90b34c3d9
+    at: 2026-07-26T14:28:22.324Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-1
+      started_at: 2026-07-26T14:27:30Z
+      finished_at: 2026-07-26T14:28:12Z
+      elapsed_ms: 42000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
