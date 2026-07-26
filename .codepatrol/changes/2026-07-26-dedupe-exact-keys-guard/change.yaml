@@ -48,3 +48,10 @@ events:
         sha256: d674f7fc82c1c690ae01658e6760953fb8723fbaa01c630c1366081370033dec
         intent: create
     next_action: codepatrol-review 2026-07-26-dedupe-exact-keys-guard on codepatrol/2026-07-26-dedupe-exact-keys-guard
+  - id: 0194a414-14f7-4867-92cc-7675a7fbdd72
+    at: 2026-07-26T16:10:20.418Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-26-dedupe-exact-keys-guard on codepatrol/2026-07-26-dedupe-exact-keys-guard
