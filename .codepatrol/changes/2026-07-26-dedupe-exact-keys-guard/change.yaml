@@ -250,3 +250,10 @@ events:
         sha256: 210c61656a6d0705e0481e8b7d114e2dada386c6eada5e351a52d3c2dd240f26
         intent: create
     next_action: codepatrol-close 2026-07-26-dedupe-exact-keys-guard commit|rollback on codepatrol/2026-07-26-dedupe-exact-keys-guard
+  - id: 240c6398-94de-41d0-94c8-6d58a3448cb3
+    at: 2026-07-26T23:22:37.702Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-26-dedupe-exact-keys-guard commit+push on codepatrol/2026-07-26-dedupe-exact-keys-guard
