@@ -104,3 +104,25 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 4220cff8-0f31-4b00-a54f-e6fc8c09f566
+    at: 2026-07-26T13:43:08.333Z
+    actor: antigravity
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 490eaed9f5d906724df756a74333a4aca59d5890
+    tree: 0ecc4c6866ce6b35fcb51304086360ebd35d80d0
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-remove-dead-path-builders/apply/journal.md
+        sha256: 46f3b18c0a9b21cea39efb6118113a0cbea1a344e00ac1c66f639b68e81ee969
+        intent: create
+    changes:
+      - src/change/store.ts
+      - src/shared/state.ts
+    next_action: codepatrol-verify 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 23665
+      at: 2026-07-26T13:43:08.270Z
