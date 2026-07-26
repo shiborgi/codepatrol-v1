@@ -31,9 +31,9 @@ items:
       number: 3
       url: https://github.com/shiborgi/codepatrol/issues/3
     workId: null
-    count: 6
+    count: 7
     firstSeenAt: 2026-07-25T10:12:35.564Z
-    lastSeenAt: 2026-07-26T03:46:19.270Z
+    lastSeenAt: 2026-07-26T13:25:01.668Z
   - id: unsafe-duplicate-yaml-reader-in-improvement-report-ts-bypasses-migraterecord-normalization
     title: Unsafe duplicate YAML reader in improvement-report.ts bypasses migrateRecord normalization
     priority: p1
@@ -135,9 +135,9 @@ items:
       kind: close-trace
       workId: 2026-07-25-commit-scoping
     workId: 2026-07-25-session-input-validation
-    count: 3
+    count: 4
     firstSeenAt: 2026-07-25T16:19:10.317Z
-    lastSeenAt: 2026-07-26T01:36:14.409Z
+    lastSeenAt: 2026-07-26T13:25:01.658Z
   - id: command-change-session-was-invoked-times-consider-caching-or-batching-repeated-invocations
     title: Command "change.session" was invoked 36 times — consider caching or batching repeated invocations.
     priority: p3
