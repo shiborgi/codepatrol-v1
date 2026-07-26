@@ -126,3 +126,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: codepatrol-review 2026-07-26-dedupe-exact-keys-guard on codepatrol/2026-07-26-dedupe-exact-keys-guard
+  - id: f346cf6a-2573-499b-b676-2169d51745fd
+    at: 2026-07-26T21:09:33.990Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 2
+    type: run-recorded
+    run:
+      id: review-2
+      started_at: 2026-07-26T21:07:16Z
+      finished_at: 2026-07-26T21:09:28Z
+      elapsed_ms: 132000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
