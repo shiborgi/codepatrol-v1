@@ -182,3 +182,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: b83c9f73-440f-4ed8-aed7-0a782efc1d27
+    at: 2026-07-26T03:46:19.216Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: af1771f1745cd7647c17dc8669ce3f06421e7475
+    tag: codepatrol/committed/2026-07-26-close-resolves-backlog
+    receipt: close/receipt.md
