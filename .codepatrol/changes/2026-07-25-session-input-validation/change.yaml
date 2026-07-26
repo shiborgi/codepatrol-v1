@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-review 2026-07-25-session-input-validation on codepatrol/2026-07-25-session-input-validation
+  - id: 9896a0ac-e197-40c0-ac9e-85e5bf001a6c
+    at: 2026-07-26T01:44:49.572Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-1
+      started_at: 2026-07-26T01:45:00.000Z
+      finished_at: 2026-07-26T01:50:00.000Z
+      elapsed_ms: 300000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token hook
