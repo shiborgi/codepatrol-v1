@@ -198,6 +198,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-26-architecture-assessment-v3
+    externalRef:
+      provider: github
+      number: 9
+      url: https://github.com/shiborgi/codepatrol/issues/9
     workId: null
     count: 1
     firstSeenAt: 2026-07-26T04:06:41.523Z
