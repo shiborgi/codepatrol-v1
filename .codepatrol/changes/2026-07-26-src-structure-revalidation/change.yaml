@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: fb969670-9252-4f72-b636-f4592338ccbb
+    at: 2026-07-26T14:40:02.645Z
+    actor: claude-opus-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 1ed783a05cb0440401caa3d73444903a197f0027
+    tree: ee10f15af2398f4d5f17ac19d162c0a3d621ccc2
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-src-structure-revalidation/plan/spec.md
+        sha256: e3598046d44901e49d21c1df0171c7069cb6c1166d4a0046ee1bfe69d73c28f8
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-src-structure-revalidation/plan/plan.md
+        sha256: 446e3ac5a06009f2e6a84416a790795db1cfabca02cc8df6c8754869b4ae8cd9
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-src-structure-revalidation/plan/evidence/investigation.md
+        sha256: da1737159dcdcad6d8726c1bc68a80ec830060ce6b350cc1966bb969bcdd4837
+        intent: create
+    next_action: codepatrol-review 2026-07-26-src-structure-revalidation on codepatrol/2026-07-26-src-structure-revalidation
