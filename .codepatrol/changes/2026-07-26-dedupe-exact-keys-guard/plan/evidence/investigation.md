@@ -6,14 +6,14 @@ All commands re-run fresh during this Plan attempt against `main`@`45ba75a`.
 
 ```
 $ grep -n "contains unknown field\|cannot own" src/ -r --include="*.ts" | grep -v test
-src/change/usage.ts:17
+src/change/usage.ts:17,28,33
 src/change/orchestrator.ts:35
 src/change/model.ts:11
 src/change/backlog.ts:53,67,77,96
 src/change/session.ts:25,26,33
 ```
 
-9 sites total across 5 files matching the "reject unknown keys" family
+11 sites total across 5 files matching the "reject unknown keys" family
 (`session.ts:25` is the denylist half of the combined loop, explicitly
 excluded per Scope's Out of scope — only `session.ts:26`'s allow-set half
 and `session.ts:33`'s independent item-loop are candidates, and only the
@@ -96,6 +96,22 @@ usage.ts:1:import { CodepatrolError } from "../shared/errors.js";
 
 All five already import `CodepatrolError` — every T2-T6 import edit
 extends an existing line.
+
+## Returned-review correction: complete `usage.ts` inventory
+
+The first Plan attempt's message-text grep missed `validateRun`'s two nested
+`run.characters` allow-set loops. The Review's broader structural search was
+re-run and confirms the complete inventory above: `usage.ts:17` validates run
+keys; `:28` validates measured-character keys; `:33` validates unavailable-
+character keys. All three have the same `Object.keys`/array-`includes`/
+`CodepatrolError("CHANGE_INVALID", ..., 4)` shape and use labels that the
+shared helper can preserve exactly: `Run`, `Measured characters`, and
+`Unavailable characters`.
+
+After T6 replaces all three, the Plan's literal AC-3 grep for
+`for (const key of Object.keys` is expected to have exactly one result: the
+explicitly deferred combined `session.ts` loop. The broader structure search
+used by Review should have no matching pure exact-key loop after the Change.
 
 ## Layering re-confirmation
 

@@ -6,12 +6,12 @@
 
 ## Goal and approach
 
-The "reject unknown object keys" idiom is hand-rolled 9 times across 5
+The "reject unknown object keys" idiom is hand-rolled 11 times across 5
 files, including two byte-identical private functions
 (`orchestrator.ts`'s `exactInput`, `model.ts`'s `exactKeys`). Add one
 parameterized `assertExactKeys` to `shared/errors.ts`; redirect
 `exactInput`/`exactKeys` to thin-wrap it (every existing call site
-untouched); redirect the five remaining inline sites to call it directly.
+untouched); redirect the seven remaining inline sites to call it directly.
 Zero behavior change, proven by an unchanged 215-test count after every
 task.
 
@@ -37,7 +37,7 @@ task.
   normalization.
 - Expected surface delta: `errors.ts` +~5 lines; `orchestrator.ts` ~2
   lines; `model.ts` ~2 lines; `backlog.ts` ~4 lines (1 per site);
-  `session.ts` ~1 line; `usage.ts` ~1 line.
+  `session.ts` ~1 line; `usage.ts` ~3 lines (1 per site).
 
 ## Acceptance mapping
 
@@ -275,9 +275,10 @@ combined forbidden+allowed loop untouched. Progresses AC-3, AC-4.
 
 **Task result:** diff and `npm test` output appended to `apply/journal.md`.
 
-### T6 — Redirect `usage.ts`'s inline site
+### T6 — Redirect `usage.ts`'s three inline sites
 
-**Purpose:** Fixes the `usage.ts` duplication. Progresses AC-3, AC-4.
+**Purpose:** Fixes all three `usage.ts` exact-key duplications in `validateRun`.
+Progresses AC-3, AC-4.
 
 **Depends on:** T1
 
@@ -289,7 +290,7 @@ combined forbidden+allowed loop untouched. Progresses AC-3, AC-4.
 
 1. Extend the existing `import { CodepatrolError } from "../shared/errors.js";`
    line to `import { CodepatrolError, assertExactKeys } from "../shared/errors.js";`.
-2. Inside `validateRun`, replace:
+2. Inside `validateRun`, replace the run-level loop:
 
    ```typescript
    	for (const key of Object.keys(run)) if (!["id", "started_at", "finished_at", "elapsed_ms", "characters"].includes(key)) throw new CodepatrolError("CHANGE_INVALID", `Run contains unknown field ${key}.`, 4);
@@ -301,8 +302,32 @@ combined forbidden+allowed loop untouched. Progresses AC-3, AC-4.
    	assertExactKeys(run, ["id", "started_at", "finished_at", "elapsed_ms", "characters"], "Run");
    ```
 
-3. Run `npm run typecheck`. Expected: 0 errors.
-4. Run `npm test`. Expected: 215/215.
+3. In the `run.characters.status === "measured"` branch, replace:
+
+   ```typescript
+   for (const key of Object.keys(run.characters)) if (!["status", "source", "input", "output", "cacheRead", "cacheWrite", "reasoning", "total", "model", "harness"].includes(key)) throw new CodepatrolError("CHANGE_INVALID", `Measured characters contain unknown field ${key}.`, 4);
+   ```
+
+   with:
+
+   ```typescript
+   assertExactKeys(run.characters, ["status", "source", "input", "output", "cacheRead", "cacheWrite", "reasoning", "total", "model", "harness"], "Measured characters");
+   ```
+
+4. In the `run.characters.status === "unavailable"` branch, replace:
+
+   ```typescript
+   for (const key of Object.keys(run.characters)) if (!["status", "reason", "model", "harness"].includes(key)) throw new CodepatrolError("CHANGE_INVALID", `Unavailable characters contain unknown field ${key}.`, 4);
+   ```
+
+   with:
+
+   ```typescript
+   assertExactKeys(run.characters, ["status", "reason", "model", "harness"], "Unavailable characters");
+   ```
+
+5. Run `npm run typecheck`. Expected: 0 errors.
+6. Run `npm test`. Expected: 215/215.
 
 **Task result:** diff and `npm test` output appended to `apply/journal.md`.
 
