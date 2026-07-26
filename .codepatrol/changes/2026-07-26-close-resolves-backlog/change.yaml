@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-review 2026-07-26-close-resolves-backlog on codepatrol/2026-07-26-close-resolves-backlog
+  - id: c15e2564-523f-4888-af97-5e9fdc50ea81
+    at: 2026-07-26T03:28:23.524Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-1
+      started_at: 2026-07-26T03:25:00.000Z
+      finished_at: 2026-07-26T03:30:00.000Z
+      elapsed_ms: 300000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token hook
