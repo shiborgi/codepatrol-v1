@@ -133,3 +133,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-verify 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
+  - id: d2ce5819-6c42-48df-9eaa-f3b625026b95
+    at: 2026-07-26T13:47:42.686Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: run-ver1
+      started_at: 2026-07-26T13:43:00.000Z
+      finished_at: 2026-07-26T13:47:00.000Z
+      elapsed_ms: 240000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
