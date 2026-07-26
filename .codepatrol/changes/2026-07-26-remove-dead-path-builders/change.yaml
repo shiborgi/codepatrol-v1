@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
+  - id: f8581bad-f7d4-41ca-aa0a-6f095a4c5838
+    at: 2026-07-26T13:42:28.060Z
+    actor: antigravity
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-26T13:40:00Z
+      finished_at: 2026-07-26T13:45:00Z
+      elapsed_ms: 300000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
