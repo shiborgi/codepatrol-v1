@@ -53,7 +53,7 @@ items:
     title: Orchestrator transitionChangeLocked is dense and mixes validation, persona semantics, and storage responsibilities
     priority: p2
     area: architecture
-    status: candidate
+    status: scheduled
     evidence:
       - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N3 (Medium)
       - src/change/orchestrator.ts:206-293
@@ -64,10 +64,10 @@ items:
       provider: github
       number: 4
       url: https://github.com/shiborgi/codepatrol/issues/4
-    workId: null
+    workId: 2026-07-26-decompose-transition-change
     count: 1
     firstSeenAt: 2026-07-25T10:21:16.121Z
-    lastSeenAt: 2026-07-25T10:21:16.121Z
+    lastSeenAt: 2026-07-26T13:54:29.508Z
   - id: core-module-test-coverage-gaps-atomic-store-ts-graph-languages-ts-graph-queries-ts-lack-dedicated-tests
     title: "Core module test coverage gaps: atomic-store.ts, graph/languages.ts, graph/queries.ts lack dedicated tests"
     priority: p2

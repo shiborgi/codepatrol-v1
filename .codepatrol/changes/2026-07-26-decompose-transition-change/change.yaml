@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-26-decompose-transition-change
+  title: "Decompose transitionChangeLocked: separate validation, persona semantics, and storage responsibilities"
+  created_at: 2026-07-26T13:54:29.489Z
+  branch: codepatrol/2026-07-26-decompose-transition-change
+  target_branch: main
+  base_commit: 25b26fc812490642989e99af9282516d57b763c3
+events:
+  - id: dfb1df40-cff3-43b0-911d-538764f260c9
+    type: change-started
+    at: 2026-07-26T13:54:29.489Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-26-decompose-transition-change on codepatrol/2026-07-26-decompose-transition-change
