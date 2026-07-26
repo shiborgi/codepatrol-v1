@@ -222,3 +222,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Independently verify candidate cbd0f0feac0e668c98f33de9d1f4ed3d2c80e77c for 2026-07-26-dedupe-exact-keys-guard
+  - id: b09a6565-f681-40ac-9429-fb887872d189
+    at: 2026-07-26T23:19:38.381Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-1
+      started_at: 2026-07-26T23:10:06Z
+      finished_at: 2026-07-26T23:19:06Z
+      elapsed_ms: 540000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
