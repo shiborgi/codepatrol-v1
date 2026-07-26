@@ -189,3 +189,29 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 0251a22e-0633-49a3-8308-c9c76f697458
+    at: 2026-07-26T23:10:44.431Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: cbd0f0feac0e668c98f33de9d1f4ed3d2c80e77c
+    tree: af09f22f94d47188f6e78b124255ff6f58ec754a
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-dedupe-exact-keys-guard/apply/journal.md
+        sha256: 9d3b1ce07cc2c5d8164438ee76e17e6a46916256f3d7eb38f79b3794297c3c1e
+        intent: create
+    changes:
+      - src/shared/errors.ts
+      - src/change/orchestrator.ts
+      - src/change/model.ts
+      - src/change/backlog.ts
+      - src/change/session.ts
+      - src/change/usage.ts
+    next_action: codepatrol-verify 2026-07-26-dedupe-exact-keys-guard on codepatrol/2026-07-26-dedupe-exact-keys-guard
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 23978
+      at: 2026-07-26T23:10:44.371Z
