@@ -148,3 +148,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token hook
+  - id: 4b7d8286-c6b1-4189-af0a-2006a9d6a8c5
+    at: 2026-07-26T01:54:58.721Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: 555b5453badbe01e797e65cba0f63f6d9942244a
+    tree: 8521027b021a85b5c458aa152f33ee7427ec6aed
+    artifacts:
+      - path: .codepatrol/changes/2026-07-25-session-input-validation/verify/report.md
+        sha256: 8e5097622d3b723ad41c97c92630d0fb8ef4a8c2d9f30acca94626f478c5f26a
+        intent: create
+    next_action: codepatrol-close 2026-07-25-session-input-validation commit on codepatrol/2026-07-25-session-input-validation
