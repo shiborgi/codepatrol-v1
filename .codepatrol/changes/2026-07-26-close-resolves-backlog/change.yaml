@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-26-close-resolves-backlog on codepatrol/2026-07-26-close-resolves-backlog
+  - id: 5662a107-f22a-4358-8042-092a9af198a0
+    at: 2026-07-26T03:37:04.998Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-26T03:33:22Z
+      finished_at: 2026-07-26T03:36:57Z
+      elapsed_ms: 215000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
