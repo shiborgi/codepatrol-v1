@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 87f65e3b-cd6d-4134-a0b4-5cfa5bd0c253
+    at: 2026-07-26T14:45:48.802Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: a58d40da04fc2aba4a5b173e2ad281712063c575
+    tree: e09ceea1253cd84f6d491c6de9368111b81b3f19
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-src-structure-revalidation/review/report.md
+        sha256: d67be26fb108c62143db4057252f57c7d4995cb3e677954dcb9755c298a3aef7
+        intent: create
+    next_action: codepatrol-apply 2026-07-26-src-structure-revalidation on codepatrol/2026-07-26-src-structure-revalidation
