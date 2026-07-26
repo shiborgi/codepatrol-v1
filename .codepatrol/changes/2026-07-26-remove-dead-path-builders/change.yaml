@@ -83,3 +83,10 @@ events:
         sha256: de42bf6cdfdc7a3a1f49b923f01730ac5fe7a2f30ed102448860030e9f36cbe3
         intent: create
     next_action: codepatrol-apply 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
+  - id: 0f546d63-e023-4c39-a764-374af1c7fba2
+    at: 2026-07-26T13:40:16.959Z
+    actor: antigravity
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-26-remove-dead-path-builders on codepatrol/2026-07-26-remove-dead-path-builders
