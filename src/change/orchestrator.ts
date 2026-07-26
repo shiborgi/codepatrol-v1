@@ -216,18 +216,25 @@ export async function transitionChange(workspace: string, workId: string, intent
 	return withWorkspaceLock(workspace, "change-git", "change.transition", () => transitionChangeLocked(workspace, workId, intent, options), { signal: options.signal });
 }
 
-async function transitionChangeLocked(workspace: string, workId: string, intent: TransitionIntent, options: OperationOptions): Promise<ChangeView> {
-	const git = gitFor(workspace, options); await git.assertTrusted(options.signal);
-	let record = readChangeRecord(workspace, workId); let view = foldChange(record); await assertCurrentBranch(git, view, options.signal); await validateCheckpointLineage(git, record, "HEAD", options.signal);
-	if (intent.stage === "close") await assertVerifiedCandidate(git, view, "HEAD", [relativeRecord(workId)], options.signal);
-	if (eventMatchesIntent(record.events.at(-1), intent)) {
-		const statusPaths = parseStatusPaths(await git.status(options.signal));
-		if (statusPaths.length === 0) return view;
-		if (statusPaths.length === 1 && statusPaths[0] === relativeRecord(workId)) {
-			await commitMetadata(git, workId, `chore(codepatrol): recover ${intent.type} ${intent.stage} ${workId}`, options.signal); return view;
-		}
-		throw new CodepatrolError("CHANGE_CONFLICT", `Transition recovery found unrelated worktree paths: ${statusPaths.join(", ")}.`, 4);
+async function recoverIdempotentTransition(git: GitAdapter, workId: string, record: ChangeRecordV2, view: ChangeView, intent: TransitionIntent, options: OperationOptions): Promise<ChangeView | undefined> {
+	if (!eventMatchesIntent(record.events.at(-1), intent)) return undefined;
+	const statusPaths = parseStatusPaths(await git.status(options.signal));
+	if (statusPaths.length === 0) return view;
+	if (statusPaths.length === 1 && statusPaths[0] === relativeRecord(workId)) {
+		await commitMetadata(git, workId, `chore(codepatrol): recover ${intent.type} ${intent.stage} ${workId}`, options.signal);
+		return view;
 	}
+	throw new CodepatrolError("CHANGE_CONFLICT", `Transition recovery found unrelated worktree paths: ${statusPaths.join(", ")}.`, 4);
+}
+
+function assertNoConsolidationDivergence(record: ChangeRecordV2, view: ChangeView, intent: TransitionIntent, persona: string | undefined): void {
+	if (persona || intent.type !== "checkpoint" || (intent.stage !== "review" && intent.stage !== "verify")) return;
+	const subEvents = personaSubEvents(record.events, intent.stage, view.attempt);
+	if (subEvents.length === 0) return;
+	if (subEvents.some(isDivergentPersonaEvent)) throw new CodepatrolError("CONSOLIDATION_AFTER_SUBEVENTS", "Cannot consolidate checkpoint with divergence; use return instead.", 4);
+}
+
+function assertPersonaStageMatch(record: ChangeRecordV2, view: ChangeView, intent: TransitionIntent): string | undefined {
 	const persona = (intent as { persona?: string }).persona;
 	if (persona && (intent.stage === "review" || intent.stage === "verify")) {
 		if (intent.stage !== view.stage) {
@@ -240,59 +247,66 @@ async function transitionChangeLocked(workspace: string, workId: string, intent:
 	} else if (intent.stage !== view.stage) {
 		throw new CodepatrolError("CHANGE_CONFLICT", `Expected ${view.stage}, received ${intent.stage}.`, 4);
 	}
-	
-	if (!persona && intent.type === "checkpoint" && (intent.stage === "review" || intent.stage === "verify")) {
-		const subEvents = personaSubEvents(record.events, intent.stage, view.attempt);
-		if (subEvents.length > 0) {
-			const hasDivergence = subEvents.some(isDivergentPersonaEvent);
-			if (hasDivergence) throw new CodepatrolError("CONSOLIDATION_AFTER_SUBEVENTS", "Cannot consolidate checkpoint with divergence; use return instead.", 4);
+	return persona;
+}
+
+async function buildCheckpointEvent(git: GitAdapter, workspace: string, workId: string, record: ChangeRecordV2, view: ChangeView, intent: Extract<TransitionIntent, { type: "checkpoint" }>, persona: string | undefined, options: OperationOptions): Promise<ChangeEvent> {
+	const required: Record<string, string[]> = {
+		plan: [`.codepatrol/changes/${workId}/plan/spec.md`, `.codepatrol/changes/${workId}/plan/plan.md`],
+		review: [`.codepatrol/changes/${workId}/review/report.md`],
+		apply: [`.codepatrol/changes/${workId}/apply/journal.md`],
+		verify: [`.codepatrol/changes/${workId}/verify/report.md`],
+	};
+	const personaCheckpoint = persona && (intent.stage === "review" || intent.stage === "verify");
+	const missing = personaCheckpoint ? [] : required[intent.stage].filter((path) => !intent.artifacts.some((item) => item.path === path && item.intent !== "delete"));
+	if (missing.length) throw new CodepatrolError("CHANGE_INVALID", `Checkpoint is missing required ${intent.stage} artifacts: ${missing.join(", ")}.`, 4);
+	if (!personaCheckpoint) await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal);
+	const paths = [...intent.artifacts.filter((item) => item.intent !== "delete").map((item) => item.path), ...(intent.changes ?? [])]; paths.forEach(ensurePath);
+	const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId), ".codepatrol/backlog/items.yaml"]);
+	const prior = baselineRef(record); const dirty = parseStatusPaths(await git.status(options.signal)); const committed = await git.changedPaths(prior, "HEAD", options.signal); const candidate = [...new Set([...committed, ...dirty])];
+	const unexpected = candidate.filter((path) => !allowed.has(path));
+	if (unexpected.length && !personaCheckpoint) throw new CodepatrolError("CHANGE_CONFLICT", `Checkpoint has undeclared worktree paths: ${unexpected.join(", ")}.`, 4);
+	const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
+	if (!personaCheckpoint && JSON.stringify(actualProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Apply changes do not match the complete candidate production delta.", 4);
+
+	let gateSummary: GateResult | undefined;
+	if (intent.stage === "apply" && intent.result === "implemented" && !personaCheckpoint) {
+		const applyGate = loadConfig(workspace).applyGate;
+		if (applyGate) {
+			const runner = options.gate ?? defaultGateRunner;
+			const result = await runner(applyGate, workspace, options.signal);
+			if (result.exitCode !== 0) {
+				throw new CodepatrolError(
+					"APPLY_GATE_FAILED",
+					`Apply gate \`${applyGate.command.join(" ")}\` failed (exit ${result.exitCode}); checkpoint not sealed.\n${gateOutputTail(result.output)}`,
+					4,
+				);
+			}
+			gateSummary = { command: applyGate.command.join(" "), exit_code: 0, elapsed_ms: result.elapsedMs, at: now(options).toISOString() };
 		}
 	}
-	
-	let event: ChangeEvent;
-	if (intent.type === "checkpoint") {
-		const required: Record<string, string[]> = {
-			plan: [`.codepatrol/changes/${workId}/plan/spec.md`, `.codepatrol/changes/${workId}/plan/plan.md`],
-			review: [`.codepatrol/changes/${workId}/review/report.md`],
-			apply: [`.codepatrol/changes/${workId}/apply/journal.md`],
-			verify: [`.codepatrol/changes/${workId}/verify/report.md`],
-		};
-		const personaCheckpoint = persona && (intent.stage === "review" || intent.stage === "verify");
-		const declared = new Set(intent.artifacts.map((item) => item.path)); const missing = personaCheckpoint ? [] : required[intent.stage].filter((path) => !intent.artifacts.some((item) => item.path === path && item.intent !== "delete"));
-		if (missing.length) throw new CodepatrolError("CHANGE_INVALID", `Checkpoint is missing required ${intent.stage} artifacts: ${missing.join(", ")}.`, 4);
-		if (!personaCheckpoint) await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal);
-		const paths = [...intent.artifacts.filter((item) => item.intent !== "delete").map((item) => item.path), ...(intent.changes ?? [])]; paths.forEach(ensurePath);
-		const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId), ".codepatrol/backlog/items.yaml"]);
-		const prior = baselineRef(record); const dirty = parseStatusPaths(await git.status(options.signal)); const committed = await git.changedPaths(prior, "HEAD", options.signal); const candidate = [...new Set([...committed, ...dirty])];
-		const unexpected = candidate.filter((path) => !allowed.has(path));
-		if (unexpected.length && !personaCheckpoint) throw new CodepatrolError("CHANGE_CONFLICT", `Checkpoint has undeclared worktree paths: ${unexpected.join(", ")}.`, 4);
-		const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
-		if (!personaCheckpoint && JSON.stringify(actualProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Apply changes do not match the complete candidate production delta.", 4);
-		
-		let gateSummary: GateResult | undefined;
-		if (intent.stage === "apply" && intent.result === "implemented" && !personaCheckpoint) {
-			const applyGate = loadConfig(workspace).applyGate;
-			if (applyGate) {
-				const runner = options.gate ?? defaultGateRunner;
-				const result = await runner(applyGate, workspace, options.signal);
-				if (result.exitCode !== 0) {
-					throw new CodepatrolError(
-						"APPLY_GATE_FAILED",
-						`Apply gate \`${applyGate.command.join(" ")}\` failed (exit ${result.exitCode}); checkpoint not sealed.\n${gateOutputTail(result.output)}`,
-						4,
-					);
-				}
-				gateSummary = { command: applyGate.command.join(" "), exit_code: 0, elapsed_ms: result.elapsedMs, at: now(options).toISOString() };
-			}
-		}
 
-		const committedPaths = [...new Set([...paths, ...intent.artifacts.map((item) => item.path)])];
-		await git.add(committedPaths, options.signal);
-		const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal, committedPaths); const tree = await git.tree(checkpoint, options.signal);
-		const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort();
-		if (unexpectedFinal.length || JSON.stringify(finalProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Checkpoint commit does not match its declared artifact and production paths.", 4);
-		event = { ...eventBase(view, intent.actor, options), type: "stage-checkpointed", stage: intent.stage, result: intent.result, checkpoint, tree, artifacts: intent.artifacts, ...(intent.stage === "apply" ? { changes: intent.changes ?? [] } : {}), next_action: intent.nextAction, ...(persona ? { persona } : {}), ...(gateSummary ? { gate: gateSummary } : {}) };
-	} else if (intent.type === "begin") event = { ...eventBase(view, intent.actor, options), type: "stage-began", next_action: intent.nextAction };
+	const committedPaths = [...new Set([...paths, ...intent.artifacts.map((item) => item.path)])];
+	await git.add(committedPaths, options.signal);
+	const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal, committedPaths); const tree = await git.tree(checkpoint, options.signal);
+	const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`.codepatrol/changes/${workId}/`) && !path.startsWith(".codepatrol/backlog/")).sort();
+	if (unexpectedFinal.length || JSON.stringify(finalProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Checkpoint commit does not match its declared artifact and production paths.", 4);
+	return { ...eventBase(view, intent.actor, options), type: "stage-checkpointed", stage: intent.stage, result: intent.result, checkpoint, tree, artifacts: intent.artifacts, ...(intent.stage === "apply" ? { changes: intent.changes ?? [] } : {}), next_action: intent.nextAction, ...(persona ? { persona } : {}), ...(gateSummary ? { gate: gateSummary } : {}) };
+}
+
+async function transitionChangeLocked(workspace: string, workId: string, intent: TransitionIntent, options: OperationOptions): Promise<ChangeView> {
+	const git = gitFor(workspace, options); await git.assertTrusted(options.signal);
+	let record = readChangeRecord(workspace, workId); let view = foldChange(record); await assertCurrentBranch(git, view, options.signal); await validateCheckpointLineage(git, record, "HEAD", options.signal);
+	if (intent.stage === "close") await assertVerifiedCandidate(git, view, "HEAD", [relativeRecord(workId)], options.signal);
+	const recovered = await recoverIdempotentTransition(git, workId, record, view, intent, options);
+	if (recovered) return recovered;
+	const persona = assertPersonaStageMatch(record, view, intent);
+
+	assertNoConsolidationDivergence(record, view, intent, persona);
+
+	let event: ChangeEvent;
+	if (intent.type === "checkpoint") event = await buildCheckpointEvent(git, workspace, workId, record, view, intent, persona, options);
+	else if (intent.type === "begin") event = { ...eventBase(view, intent.actor, options), type: "stage-began", next_action: intent.nextAction };
 	else if (intent.type === "usage") {
 		const target = view.attempts[intent.stage].at(-1); if (!target || target.status === "invalidated") throw new CodepatrolError("CHANGE_CONFLICT", `No accepted ${intent.stage} attempt can receive usage.`, 4);
 		event = { id: randomUUID(), at: now(options).toISOString(), actor: intent.actor, stage: intent.stage, attempt: target.attempt, type: "run-recorded", run: intent.run };
