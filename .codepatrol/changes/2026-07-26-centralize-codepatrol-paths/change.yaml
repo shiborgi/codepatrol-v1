@@ -83,3 +83,10 @@ events:
         sha256: f73202ac139a8061356a2fd06c32d2d489243ad95ebf064e40d920597072f176
         intent: create
     next_action: codepatrol-apply 2026-07-26-centralize-codepatrol-paths on codepatrol/2026-07-26-centralize-codepatrol-paths
+  - id: 5ebff861-e084-44d9-ae81-e10d4e13d727
+    at: 2026-07-26T15:22:27.795Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-26-centralize-codepatrol-paths on codepatrol/2026-07-26-centralize-codepatrol-paths
