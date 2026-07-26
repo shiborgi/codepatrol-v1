@@ -83,3 +83,10 @@ events:
         sha256: 78fd93fae63b3eb1999d7451a5fae3c9890a51d92a136d4f33594fd835e47d95
         intent: create
     next_action: codepatrol-apply 2026-07-26-decompose-transition-change on codepatrol/2026-07-26-decompose-transition-change
+  - id: 9d0f3455-b91e-4474-8e4b-bdf3711eac7b
+    at: 2026-07-26T14:07:59.640Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-26-decompose-transition-change on codepatrol/2026-07-26-decompose-transition-change
