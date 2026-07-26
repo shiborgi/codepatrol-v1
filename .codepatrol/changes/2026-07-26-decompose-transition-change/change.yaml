@@ -125,3 +125,10 @@ events:
       exit_code: 0
       elapsed_ms: 23696
       at: 2026-07-26T14:19:12.891Z
+  - id: 3cf6d2ad-8edb-44b6-9056-2fce6da7843d
+    at: 2026-07-26T14:25:05.325Z
+    actor: antigravity
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-verify 2026-07-26-decompose-transition-change on codepatrol/2026-07-26-decompose-transition-change
