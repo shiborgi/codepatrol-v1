@@ -131,3 +131,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-verify 2026-07-26-src-structure-revalidation on codepatrol/2026-07-26-src-structure-revalidation
+  - id: 9ead3a1a-0313-4341-856a-a6e21daf2193
+    at: 2026-07-26T14:58:37.158Z
+    actor: antigravity
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: run-ver1
+      started_at: 2026-07-26T14:57:00.000Z
+      finished_at: 2026-07-26T14:58:00.000Z
+      elapsed_ms: 60000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
