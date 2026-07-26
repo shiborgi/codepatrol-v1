@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: ec6b9aab-6b32-4863-90eb-6de375f84d3b
+    at: 2026-07-26T16:03:50.183Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: b66730149cfc7dc0f0ac7f803068f7a2b00859d0
+    tree: c4b3ad237a772e920623cf73198e45d1779cca1b
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-dedupe-exact-keys-guard/plan/spec.md
+        sha256: c3d48567f8e58617a0e30bd976805a2125e44bc86bf6a43661c5131da9b82d5c
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-dedupe-exact-keys-guard/plan/plan.md
+        sha256: d6897b09348646d3690f5cb8382bd1c801b35cbe5999e04a863fddf434bbd963
+        intent: create
+      - path: .codepatrol/changes/2026-07-26-dedupe-exact-keys-guard/plan/evidence/investigation.md
+        sha256: d674f7fc82c1c690ae01658e6760953fb8723fbaa01c630c1366081370033dec
+        intent: create
+    next_action: codepatrol-review 2026-07-26-dedupe-exact-keys-guard on codepatrol/2026-07-26-dedupe-exact-keys-guard
