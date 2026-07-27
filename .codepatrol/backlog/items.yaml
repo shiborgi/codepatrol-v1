@@ -401,6 +401,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 17
+      url: https://github.com/shiborgi/codepatrol/issues/17
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:48:29.584Z
@@ -418,6 +422,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 18
+      url: https://github.com/shiborgi/codepatrol/issues/18
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:48:35.584Z
@@ -435,6 +443,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 19
+      url: https://github.com/shiborgi/codepatrol/issues/19
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:48:42.036Z
@@ -452,6 +464,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 20
+      url: https://github.com/shiborgi/codepatrol/issues/20
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:48:49.350Z
@@ -469,6 +485,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 21
+      url: https://github.com/shiborgi/codepatrol/issues/21
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:48:55.650Z
@@ -487,6 +507,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 22
+      url: https://github.com/shiborgi/codepatrol/issues/22
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:49:00.970Z
@@ -505,6 +529,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 23
+      url: https://github.com/shiborgi/codepatrol/issues/23
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:49:06.772Z
@@ -524,6 +552,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 24
+      url: https://github.com/shiborgi/codepatrol/issues/24
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:49:15.533Z
@@ -537,6 +569,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-27-src-architecture-audit
+    externalRef:
+      provider: github
+      number: 25
+      url: https://github.com/shiborgi/codepatrol/issues/25
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T17:53:16.670Z
