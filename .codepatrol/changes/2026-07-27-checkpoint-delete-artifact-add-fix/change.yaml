@@ -126,3 +126,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: codepatrol-review 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
+  - id: 14c68191-bdf6-4c6a-8dfe-e1051609da4a
+    at: 2026-07-27T01:41:27.221Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 2
+    type: run-recorded
+    run:
+      id: review-2
+      started_at: 2026-07-27T01:38:07.079Z
+      finished_at: 2026-07-27T01:41:16.000Z
+      elapsed_ms: 188921
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
