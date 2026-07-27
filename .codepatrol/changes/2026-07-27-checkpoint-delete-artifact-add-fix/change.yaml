@@ -48,3 +48,10 @@ events:
         sha256: 8c67034038518e2ffad9357546da1d6aebffd52fb3ec9b2bd6993ec94723016b
         intent: create
     next_action: codepatrol-review 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
+  - id: bd260aa5-a817-45cc-b41e-a5edf115db47
+    at: 2026-07-27T01:21:24.473Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
