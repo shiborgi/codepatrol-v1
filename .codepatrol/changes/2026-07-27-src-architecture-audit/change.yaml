@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-27-src-architecture-audit on codepatrol/2026-07-27-src-architecture-audit
+  - id: 13d1b351-211e-4cd7-9819-d38ae4d27bb2
+    at: 2026-07-27T17:33:41.822Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-27T17:23:58Z
+      finished_at: 2026-07-27T17:33:32Z
+      elapsed_ms: 574000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
