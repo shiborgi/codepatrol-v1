@@ -15,6 +15,19 @@ function at(second: number) { return { now: new Date(`2026-07-24T10:00:${String(
 function writeGitignore(workspace: string): void { writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n"); }
 function initRepo(workspace: string): void { writeGitignore(workspace); git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]); }
 
+async function advanceToReview(workspace: string, id: string): Promise<void> {
+	await startChange(workspace, { workId: id, title: "Persona validation", targetBranch: "main", actor: "codex" }, at(1));
+	mkdirSync(join(workspace, `.codepatrol/changes/${id}/plan`), { recursive: true });
+	writeFileSync(join(workspace, `.codepatrol/changes/${id}/plan/spec.md`), "spec\n");
+	writeFileSync(join(workspace, `.codepatrol/changes/${id}/plan/plan.md`), "plan\n");
+	const planArtifacts = [binding(workspace, `.codepatrol/changes/${id}/plan/spec.md`), binding(workspace, `.codepatrol/changes/${id}/plan/plan.md`)];
+	await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "plan", run: { id: "plan-usage", started_at: "2026-07-24T10:00:03.000Z", finished_at: "2026-07-24T10:00:04.000Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(2));
+	await transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage: "plan", result: "ready", artifacts: planArtifacts, nextAction: "review" }, at(3));
+	await transitionChange(workspace, id, { type: "begin", actor: "codex", stage: "review", nextAction: "review" }, at(4));
+	await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "review", run: { id: "review-base", started_at: "2026-07-24T10:00:05.000Z", finished_at: "2026-07-24T10:00:06.000Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(5));
+	mkdirSync(join(workspace, `.codepatrol/changes/${id}/review`), { recursive: true });
+}
+
 describe("orchestrator parallel aggregation", () => {
 	test("two parallel reviewer personas both succeed without prematurely advancing the stage", async () => {
 		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-parallel-"));
@@ -81,6 +94,52 @@ describe("orchestrator parallel aggregation", () => {
 				transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage: "review", result: "approve", artifacts: [binding(workspace, `.codepatrol/changes/${id}/review/findings-security.md`)], nextAction: "apply" }, at(7)),
 				(err: CodepatrolError) => err.code === "CONSOLIDATION_AFTER_SUBEVENTS"
 			);
+		} finally { rmSync(workspace, { recursive: true, force: true }); }
+	});
+	test("a persona checkpoint declaring a wrong sha256 for its own artifact is rejected", async () => {
+		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-persona-hash-"));
+		try {
+			initRepo(workspace);
+			const id = "2026-07-27-persona-forged-hash";
+			await advanceToReview(workspace, id);
+			const path = `.codepatrol/changes/${id}/review/findings-security.md`;
+			writeFileSync(join(workspace, path), "security review\n");
+			await assert.rejects(
+				transitionChange(workspace, id, { type: "checkpoint", actor: "codex-security", stage: "review", result: "approve", artifacts: [{ path, sha256: "f".repeat(64), intent: "create" }], nextAction: "review-consolidate", persona: "review-security" }, at(6)),
+				(error: unknown) => error instanceof CodepatrolError && error.code === "CHANGE_DRIFT",
+			);
+		} finally { rmSync(workspace, { recursive: true, force: true }); }
+	});
+
+	test("a persona checkpoint declaring an artifact outside its own stage directory is rejected without committing", async () => {
+		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-persona-cross-stage-"));
+		try {
+			initRepo(workspace);
+			const id = "2026-07-27-persona-cross-stage";
+			await advanceToReview(workspace, id);
+			const commitsBefore = git(workspace, ["rev-list", "--count", "HEAD"]);
+			const path = `.codepatrol/changes/${id}/apply/journal.md`;
+			mkdirSync(join(workspace, `.codepatrol/changes/${id}/apply`), { recursive: true });
+			writeFileSync(join(workspace, path), "injected journal\n");
+			await assert.rejects(
+				transitionChange(workspace, id, { type: "checkpoint", actor: "codex-security", stage: "review", result: "approve", artifacts: [binding(workspace, path)], nextAction: "review-consolidate", persona: "review-security" }, at(6)),
+				(error: unknown) => error instanceof CodepatrolError && error.code === "CHANGE_DRIFT",
+			);
+			assert.equal(git(workspace, ["rev-list", "--count", "HEAD"]), commitsBefore, "no commit may be created for the rejected content");
+		} finally { rmSync(workspace, { recursive: true, force: true }); }
+	});
+
+	test("a persona checkpoint declaring only its own legitimate artifact still succeeds", async () => {
+		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-persona-legit-"));
+		try {
+			initRepo(workspace);
+			const id = "2026-07-27-persona-legitimate";
+			await advanceToReview(workspace, id);
+			const path = `.codepatrol/changes/${id}/review/findings-security.md`;
+			writeFileSync(join(workspace, path), "security review\n");
+			const view = await transitionChange(workspace, id, { type: "checkpoint", actor: "codex-security", stage: "review", result: "approve", artifacts: [binding(workspace, path)], nextAction: "review-consolidate", persona: "review-security" }, at(6));
+			assert.equal(view.stage, "review", "a legitimate persona checkpoint must not advance the stage");
+			assert.equal(view.attempts.review.at(-1)?.status, "active");
 		} finally { rmSync(workspace, { recursive: true, force: true }); }
 	});
 });
