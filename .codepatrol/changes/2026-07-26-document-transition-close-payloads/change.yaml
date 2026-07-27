@@ -211,3 +211,17 @@ events:
     attempt: 3
     type: stage-began
     next_action: Review Plan revision 3 for 2026-07-26-document-transition-close-payloads
+  - id: 6ca47aa5-9f20-4a05-9e7c-129e2f5263b5
+    at: 2026-07-27T00:17:52.738Z
+    actor: opencode
+    stage: review
+    attempt: 3
+    type: run-recorded
+    run:
+      id: review-3
+      started_at: 2026-07-27T00:14:43Z
+      finished_at: 2026-07-27T00:17:43Z
+      elapsed_ms: 180000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
