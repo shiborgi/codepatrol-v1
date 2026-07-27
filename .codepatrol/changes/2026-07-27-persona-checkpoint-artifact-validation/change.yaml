@@ -225,3 +225,10 @@ events:
         sha256: 79afb5b7a08fd5642c6149454c5c0cc8fc3141910f5de22fb7c04107a9a39a05
         intent: create
     next_action: codepatrol-apply 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: 3c71508d-271e-4986-8d57-ffe9a80d659a
+    at: 2026-07-27T21:06:04.466Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
