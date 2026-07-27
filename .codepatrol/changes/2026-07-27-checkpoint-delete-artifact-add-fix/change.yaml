@@ -324,3 +324,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 9215ac35-4aa0-46d0-9583-7a0c4db5121b
+    at: 2026-07-27T02:09:30.232Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 8b30c1d5b3aed65d132fb16b2152e9d8d26476c3
+    tag: codepatrol/committed/2026-07-27-checkpoint-delete-artifact-add-fix
+    receipt: close/receipt.md

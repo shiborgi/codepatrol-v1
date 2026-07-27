@@ -14,9 +14,9 @@ items:
       number: 2
       url: https://github.com/shiborgi/codepatrol/issues/2
     workId: 2026-07-26-document-transition-close-payloads
-    count: 5
+    count: 6
     firstSeenAt: 2026-07-25T10:12:35.558Z
-    lastSeenAt: 2026-07-27T00:30:07.653Z
+    lastSeenAt: 2026-07-27T02:09:30.301Z
   - id: command-change-transition-was-invoked-times-consider-caching-or-batching-repeated-invocations
     title: Command "change.transition" was invoked 52 times — consider caching or batching repeated invocations.
     priority: p3
@@ -112,7 +112,7 @@ items:
     title: "Top error code: OPERATION_FAILED (6). Investigate the first occurrence's args and stage context."
     priority: p1
     area: workflow
-    status: scheduled
+    status: done
     evidence: []
     source:
       kind: close-trace
@@ -124,7 +124,7 @@ items:
     workId: 2026-07-27-checkpoint-delete-artifact-add-fix
     count: 1
     firstSeenAt: 2026-07-25T15:13:00.612Z
-    lastSeenAt: 2026-07-27T01:13:19.768Z
+    lastSeenAt: 2026-07-27T02:09:30.322Z
   - id: top-error-code-change-conflict-investigate-the-first-occurrence-s-args-and-stage-context
     title: "Top error code: CHANGE_CONFLICT (3). Investigate the first occurrence's args and stage context."
     priority: p1
@@ -152,9 +152,9 @@ items:
       number: 8
       url: https://github.com/shiborgi/codepatrol/issues/8
     workId: null
-    count: 10
+    count: 11
     firstSeenAt: 2026-07-25T21:28:20.522Z
-    lastSeenAt: 2026-07-27T01:05:51.869Z
+    lastSeenAt: 2026-07-27T02:09:30.311Z
   - id: close-does-not-auto-resolve-the-backlog-item-it-was-started-against-a-change-linked-via-backlogitemid-stays-scheduled-forever-after-a-successful-commit-close
     title: Close does not auto-resolve the backlog item it was started against — a Change linked via --backlogItemId stays scheduled forever after a successful commit close
     priority: p2
@@ -328,9 +328,9 @@ items:
       kind: close-trace
       workId: 2026-07-26-document-transition-close-payloads
     workId: 2026-07-27-plan-self-consistency-check
-    count: 1
+    count: 2
     firstSeenAt: 2026-07-27T00:30:07.613Z
-    lastSeenAt: 2026-07-27T01:05:51.880Z
+    lastSeenAt: 2026-07-27T02:09:30.287Z
   - id: session-item-s-claimed-but-never-closed-review-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
     title: "Session item(s) claimed but never closed: review/2/report. A harness stopped mid-stage; re-prime the session to resume."
     priority: p3
