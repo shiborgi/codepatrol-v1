@@ -232,3 +232,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: c352e78d-16db-4f81-ad70-03b455f6b2bf
+    at: 2026-07-27T19:32:27.351Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-27T19:26:16Z
+      finished_at: 2026-07-27T19:32:15Z
+      elapsed_ms: 359000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
