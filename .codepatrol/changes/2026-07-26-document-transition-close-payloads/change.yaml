@@ -302,3 +302,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 7f9bef38-82a4-492e-b822-915de29f9e7c
+    at: 2026-07-27T00:26:36.743Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: 9e4e182fe589994a6ce89e8b0a9dfc0e71d26eb5
+    tree: bcbfe3a18f51a64870e3dc7091fde93f6fe2b82b
+    artifacts:
+      - path: .codepatrol/changes/2026-07-26-document-transition-close-payloads/verify/report.md
+        sha256: a8c7f917b206f2fbb7eb97823a91c4a3ecdc7284e84e0bf3e5ce80ae5e11e1f8
+        intent: create
+    next_action: codepatrol-close 2026-07-26-document-transition-close-payloads commit|rollback on codepatrol/2026-07-26-document-transition-close-payloads
