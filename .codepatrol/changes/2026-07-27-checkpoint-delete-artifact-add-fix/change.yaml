@@ -232,3 +232,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
+  - id: 4f45d37a-6afd-4e37-91ae-353300c59254
+    at: 2026-07-27T02:00:35.785Z
+    actor: minimax/MiniMax-M3
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-27T02:00:34Z
+      finished_at: 2026-07-27T02:00:35Z
+      elapsed_ms: 1000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
