@@ -126,3 +126,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: Review Plan revision 2 for 2026-07-27-trace-path-workspace-containment
+  - id: c97969ae-7a93-44f4-8820-8b21ed73d4c2
+    at: 2026-07-27T18:44:49.322Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: run-recorded
+    run:
+      id: review-opencode-2
+      started_at: 2026-07-27T18:41:36.545Z
+      finished_at: 2026-07-27T18:44:37.000Z
+      elapsed_ms: 180455
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
