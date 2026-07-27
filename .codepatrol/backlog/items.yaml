@@ -135,9 +135,9 @@ items:
       kind: close-trace
       workId: 2026-07-25-commit-scoping
     workId: 2026-07-25-session-input-validation
-    count: 5
+    count: 6
     firstSeenAt: 2026-07-25T16:19:10.317Z
-    lastSeenAt: 2026-07-27T01:05:51.860Z
+    lastSeenAt: 2026-07-27T14:55:45.872Z
   - id: command-change-session-was-invoked-times-consider-caching-or-batching-repeated-invocations
     title: Command "change.session" was invoked 36 times — consider caching or batching repeated invocations.
     priority: p3
@@ -152,9 +152,9 @@ items:
       number: 8
       url: https://github.com/shiborgi/codepatrol/issues/8
     workId: null
-    count: 11
+    count: 12
     firstSeenAt: 2026-07-25T21:28:20.522Z
-    lastSeenAt: 2026-07-27T02:09:30.311Z
+    lastSeenAt: 2026-07-27T14:55:45.882Z
   - id: close-does-not-auto-resolve-the-backlog-item-it-was-started-against-a-change-linked-via-backlogitemid-stays-scheduled-forever-after-a-successful-commit-close
     title: Close does not auto-resolve the backlog item it was started against — a Change linked via --backlogItemId stays scheduled forever after a successful commit close
     priority: p2
@@ -302,9 +302,9 @@ items:
       kind: close-trace
       workId: 2026-07-26-centralize-codepatrol-paths
     workId: null
-    count: 1
+    count: 2
     firstSeenAt: 2026-07-26T15:44:25.825Z
-    lastSeenAt: 2026-07-26T15:44:25.825Z
+    lastSeenAt: 2026-07-27T14:55:45.892Z
   - id: session-item-s-claimed-but-never-closed-review-report-review-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
     title: "Session item(s) claimed but never closed: review/1/report, review/2/report. A harness stopped mid-stage; re-prime the session to resume."
     priority: p3
@@ -328,9 +328,9 @@ items:
       kind: close-trace
       workId: 2026-07-26-document-transition-close-payloads
     workId: 2026-07-27-plan-self-consistency-check
-    count: 2
+    count: 3
     firstSeenAt: 2026-07-27T00:30:07.613Z
-    lastSeenAt: 2026-07-27T02:09:30.287Z
+    lastSeenAt: 2026-07-27T14:55:45.857Z
   - id: session-item-s-claimed-but-never-closed-review-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
     title: "Session item(s) claimed but never closed: review/2/report. A harness stopped mid-stage; re-prime the session to resume."
     priority: p3

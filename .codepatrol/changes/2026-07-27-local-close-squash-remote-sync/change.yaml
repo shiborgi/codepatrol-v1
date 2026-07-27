@@ -784,3 +784,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 4e52b9e1-15d5-4796-a1bc-79b496626ead
+    at: 2026-07-27T14:55:45.793Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: e6440705a168277c181f95228a4c04f8111aeb76
+    tag: codepatrol/committed/2026-07-27-local-close-squash-remote-sync
+    receipt: close/receipt.md
