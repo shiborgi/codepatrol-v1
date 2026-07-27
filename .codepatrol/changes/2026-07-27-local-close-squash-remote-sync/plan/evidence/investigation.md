@@ -510,7 +510,24 @@ step 4 to "if **at least one** does, push `current`" and removed the
 incorrect parenthetical entirely (its factual claim was right; its
 placement beside a cardinality rule it contradicted was the defect).
 
-## 20. Rollback is deliberately left alone
+## 20. Returned-review correction: explicit target branch must not accept Git refspecs
+
+Attempt 7 was returned `fix-first`: `NodeGitAdapter.push(remote, branch)`
+executes `git push <remote> <branch>` directly (`src/change/git.ts:106-112`).
+Git treats its final argument as a refspec, not necessarily a branch name;
+`:refs/heads/name` therefore requests deletion of that remote ref. Passing an
+unvalidated `--target-branch` through would violate DC-4's explicit "never
+delete remote refs" boundary.
+
+The existing local grammar is already adequate and requires no new protocol:
+`assertStartInput` (`src/change/orchestrator.ts:44-45`) accepts only
+`^[A-Za-z0-9][A-Za-z0-9._/-]*$` and rejects `..`, `//`, trailing `/`, and
+`@{`. Applying that exact rule inside `syncRemote` before it calls `git.push`
+rejects deletion/refspec forms such as `:refs/heads/name`, `HEAD:other`, and
+`main..old` before any remote action. T6 now includes direct adapter-double
+tests and T7 includes the CLI path with zero recorded pushes on invalid input.
+
+## 21. Rollback is deliberately left alone
 
 The request names only the commit path ("apenas o commit final e merge na
 branch main ... mantendo a branch da change"). Rollback's current behavior

@@ -319,8 +319,14 @@ pattern rather than inventing a new one):
 **Target-branch resolution algorithm** (governs `target: true`'s push in
 step 2 below; total over every input, never guesses):
 
-1. If `options.targetBranch` is set (from `--target-branch`), use it
-   directly — resolution stops here.
+1. If `options.targetBranch` is set (from `--target-branch`), first validate
+   it with the exact existing `assertStartInput` target-branch grammar:
+   `^[A-Za-z0-9][A-Za-z0-9._/-]*$`, and reject `..`, `//`, a trailing `/`, or
+   `@{`. On failure throw `CodepatrolError("INVALID_ARGUMENT", "targetBranch
+   is not a safe Git branch name.", 2)` before any `git.push`; otherwise use
+   it directly and resolution stops here. This forbids Git refspecs such as
+   `:refs/heads/name`, which `git push origin <value>` would interpret as a
+   remote deletion and which is outside this Change's DC-4 boundary.
 2. Otherwise read `current = await git.currentBranch(signal)`.
 3. If `current` starts with `"codepatrol/"`, the work id is
    `current.slice("codepatrol/".length)`. Call
@@ -371,7 +377,8 @@ prunes nothing — a safe no-op, not an error.
      `syncRemote` itself just trusts `target`/`branches`/`issues` as given —
      the default resolution happens once, in `commands.ts`, not duplicated
      here); when `target` is set, resolves the branch to push via the
-     Target-branch resolution algorithm above (this is the only place that
+     Target-branch resolution algorithm above, including its safe explicit
+     target validation (this is the only place that
      algorithm runs — `pushedRefs`/`failures` report on the resolved branch
      name, not the literal string `"target"`); collects
      `refs/heads/codepatrol/*` and `refs/tags/codepatrol/*` when `branches`
@@ -419,7 +426,11 @@ prunes nothing — a safe no-op, not an error.
    prefix and no Change's `target_branch`, target-only push **rejects**
    with `INVALID_ARGUMENT` and the double's `push` is never called (step
    5); (a4) `targetBranch: "release"` pushes `release` regardless of what
-   `currentBranch` returns (step 1, override); (b) `branches: true`
+   `currentBranch` returns (step 1, override); (a5) invalid explicit values
+   including `":refs/heads/name"`, `"HEAD:other"`, and `"main..old"`
+   reject with `INVALID_ARGUMENT` before the double records any `push` call,
+   proving no remote-deletion/refspec syntax reaches `GitAdapter.push`; (b)
+   `branches: true`
    pushes retained Change branches and their tags; (c) a failing push on one
    ref is reported in `failures` while other refs still push; (d)
    `dryRun: true` yields a populated `pushedRefs` with **zero** recorded
@@ -525,7 +536,8 @@ Completes AC-6, AC-11.
    (e.g. `--force`) is rejected by `COMMAND_OPTIONS` validation; (e)
    `sync --target-branch release` resolves `targetBranch: "release"`
    through to `syncRemote`, distinct from `undefined` when the flag is
-   omitted. Satisfies AC-11's CLI-test half.
+   omitted; (f) `sync --target-branch :refs/heads/name` is rejected before
+   the injected Git adapter records a push. Satisfies AC-11's CLI-test half.
 7. Run `npm run typecheck`, then `npm test`. Expected: all green.
 
 **Task result:** diff, `npm test` output, appended to `apply/journal.md`.
