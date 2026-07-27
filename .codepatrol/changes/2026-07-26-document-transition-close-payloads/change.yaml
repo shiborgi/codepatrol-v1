@@ -316,3 +316,10 @@ events:
         sha256: a8c7f917b206f2fbb7eb97823a91c4a3ecdc7284e84e0bf3e5ce80ae5e11e1f8
         intent: create
     next_action: codepatrol-close 2026-07-26-document-transition-close-payloads commit|rollback on codepatrol/2026-07-26-document-transition-close-payloads
+  - id: a58a4634-2f1f-4228-ab33-1120d08c75ff
+    at: 2026-07-27T00:29:52.545Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-26-document-transition-close-payloads commit+push on codepatrol/2026-07-26-document-transition-close-payloads
