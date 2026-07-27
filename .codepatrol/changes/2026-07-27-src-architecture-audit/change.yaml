@@ -166,3 +166,10 @@ events:
         sha256: f5b2e3fcd9d834f295bd9aac068406a0e4cd6c1189ac0f39d515c2a8f177cf0e
         intent: create
     next_action: codepatrol-close 2026-07-27-src-architecture-audit commit|rollback on codepatrol/2026-07-27-src-architecture-audit
+  - id: c84c4237-7a6a-4ece-a8a9-eb09ffde48e1
+    at: 2026-07-27T17:51:54.007Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: Close 2026-07-27-src-architecture-audit with authorized local commit; never push, rebase, force, or resolve conflicts
