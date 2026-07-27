@@ -282,3 +282,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 49b72f8d-de5e-4154-b7c4-e37d024995c0
+    at: 2026-07-27T03:11:40.442Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 4
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: remove stale commit+push Close affordances and add/wire the GitAdapter override required for deterministic sync CLI tests."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
