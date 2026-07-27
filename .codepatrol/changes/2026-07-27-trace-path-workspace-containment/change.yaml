@@ -311,3 +311,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-close 2026-07-27-trace-path-workspace-containment commit on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: bb147b30-7e1c-4d10-9603-93243b785bd2
+    at: 2026-07-27T19:53:42.681Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-1
+      started_at: 2026-07-27T20:05:00.000Z
+      finished_at: 2026-07-27T20:07:00.000Z
+      elapsed_ms: 120000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
