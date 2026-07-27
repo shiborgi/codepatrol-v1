@@ -16,5 +16,5 @@
 **Evidence**:
 - Ran `npm run lint:skills` and it passed.
 - `git diff --stat` against the target baseline confirmed only `skills/codepatrol-plan/SKILL.md` was changed.
-- `git diff` showed that precisely the intended paragraph was inserted without collateral alterations. 
+- `git diff` showed that precisely the intended paragraph was inserted without collateral alterations.
 - Re-read end-to-end to confirm ACs relating to checking contradictions, mentioning fence-nesting, and framing it as not replacing Review's judgment were accurately included.
