@@ -288,3 +288,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Independently verify candidate f62600efeea5abccb77e7e879df041f210f902ec for 2026-07-26-document-transition-close-payloads
+  - id: 7ec36035-0aa9-44d7-8055-22ef4fce4fc9
+    at: 2026-07-27T00:26:27.196Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-1
+      started_at: 2026-07-27T00:18:52Z
+      finished_at: 2026-07-27T00:25:52Z
+      elapsed_ms: 420000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
