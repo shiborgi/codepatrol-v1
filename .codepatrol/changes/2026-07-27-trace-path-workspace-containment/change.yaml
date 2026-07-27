@@ -140,3 +140,12 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 6fffc360-12d3-4ad0-8ec2-e19dde4f0719
+    at: 2026-07-27T18:45:20.633Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: revision 2 only compares lexical tracesRoot/candidate paths. A workId traversing an existing symlink inside runtime/traces to another workspace-contained directory passes resolveInside and relative(), then writes outside the traces subtree. Re-plan canonical traces-root containment or reject nested workId path segments, and add a symlink red/green fixture."
+    next_action: "codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment: revise spec.md, plan.md, and evidence for canonical traces-subtree containment; add workspace-contained symlink traversal tests while preserving the traversal and slug cases."
