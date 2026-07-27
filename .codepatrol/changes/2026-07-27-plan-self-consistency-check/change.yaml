@@ -132,3 +132,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Independently verify candidate 3b152940b0ccd5664969e446bde829f96ca5c9f0 for 2026-07-27-plan-self-consistency-check
+  - id: a2429b91-2d07-4138-9e76-1966c1b89b2b
+    at: 2026-07-27T00:50:16.306Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-1
+      started_at: 2026-07-27T00:46:39Z
+      finished_at: 2026-07-27T00:49:39Z
+      elapsed_ms: 180000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
