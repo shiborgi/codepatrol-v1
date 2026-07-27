@@ -353,3 +353,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 9fe60370-f64c-4e81-b43c-e07b4a5c6196
+    at: 2026-07-27T03:22:16.761Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 5
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: define deterministic target selection for sync --target and test each supported invocation context."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
