@@ -69,3 +69,12 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 55ffb908-a69d-4775-86d1-27c6f8d77885
+    at: 2026-07-27T20:20:03.420Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: replace Plan baseline 5698a92330832ecf0b991892dd5c9a82c897bff4 with immutable Change base 08a43e5e85f5c617ba4d4b0d7abc89e6f7f03d85; reconcile spec/plan expected surface and T3 diff assertion to consistently declare src/change/change.test.ts alongside validation.ts, orchestrator.ts, and orchestrator-parallel.test.ts."
+    next_action: codepatrol-plan 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
