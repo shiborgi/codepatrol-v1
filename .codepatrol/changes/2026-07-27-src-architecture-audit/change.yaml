@@ -14,3 +14,17 @@ events:
     stage: plan
     attempt: 1
     next_action: "codepatrol-plan 2026-07-27-src-architecture-audit on codepatrol/2026-07-27-src-architecture-audit: audit src architecture, modules, extensibility, and tests; write only plan artifacts"
+  - id: 0d9126ec-0af3-4270-bf79-a71491dcb131
+    at: 2026-07-27T16:55:43.698Z
+    actor: opencode
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-opencode-1
+      started_at: 2026-07-27T16:37:06.281Z
+      finished_at: 2026-07-27T16:55:20.000Z
+      elapsed_ms: 1093719
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
