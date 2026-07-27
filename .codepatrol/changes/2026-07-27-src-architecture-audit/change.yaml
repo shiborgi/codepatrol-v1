@@ -187,3 +187,13 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 51f10215-7590-49a3-b92f-a12903d2d148
+    at: 2026-07-27T17:53:16.586Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 82916eae938934d42fb853d107880c7505ecf105
+    tag: codepatrol/committed/2026-07-27-src-architecture-audit
+    receipt: close/receipt.md

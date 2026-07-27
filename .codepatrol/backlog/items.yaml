@@ -14,9 +14,9 @@ items:
       number: 2
       url: https://github.com/shiborgi/codepatrol/issues/2
     workId: 2026-07-26-document-transition-close-payloads
-    count: 6
+    count: 7
     firstSeenAt: 2026-07-25T10:12:35.558Z
-    lastSeenAt: 2026-07-27T02:09:30.301Z
+    lastSeenAt: 2026-07-27T17:53:16.643Z
   - id: command-change-transition-was-invoked-times-consider-caching-or-batching-repeated-invocations
     title: Command "change.transition" was invoked 52 times — consider caching or batching repeated invocations.
     priority: p3
@@ -152,9 +152,9 @@ items:
       number: 8
       url: https://github.com/shiborgi/codepatrol/issues/8
     workId: null
-    count: 12
+    count: 13
     firstSeenAt: 2026-07-25T21:28:20.522Z
-    lastSeenAt: 2026-07-27T14:55:45.882Z
+    lastSeenAt: 2026-07-27T17:53:16.659Z
   - id: close-does-not-auto-resolve-the-backlog-item-it-was-started-against-a-change-linked-via-backlogitemid-stays-scheduled-forever-after-a-successful-commit-close
     title: Close does not auto-resolve the backlog item it was started against — a Change linked via --backlogItemId stays scheduled forever after a successful commit close
     priority: p2
@@ -528,3 +528,16 @@ items:
     count: 1
     firstSeenAt: 2026-07-27T16:49:15.533Z
     lastSeenAt: 2026-07-27T16:49:15.533Z
+  - id: session-item-s-claimed-but-never-closed-close-close-work-review-report-verify-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
+    title: "Session item(s) claimed but never closed: close/1/close-work, review/1/report, verify/1/report. A harness stopped mid-stage; re-prime the session to resume."
+    priority: p3
+    area: workflow
+    status: candidate
+    evidence: []
+    source:
+      kind: close-trace
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T17:53:16.670Z
+    lastSeenAt: 2026-07-27T17:53:16.670Z
