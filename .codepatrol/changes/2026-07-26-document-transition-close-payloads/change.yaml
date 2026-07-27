@@ -239,3 +239,10 @@ events:
         sha256: e4069cba0352a3404b441c433c664512109a94e59b8a84b6e0a50bc9b561de6c
         intent: create
     next_action: codepatrol-apply 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
+  - id: 2b89d82e-6a79-4f86-a5a3-bcb8a2d99da8
+    at: 2026-07-27T00:20:36.025Z
+    actor: claude-sonnet-5
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
