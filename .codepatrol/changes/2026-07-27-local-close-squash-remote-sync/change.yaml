@@ -362,3 +362,10 @@ events:
     to_stage: plan
     reason: "fix-first: define deterministic target selection for sync --target and test each supported invocation context."
     next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: e439c53a-a178-4a4b-9939-f9607e79921b
+    at: 2026-07-27T03:24:45.506Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 6
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
