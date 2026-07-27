@@ -23,9 +23,12 @@ add`. Zero behavior change for non-delete paths or the currently-working
   every downstream delta-reconciliation check in `buildCheckpointEvent`
   must stay byte-identical — only the staging step (currently one `git.add`
   call) changes.
-- `npm run verify` must show 215+1/215+1 (baseline 215 plus the one new
-  regression test) with 0 failures after the change.
+- `npm run verify` must show 217/217 (baseline 215 plus the two new
+  regression test cases) with 0 failures after the change.
 - No change to `git.ts`'s `add()`, `commit()`, or `unstage()` themselves.
+- The `git rm` regression test must be proven genuinely red against the
+  unfixed code before the fix is applied — no local revert/reapply of
+  production code mid-task.
 
 ## Simplicity proof
 
@@ -37,32 +40,102 @@ add`. Zero behavior change for non-delete paths or the currently-working
   artifacts (DC-1 covers the three other `git.add()` call sites, left
   untouched — no evidence implicates them).
 - Expected surface delta: `src/change/orchestrator.ts` ~3 changed lines;
-  `src/change/git.test.ts` +1 test (~15-20 lines).
+  `src/change/git.test.ts` +2 test cases (~30-40 lines: a `git rm` case and
+  a plain-`rm` case).
 
 ## Acceptance mapping
 
 | Criterion | Task(s) | Verification |
 |---|---|---|
-| AC-1 | T1 | Read `buildCheckpointEvent`'s new staging step |
-| AC-2 | T2 | New regression test: checkpoint with a `git rm`'d delete-intent artifact succeeds |
-| AC-3 | T2 | Existing `git.test.ts` delete-intent/checkpoint tests still pass unchanged |
-| AC-4 | T1, T3 | `git diff` on `orchestrator.ts` touches only the staging step; downstream checks unchanged |
+| AC-1 | T2 | Read `buildCheckpointEvent`'s new staging step |
+| AC-2 | T1, T2 | New `git rm` regression test: red against unfixed code (T1), green after the fix (T2) |
+| AC-3 | T1, T2 | New plain-`rm` regression test: green against unfixed code (T1, characterizing current behavior), stays green after the fix (T2) |
+| AC-4 | T2, T3 | `git diff` on `orchestrator.ts` touches only the staging step; downstream checks unchanged |
 | AC-5 | T3 | `npm run verify` |
 
 ## Dependency order
 
-`T1 → T2 → T3` (fix the function, add the regression test proving it,
-final full-gate verification).
+`T1 → T2 → T3` (write both regression tests first against the still-unfixed
+code to prove the `git rm` case is genuinely red and the plain-`rm` case is
+already green; then apply the fix and confirm both go/stay green; then
+final full-gate verification). This order avoids ever reverting or
+re-applying a production edit mid-task.
 
-### T1 — Split checkpoint staging by artifact intent
+### T1 — Add both removal-mode regression tests (red-before-fix)
 
-**Purpose:** Fix the root cause. Satisfies AC-1.
+**Purpose:** Characterize both the currently-working case (plain `rm`) and
+the currently-broken case (`git rm`) with executable tests, against the
+still-unfixed code, before any production edit exists to bias the result.
+Satisfies AC-2 (red half), AC-3 (green-baseline half).
 
 **Depends on:** None
 
 **Files:**
 
+- Modify: `src/change/git.test.ts`
+
+**Steps:**
+
+1. Re-read `src/change/git.test.ts` in full (256 lines), specifically its
+   `run()`/`binding()`/`at()`/`initialize()` helpers (lines 13-18) and the
+   existing delete-intent test at line 157-163 ("checkpoint cannot satisfy
+   required artifacts with delete bindings" — confirmed this test only
+   asserts a `CHANGE_INVALID` rejection for required artifacts, unrelated
+   to either removal-mode scenario; no existing test needs to change).
+2. Add a shared setup helper (or inline, matching the file's existing
+   style) that: starts a Change, advances it to a stage where an optional
+   (non-required) artifact can be declared, creates and checkpoints a
+   scratch file as `intent: "create"` in an earlier accepted checkpoint
+   (so it is genuinely tracked at HEAD before the deletion is attempted).
+3. Add test `"checkpoint succeeds when an optional delete-intent artifact
+   was removed with plain rm"`: remove the scratch file via `rmSync`/
+   `unlinkSync` (Node's plain filesystem removal, not a `git` command,
+   mirroring the currently-working case) or `run(workspace, ["rm",
+   "--"])` is NOT used here — the file must be gone from the working tree
+   but still tracked in the index at removal time; submit a checkpoint
+   `transitionChange(...)` declaring that path `intent: "delete"`. Expected
+   against today's unfixed code: **already succeeds** — this test exists to
+   characterize and lock in that existing behavior, not to find a new bug.
+4. Add test `"checkpoint fails today when an optional delete-intent
+   artifact was already removed with git rm"` (or a name that will need
+   renaming after T2 fixes it — acceptable, the test's assertion changes in
+   T2, not its existence): remove the scratch file via
+   `run(workspace, ["rm", "<path>"])` (the file's own `run()` helper,
+   exactly mirroring the real `2026-07-25-docs-consolidation` incident's
+   `git rm`); submit the same shape of checkpoint transition declaring
+   `intent: "delete"` for that path. Expected against today's unfixed code:
+   **rejects** with `error instanceof CodepatrolError && error.code ===
+   "OPERATION_FAILED"` — assert this explicitly (`assert.rejects(...)`),
+   proving the bug is genuinely reproduced through the real
+   `transitionChange` API, not just the scratch-repo experiment in
+   `plan/evidence/investigation.md`.
+5. Run `npm test` for just these two new tests (e.g. via
+   `--test-name-pattern`). Expected: the plain-`rm` test passes; the
+   `git rm` test's `assert.rejects` passes (i.e., it correctly observes
+   today's failure) — both green *as written*, because step 4's assertion
+   is deliberately checking for the *current* failure, not the fixed
+   behavior yet.
+6. Run `npm test` for the full suite. Expected: 217/217, 0 failures (215
+   baseline + 2 new tests, both passing against unfixed code as specified
+   above).
+
+**Task result:** diff, the full test output showing both new tests passing
+against unfixed code (the `git rm` test passing *because* it correctly
+asserts today's `OPERATION_FAILED` failure), appended to `apply/journal.md`.
+
+### T2 — Split checkpoint staging by artifact intent, then flip the `git rm` test's assertion to green
+
+**Purpose:** Fix the root cause, then update the `git rm` test (written in
+T1 to assert today's failure) to assert success instead — proving the fix
+closes exactly the gap T1 characterized. Satisfies AC-1, AC-2 (green half),
+AC-4 (partial).
+
+**Depends on:** T1
+
+**Files:**
+
 - Modify: `src/change/orchestrator.ts`
+- Modify: `src/change/git.test.ts`
 
 **Steps:**
 
@@ -88,62 +161,26 @@ final full-gate verification).
    (`committedPaths` itself is unchanged — still computed the same way,
    still used unmodified by the subsequent `git.commit(..., committedPaths)`
    call and every later reconciliation check in the same function.)
-3. Run `npm run typecheck`. Expected: 0 errors.
-4. Run `npm test`. Expected: 215/215 (no new test yet; this step only
-   proves the refactor doesn't break any existing behavior).
-5. Confirm via `git diff src/change/orchestrator.ts`: only the two lines
-   at 290-291 are replaced by the four lines above; nothing else in
-   `buildCheckpointEvent` or the file changed.
+3. In `git.test.ts`, update T1's `git rm` test: replace its
+   `assert.rejects(...)` expectation with a direct `await
+   transitionChange(...)` call expected to resolve successfully (mirroring
+   the plain-`rm` test's shape), and rename the test to something like
+   `"checkpoint succeeds when an optional delete-intent artifact was
+   already removed with git rm"`. Add an assertion that the resulting
+   checkpoint commit's tree omits the deleted path (e.g. via
+   `run(workspace, ["ls-tree", "-r", "--name-only", "<checkpoint-sha>"])`
+   not including it).
+4. Run `npm run typecheck`. Expected: 0 errors.
+5. Run `npm test` for the full suite. Expected: 217/217, 0 failures — both
+   T1's tests now pass against the fixed code (plain-`rm` still green,
+   unchanged; `git rm` now green for the right reason, the fix, not a
+   stale rejection assertion).
+6. Confirm via `git diff src/change/orchestrator.ts`: only the staging-step
+   lines changed; nothing else in `buildCheckpointEvent` or the file
+   changed.
 
-**Task result:** diff and `npm test` output appended to `apply/journal.md`.
-
-### T2 — Add the regression test
-
-**Purpose:** Prove the fix against the exact previously-failing scenario,
-and prove the previously-working scenario is unaffected. Satisfies AC-2,
-AC-3.
-
-**Depends on:** T1
-
-**Files:**
-
-- Modify: `src/change/git.test.ts`
-
-**Steps:**
-
-1. Re-read `src/change/git.test.ts` in full (256 lines), specifically its
-   `run()`/`binding()`/`at()`/`initialize()` helpers (lines 13-18) and the
-   existing delete-intent test at line 162, to match its exact harness
-   pattern (no new helper needed).
-2. Add a new test, e.g. `"checkpoint succeeds when a delete-intent
-   artifact was already removed via git rm"`:
-   - Build a workspace via the existing `initialize()`/`startChange()`
-     pattern used elsewhere in the file.
-   - Advance to a stage where an optional (non-required) artifact can be
-     declared with `intent: "delete"` — e.g. within an `apply` checkpoint,
-     declare a scratch file (created and already committed in an earlier
-     step) for deletion.
-   - Before submitting the checkpoint transition, remove the file from the
-     workspace via `run(workspace, ["rm", "<path>"])` (the file's own
-     `run()` helper, exactly mirroring the real incident's `git rm`), not
-     `unlinkSync`/plain `rm`.
-   - Submit the checkpoint `transitionChange(...)` call declaring that path
-     with `intent: "delete"`. Expected (red before T1, green after):
-     resolves successfully (no `OPERATION_FAILED` thrown).
-   - Assert the resulting checkpoint commit's tree no longer contains the
-     deleted path (e.g. via `run(workspace, ["ls-tree", "-r", "--name-only",
-     "<checkpoint-sha>"])` not including the path).
-3. Run this new test alone first against **pre-T1** code (temporarily,
-   or reason about it: confirm it would fail with `OPERATION_FAILED`
-   given T1 not yet applied — since T1 is already applied at this point
-   in the task order, instead confirm by reverting T1 locally, running
-   the test to see it fail, then reapplying T1) to prove the test is
-   genuinely red-capable, not vacuously passing.
-4. Run `npm test` for the full suite. Expected: 216/216 (215 baseline + 1
-   new), 0 failures.
-
-**Task result:** diff, the red/green proof, and `npm test` output appended
-to `apply/journal.md`.
+**Task result:** diff (both files), full `npm test` output, appended to
+`apply/journal.md`.
 
 ### T3 — Final verification
 
@@ -161,14 +198,14 @@ Satisfies AC-4, AC-5.
    logic (`unexpected`, `actualProduction`, `declaredProduction`,
    `finalDelta`, `unexpectedFinal`, `finalProduction` checks) differs.
 2. Run `npm run verify` (typecheck + full test suite + build + smoke-cli +
-   lint-skills). Expected: all green, 216/216 tests (AC-5).
+   lint-skills). Expected: all green, 217/217 tests (AC-5).
 3. Run `git diff --stat main -- . ':!.codepatrol'`. Expected: exactly two
    files, `src/change/orchestrator.ts` and `src/change/git.test.ts`.
 4. Confirm no `DC-1` trigger fired (no evidence surfaced implicating the
    other three `git.add()` call sites beyond what's already deferred).
 5. Rollback check: confirm `git revert` of the resulting commit(s) would
    cleanly restore the original combined `git.add(committedPaths, ...)`
-   call.
+   call and remove both new test cases.
 
 **Task result:** the `git diff` output, final `npm run verify` output, and
 residual-risk statement are appended to `apply/journal.md`.

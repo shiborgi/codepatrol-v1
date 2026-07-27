@@ -156,6 +156,31 @@ rule: required stage artifacts may never use `delete`). No test exercises a
 valid, *optional* delete-intent artifact whose file was removed via `git rm`
 ahead of the checkpoint transition — the exact scenario that failed.
 
+## Returned-review correction
+
+Attempt 1 was returned `fix-first` (`review/report.md`). Re-verified both
+findings directly before correcting:
+
+1. **AC-3 had no real verification**: `plan.md`'s Acceptance mapping
+   claimed `git.test.ts:157-163` ("checkpoint cannot satisfy required
+   artifacts with delete bindings") was "existing plain-`rm` coverage" for
+   the unchanged-behavior case (AC-3). Re-read that test directly (see "No
+   existing test coverage for this path" above): it asserts a `CHANGE_INVALID`
+   *rejection* for required artifacts declared `delete` — it never removes a
+   file with plain `rm`, never seals a successful checkpoint, and is
+   unrelated to AC-3's actual claim. Confirmed: no test anywhere exercises a
+   successful checkpoint of an optional delete-intent artifact removed via
+   plain `rm`. Fixed by adding a dedicated second test case for exactly this
+   scenario, alongside the `git rm` case.
+2. **Unsafe task ordering**: T2's step 3 asked Apply to "revert T1 locally,
+   run the test to see it fail, then reapply T1" mid-task — an ad hoc,
+   error-prone local revert instead of the standard red-before-fix pattern
+   used throughout this session's own prior Changes. Fixed by reordering:
+   write both regression tests first (against the still-unfixed code,
+   proving the `git rm` case is genuinely red and the plain-`rm` case is
+   already green — i.e. a true characterization test, not a vacuous one),
+   *then* apply the orchestrator.ts fix, then confirm both cases pass.
+
 ## Precedent for scope discipline
 
 This Change follows the same discipline as the two immediately preceding

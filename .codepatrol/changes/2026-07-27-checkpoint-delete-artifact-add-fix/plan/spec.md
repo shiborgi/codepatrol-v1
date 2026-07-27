@@ -16,7 +16,7 @@
 ### In scope
 
 - Modify `buildCheckpointEvent` in `src/change/orchestrator.ts`: split the staging step into `git.add(paths, ...)` for non-delete artifact paths + declared `changes`, and `git.unstage(deletePaths, ...)` for `intent: "delete"` artifact paths, replacing the single combined `git.add(committedPaths, ...)` call. `committedPaths` (used for the final `git commit -- <paths>` pathspec) is unchanged — only the staging step splits.
-- Add a regression test to `src/change/git.test.ts` (the file already testing checkpoint/delete-intent interactions, see Current evidence) exercising: a checkpoint declaring an optional `intent: "delete"` artifact whose file was removed via `git rm` (not plain `rm`) ahead of the transition — asserting the checkpoint now succeeds, and that the resulting commit correctly reflects the file's absence.
+- Add two regression tests to `src/change/git.test.ts` (the file already testing checkpoint/delete-intent interactions, see Current evidence): (a) a checkpoint declaring an optional `intent: "delete"` artifact whose file was removed via plain `rm` ahead of the transition, asserting it succeeds (characterizing the already-working case, unaffected by the fix); (b) the same shape but removed via `git rm` ahead of the transition, asserting it succeeds and that the resulting commit correctly reflects the file's absence (this is the previously-failing case).
 
 ### Out of scope
 
@@ -116,12 +116,14 @@ reused as-is for the `git add` call, now excluding delete-intent paths;
   downstream delta-reconciliation check in `buildCheckpointEvent` remain
   byte-identical to today; only the staging mechanism for delete-intent
   paths changes. Proven by the existing test suite continuing to pass
-  unchanged (215/215 today) plus the new regression test specifically
-  proving the previously-failing case now succeeds.
+  unchanged (215/215 today) plus two new regression tests: one
+  characterizing the already-working plain-`rm` case (proven green before
+  and after the fix), one proving the previously-failing `git rm` case now
+  succeeds (proven red before, green after).
 - Expected surface delta: `src/change/orchestrator.ts` (~3 lines changed:
   one new `const deletePaths`, the `git.add` call narrowed to `paths`, one
-  new conditional `git.unstage` call); `src/change/git.test.ts` (+1 test,
-  ~15-20 lines). No new files, no new dependency, no public interface
+  new conditional `git.unstage` call); `src/change/git.test.ts` (+2 tests,
+  ~30-40 lines). No new files, no new dependency, no public interface
   change (`GitAdapter.unstage` already exists and is already exported).
 
 ## Deferred constraints
@@ -168,7 +170,7 @@ reused as-is for the `git add` call, now excluding delete-intent paths;
 - AC-2: A checkpoint transition declaring an `intent: "delete"` artifact whose file was already removed via `git rm` (index and working tree both already reflect the deletion) before the transition succeeds, where it previously threw `OPERATION_FAILED`.
 - AC-3: A checkpoint transition declaring an `intent: "delete"` artifact whose file was removed via plain `rm` (still tracked in the index, missing from the working tree) continues to succeed exactly as before — no behavior change for the currently-working case.
 - AC-4: `committedPaths`'s value, the final `git commit -- <committedPaths>` call, and every downstream delta-reconciliation check in `buildCheckpointEvent` are unchanged (confirmed by `git diff` showing no line touched in that logic beyond the staging step itself).
-- AC-5: `npm run verify` (typecheck + full test suite including the new regression test + build + smoke-cli + lint-skills) passes, with the total test count one higher than baseline (the new regression test) and zero failures.
+- AC-5: `npm run verify` (typecheck + full test suite including the two new regression test cases + build + smoke-cli + lint-skills) passes, with the total test count two higher than baseline (one test for each removal mode: plain `rm` and `git rm`) and zero failures.
 
 ## Decisions and open questions
 
