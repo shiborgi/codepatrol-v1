@@ -48,3 +48,10 @@ events:
         sha256: 3eca470ed5a26acc56e8533421d83282449eee3332a47f8df2efe6681f1a7d38
         intent: create
     next_action: codepatrol-review 2026-07-27-src-architecture-audit on codepatrol/2026-07-27-src-architecture-audit
+  - id: 3db8703a-cfc0-4f3e-b66a-8c4b6d16cd00
+    at: 2026-07-27T17:00:46.628Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-src-architecture-audit on codepatrol/2026-07-27-src-architecture-audit
