@@ -78,12 +78,13 @@ every sibling work-id builder.
 
 **Interfaces:**
 
-- Produces: `export function tracePath(workspace: string, workId: string): string`, returning `resolveInside(workspace, `${RUNTIME_DIR}/traces/${workId}.jsonl`)`
+- Produces: `export function tracePath(workspace: string, workId: string): string`. `resolveInside` alone proves only workspace-root containment: `resolveInside(workspace, ".codepatrol/runtime/traces/../../escape-marker.jsonl")` returns `<workspace>/.codepatrol/escape-marker.jsonl` without throwing, because that path never leaves the workspace even though it leaves the traces subtree. `tracePath` therefore resolves the traces root and the candidate both through `resolveInside`, then additionally rejects a candidate whose path relative to the traces root is absolute or starts with `..`.
 - Preserves: `RUNTIME_DIR`, every existing export, `resolveInside`'s own contract
-- Invariants/errors: throws `CodepatrolError("INVALID_WORKSPACE", ...)` for a `workId` whose derived path escapes the workspace; returns the identical string `trace.ts`'s current `join()` expression would return for any work id that does not escape
+- Invariants/errors: throws `CodepatrolError("INVALID_WORKSPACE", ...)` for a `workId` whose derived path escapes either the workspace or the traces subtree; returns the identical string `trace.ts`'s current `join()` expression would return for any work id that escapes neither
 
-**Simplicity proof:** One function, same shape and same file as
-`stageSessionPath` immediately above it; no new pattern.
+**Simplicity proof:** One function in the same file as `stageSessionPath`,
+reusing `resolveInside` twice plus one `relative()` comparison; no new
+pattern, no new primitive beyond Node's own `path` module.
 
 **Surface delta:** One modified file; one new exported function; no
 dependency change.
@@ -95,10 +96,22 @@ dependency change.
    indirectly through `trace.path`. Proceed directly to implementation;
    T2's red tests (step 2 below, in the next task) are the red/green
    signal for this task too — do not add a separate scratch test here.
-2. In `state.ts`, add directly below `stageSessionPath`:
+2. In `state.ts`, `state.ts` currently imports only `resolveInside` from
+   `"./workspace.js"` and nothing from `"node:path"`. Add two import lines:
+   `import { CodepatrolError } from "./errors.js";` and
+   `import { isAbsolute, relative } from "node:path";`. Then add directly
+   below `stageSessionPath` (spaces shown below for markdown rendering
+   only; write real tabs in the actual file, matching every other function
+   in `state.ts`):
    ```typescript
    export function tracePath(workspace: string, workId: string): string {
-   	return resolveInside(workspace, `${RUNTIME_DIR}/traces/${workId}.jsonl`);
+     const tracesRoot = resolveInside(workspace, `${RUNTIME_DIR}/traces`);
+     const candidate = resolveInside(workspace, `${RUNTIME_DIR}/traces/${workId}.jsonl`);
+     const rel = relative(tracesRoot, candidate);
+     if (rel.startsWith("..") || isAbsolute(rel)) {
+       throw new CodepatrolError("INVALID_WORKSPACE", `Path escapes the traces directory: ${workId}`, 3);
+     }
+     return candidate;
    }
    ```
 3. Run `npm run typecheck`.
