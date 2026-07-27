@@ -8,10 +8,11 @@
  * Confidence assignment:
  *   extracted — resolved relative/aliased import; call target defined in the
  *               same file
- *   inferred  — unique call/inherit target among imported files, or unique
- *               name repo-wide
- *   ambiguous — 2..MAX_CANDIDATES candidates; one edge per candidate. More
- *               than that is dropped and counted.
+ *   inferred  — unique call/inherit target among imported files
+ *   ambiguous — 2..MAX_CANDIDATES candidates among imported files, or any
+ *               repository-wide name match without an import relationship;
+ *               one edge per candidate. More than MAX_CANDIDATES is dropped
+ *               and counted.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -187,8 +188,7 @@ export function link(document: GraphDocument, tsPaths: TsPathAliases = { prefixe
 		if (fromImports.length > MAX_CANDIDATES) return undefined;
 
 		const global = (byName.get(name) ?? []).filter((s) => s.file !== path);
-		if (global.length === 1) return { targets: global, confidence: "inferred" };
-		if (global.length >= 2 && global.length <= MAX_CANDIDATES) return { targets: global, confidence: "ambiguous" };
+		if (global.length >= 1 && global.length <= MAX_CANDIDATES) return { targets: global, confidence: "ambiguous" };
 		return undefined;
 	};
 
@@ -216,12 +216,13 @@ export function link(document: GraphDocument, tsPaths: TsPathAliases = { prefixe
 		}
 	}
 
-	// Test-coverage edges: file-level, derived from import/call edges that
-	// cross from a test file into non-test code.
+	// Test-coverage edges: file-level, derived only from resolved import edges
+	// that cross from a test file into non-test code. A resolved import is the
+	// reliable module dependency; a bare call name is not.
 	const nodeById = new Map(nodes.map((n) => [n.id, n]));
 	const seenTests = new Set<string>();
 	for (const edge of [...edges]) {
-		if (edge.kind !== "imports" && edge.kind !== "calls") continue;
+		if (edge.kind !== "imports") continue;
 		const fromNode = nodeById.get(edge.from);
 		const toNode = nodeById.get(edge.to);
 		if (!fromNode?.isTest || !fromNode.file || !toNode?.file || toNode.isTest) continue;

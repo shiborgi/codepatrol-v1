@@ -18,7 +18,7 @@ import { extractFile } from "./extract.js";
 import { languageForFile } from "./languages.js";
 import { link, loadTsPaths } from "./link.js";
 import type { GraphDocument, GraphSnapshot, GraphStats } from "./model.js";
-import { emptyDocument } from "./model.js";
+import { emptyDocument, GRAPH_EXTRACTION_REVISION } from "./model.js";
 
 export interface SyncReport {
 	scanned: number;
@@ -60,7 +60,7 @@ function loadAt(path: string): { document: GraphDocument; raw: string } | undefi
 	}
 	try {
 		const document = JSON.parse(raw) as GraphDocument;
-		if (document?.version !== 1 || typeof document.files !== "object") return undefined;
+		if (document?.version !== 1 || document.extractionRevision !== GRAPH_EXTRACTION_REVISION || typeof document.files !== "object") return undefined;
 		return { document, raw };
 	} catch {
 		return undefined; // corrupt — caller rebuilds from scratch

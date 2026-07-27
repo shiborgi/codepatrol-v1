@@ -124,12 +124,13 @@ function isExported(language: LanguageId, defNode: TSNode, name: string): boolea
 		case "typescript":
 		case "tsx":
 		case "javascript": {
-			// export_statement wraps the declaration; for methods, an exported
-			// enclosing class makes the method reachable, so walk a few levels.
-			let node: TSNode | null = defNode;
-			for (let hops = 0; node && hops < 4; hops++) {
-				if (node.type === "export_statement") return true;
-				node = node.parent;
+			// Only a declaration directly wrapped by export_statement is exported.
+			// A method is exported when its owning class is directly exported;
+			// an enclosing function or method never transfers export status inward.
+			if (defNode.parent?.type === "export_statement") return true;
+			if (defNode.type === "method_definition") {
+				const owner = defNode.parent?.parent;
+				if ((owner?.type === "class_declaration" || owner?.type === "abstract_class_declaration") && owner.parent?.type === "export_statement") return true;
 			}
 			return false;
 		}
