@@ -53,6 +53,8 @@ existing `codepatrol-git` skill to match.
 | AC-6 | T6, T7 | `sync.test.ts` + `cli.test.ts` against injected doubles, incl. `--dry-run` zero-call assertion |
 | AC-7 | T8 | `npm run lint:skills`, catalog/doc greps |
 | AC-8 | T9 | `npm run verify` |
+| AC-9 | T2, T3 | `git.test.ts:266`'s re-run after an injected post-squash failure returns `outcome === "committed"` |
+| AC-10 | T6, T7 | `sync.test.ts` cases (f)-(i): prune only after successful push, blocked by failed push, never for non-terminal, never a tag |
 
 ## Dependency order
 
@@ -106,23 +108,33 @@ outside the adapter. Foundation for T2.
    `completeFinalization` (`orchestrator.ts:459-474`) fresh, confirming
    current line numbers.
 2. In `closeWork`, replace the fast-forward with a squash and a
-   tree-identity assertion, and stop deleting the branch. The commit-outcome
-   body becomes: when the checked-out head equals `base_commit`, call
-   `git.mergeSquash(tag, signal)`, then
-   `git.commit(\`chore(codepatrol): committed ${view.identity.work_id}\`, false, signal)`;
-   then read `git.tree("HEAD", signal)` and `git.tree(tag, signal)` and throw
-   `CodepatrolError("CHANGE_DRIFT", "Squashed target tree does not match the terminal tree.", 4)`
-   if they differ. Remove the `deleteBranch` call from this function only.
-   Keep the existing `else if (checkedOutHead !== terminalCommit) throw
-   TARGET_ADVANCED` recovery guard so a re-run that already squashed is not
-   misread as drift.
-3. In `completeFinalization`, relax the commit-outcome target-head
-   precondition: it currently requires the head to equal `base_commit` or
-   `terminalCommit`, which can no longer hold once the target carries a
-   squash commit. Replace the `terminalCommit` alternative with "or the
-   target's tree already equals the terminal tag's tree" (a completed
-   squash), so recovery re-runs stay idempotent. Leave the rollback branch of
-   that function, and its `deleteBranch` call, untouched.
+   tree-identity assertion, make the recovery guard squash-aware, and stop
+   deleting the branch. The commit-outcome body becomes:
+   - when the checked-out head equals `base_commit`, call
+     `git.mergeSquash(tag, signal)`, then
+     `git.commit(\`chore(codepatrol): committed ${view.identity.work_id}\`, false, signal)`;
+   - **otherwise**, treat "already squashed" as the completed state by
+     comparing trees rather than commits: if
+     `await git.tree("HEAD", signal) !== await git.tree(tag, signal)`, throw
+     `CodepatrolError("TARGET_ADVANCED", "Target changed during Close.", 4)`;
+     if the trees match, no-op. The existing
+     `else if (checkedOutHead !== terminalCommit)` comparison **must be
+     removed**: after a squash the target head equals neither `base_commit`
+     nor `terminalCommit`, so keeping it would throw `TARGET_ADVANCED` on
+     exactly the recovery re-run that `git.test.ts:266` already asserts must
+     succeed.
+   - after a fresh squash, assert `git.tree("HEAD", signal)` equals
+     `git.tree(tag, signal)` and throw
+     `CodepatrolError("CHANGE_DRIFT", "Squashed target tree does not match the terminal tree.", 4)`
+     if they differ.
+   - remove the `deleteBranch` call from this function only.
+3. In `completeFinalization`, apply the **same** tree-equality rule to the
+   commit-outcome target-head precondition, which currently requires the head
+   to equal `base_commit` or `terminalCommit` and can no longer hold once the
+   target carries a squash commit: accept the head when it equals
+   `base_commit`, or when the target's tree already equals the terminal tag's
+   tree. Leave the rollback branch of that function, and its `deleteBranch`
+   call, untouched.
 4. Run `npm run typecheck`. Expected: 0 errors.
 5. Run `npm test`. Expected: failures **only** in tests that assert the old
    fast-forward/branch-deletion behavior. Record which tests fail and why in
@@ -150,15 +162,29 @@ broke.
    (`:239`) and
    `"commit finalization fast-forwards the unchanged target and preserves a terminal tag"`
    (`:266`).
-2. Update the commit-finalization test (rename it to reflect squashing) to
-   assert, after `closeChange` with outcome `commit`:
+2. Update the commit-finalization test (rename it to reflect squashing).
+   Three of its **existing** assertions break under T2 and must be changed
+   deliberately, not discovered as surprise failures:
+   - **`FailAfterMergeGit` (`git.test.ts:57`) overrides `mergeFf`**, which
+     `closeWork` no longer calls. Retarget the double to override
+     `mergeSquash`, otherwise the injected failure never fires and
+     `assert.rejects(…, /injected after merge/)` (line 278) fails.
+   - **Line 283 asserts `run(["rev-parse", "HEAD"]) === result.terminalCommit`**
+     — false under squash, where HEAD is the new squash commit. Replace it
+     with the tree-equality assertion below.
+   - **Line 283 asserts `run(["branch", "--list", …]) === ""`** (branch
+     deleted). Invert it: the branch must now still exist.
+   Then assert, after `closeChange` with outcome `commit`:
    - `run(workspace, ["rev-list", "--count", \`${base}..main\`])` equals
      `"1"` (AC-1);
    - `run(workspace, ["rev-parse", "main^{tree}"])` equals
      `run(workspace, ["rev-parse", \`codepatrol/committed/${id}^{tree}\`])`
      (AC-2);
    - `git branch --list codepatrol/<id>` is non-empty and the tag exists
-     (AC-1 retention).
+     (AC-1 retention);
+   - the re-run at the end of that test still returns
+     `outcome === "committed"` (AC-9) — this is the assertion the T2 guard
+     fix exists to preserve.
 3. Leave the rollback test unchanged — it must still pass as-is, proving
    rollback was not affected.
 4. Add a test proving the tree assertion is real (AC-2's "corrupted squash
@@ -175,7 +201,10 @@ broke.
    tag), and that `inspectChanges(workspace, {})` — the non-`all` path that
    scans `refs/heads/codepatrol` — also succeeds and yields the same
    terminal view.
-6. Run `npm test`. Expected: all green, count 217 + the 2 new tests = 219.
+6. Run `npm test`. Expected: all green. Count is 217 plus the 2 new tests
+   added in steps 4-5 = 219; the edits in step 2 modify an existing test
+   rather than adding one, so they do not change the count. If the observed
+   count differs, reconcile it in the journal before proceeding.
 
 **Task result:** diff, `npm test` output, appended to `apply/journal.md`.
 
@@ -266,8 +295,8 @@ otherwise add. Satisfies AC-4.
    `IssueSyncOptions` at `:64`, `IssueSyncResult` at `:71`) to match its
    option/result conventions, and `src/change/git.ts:106-112` (`push`).
 2. Create `src/change/sync.ts` exporting:
-   - `interface RemoteSyncOptions { signal?: AbortSignal; git?: GitAdapter; gh?: GhAdapter; dryRun?: boolean; target?: boolean; branches?: boolean; issues?: SyncDirection | false }`
-   - `interface RemoteSyncResult { pushedRefs: string[]; skipped: string[]; failures: { ref: string; code: string; message: string }[]; issues?: IssueSyncResult; dryRun: boolean }`
+   - `interface RemoteSyncOptions { signal?: AbortSignal; git?: GitAdapter; gh?: GhAdapter; dryRun?: boolean; target?: boolean; branches?: boolean; issues?: SyncDirection | false; pruneClosed?: boolean }`
+   - `interface RemoteSyncResult { pushedRefs: string[]; prunedBranches: string[]; skipped: string[]; failures: { ref: string; code: string; message: string }[]; issues?: IssueSyncResult; dryRun: boolean }`
    - `async function syncRemote(workspace: string, options: RemoteSyncOptions = {}): Promise<RemoteSyncResult>`
      which: resolves the target branch from the workspace's Changes (or
      falls back to the current branch's configured target), collects
@@ -277,15 +306,36 @@ otherwise add. Satisfies AC-4.
      calls `syncIssues(workspace, direction, { signal, dryRun, gh })` when
      `issues` is not `false`. When `dryRun` is set it records intended refs
      in `pushedRefs` and performs **zero** `git.push` calls.
-3. Create `src/change/sync.test.ts` with injected doubles: a `GitAdapter`
-   double recording every `push` call, and a `GhAdapter` double. Cover:
+3. Implement `pruneClosed` inside `syncRemote`, after the push loop. For
+   each `refs/heads/codepatrol/<work-id>` branch: skip unless that ref was
+   pushed successfully in this run (never when its push is in `failures`),
+   and skip unless the Change's record folds to `state === "terminal"`
+   (obtained via `inspectChanges`/`foldChange`, so a still-active Change is
+   never pruned). Delete via the existing
+   `git.deleteBranch(name, headSha, signal)` — its `update-ref -d <ref>
+   <expected>` form refuses to delete a ref that has moved — and record the
+   name in `prunedBranches`. **Never** delete a `refs/tags/codepatrol/*`
+   ref: the tag is what keeps checkpoint objects reachable and the Change
+   visible to `inspectChanges`. Under `dryRun`, record intended names in
+   `prunedBranches` and call `deleteBranch` zero times.
+4. Create `src/change/sync.test.ts` with injected doubles: a `GitAdapter`
+   double recording every `push` and `deleteBranch` call, and a `GhAdapter`
+   double. Cover:
    (a) target-only push pushes exactly the target ref; (b) `branches: true`
    pushes retained Change branches and their tags; (c) a failing push on one
    ref is reported in `failures` while other refs still push; (d)
    `dryRun: true` yields a populated `pushedRefs` with **zero** recorded
    `push` calls and zero `gh` write calls; (e) `issues` delegates to
-   `syncIssues` and surfaces its result.
-4. Run `npm run typecheck`, then `npm test`. Expected: all green with the
+   `syncIssues` and surfaces its result; (f) **`pruneClosed` deletes a
+   terminal Change's branch only after its push succeeded** — assert
+   `prunedBranches` contains it and `deleteBranch` was called with that
+   ref's head SHA; (g) **a failed push blocks the prune** — with a double
+   whose `push` rejects for that ref, assert `deleteBranch` was never
+   called and the branch is absent from `prunedBranches`; (h) **a
+   non-terminal Change is never pruned** even when its push succeeds;
+   (i) **no `refs/tags/codepatrol/*` ref is ever deleted** in any of the
+   above (assert `deleteBranch` was never called with a tag ref).
+5. Run `npm run typecheck`, then `npm test`. Expected: all green with the
    new cases added.
 
 **Task result:** diff, `npm test` output, appended to `apply/journal.md`.
@@ -312,17 +362,21 @@ otherwise add. Satisfies AC-4.
    in sync by hand.
 2. In `args.ts`: add any new flag names to `KNOWN` (and to `BOOLEAN_FLAGS`
    if boolean), and add a `["sync", new Set([...])]` entry to
-   `COMMAND_OPTIONS` covering the flags `sync` accepts (at minimum
-   `dry-run`, plus the target/branches/issues selectors chosen in T6).
+   `COMMAND_OPTIONS` covering the flags `sync` accepts — at minimum
+   `dry-run` and `prune-closed` (both boolean), plus the target/branches/
+   issues selectors chosen in T6. `prune-closed` must also be added to
+   `BOOLEAN_FLAGS` and `KNOWN`, and mapped onto `ParsedArgs` as
+   `pruneClosed`.
 3. In `commands.ts`: add a `case "sync":` that maps parsed args to
    `RemoteSyncOptions`, calls `syncRemote`, and returns
    `{ data, text: renderRemoteSyncResult(data) }`, following the
    `issues.sync` case's shape including the `overrides` hook for injected
    adapters used by tests.
-4. In `output.ts`: add a `sync` help line beside the existing
-   `issues sync` line, and add `renderRemoteSyncResult` modeled on
-   `renderIssueSyncResult` — one summary line plus indented detail lines for
-   pushed refs, skipped refs, and failures.
+4. In `output.ts`: add a `sync [--dry-run] [--prune-closed]` help line
+   beside the existing `issues sync` line, and add `renderRemoteSyncResult`
+   modeled on `renderIssueSyncResult` — one summary line plus indented
+   detail lines for pushed refs, pruned branches, skipped refs, and
+   failures.
 5. In `cli.test.ts`: add a case asserting `sync` is reachable through the
    real arg parser with injected adapter overrides, and that an unknown flag
    for `sync` is rejected by `COMMAND_OPTIONS` validation.

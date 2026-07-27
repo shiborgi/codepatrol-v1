@@ -9,17 +9,19 @@
 - Substrate state: graph not re-synced — every affected symbol was located by direct read/grep during this Plan attempt and is cited by `file:line` in `plan/evidence/investigation.md`.
 - Improvement signals (from `.codepatrol/docs/improvement-reports/2026-07-27-checkpoint-delete-artifact-add-fix.md`, most recent by mtime): "Review stage returned 2+ times — surface the top review defects to the next Plan" (acted on directly: this Plan performs the self-check that Change introduced, and every design claim below is measured or reproduced rather than asserted); "Top error code: INVALID_ARGUMENT (4)" (payload-shape friction, already addressed by `2026-07-26-document-transition-close-payloads`, not actionable here); "Command `change.session` was invoked 49 times" (workflow/tooling concern, unrelated file, independently tracked backlog item).
 - Problem: two distinct defects, one request. (a) Close fast-forwards the *entire* feature branch onto the target, so **825 of 833 commits on `main` (99.0%) are lifecycle bookkeeping** — the last Change alone put 38 commits on `main` for a 2-file production delta, making `main`'s history unusable for `log`/`blame`/`bisect`. (b) Close performs an opt-in `git push`, making it the only lifecycle stage that touches the network and violating the invariant `codepatrol-git`'s own documentation already asserts; there is no single place that owns remote interaction, so pushing the target, publishing a Change branch, and reconciling issues are three unrelated mechanisms (one buried in Close, one absent, one in `issues sync`).
-- Outcome: Close becomes **fully local** and puts **exactly one commit** on the target — a squash whose tree is byte-identical to the Verify-accepted terminal tree — while **retaining** the feature branch and terminal tag as the durable lineage anchors. A new `codepatrol sync` command becomes the single owner of every remote action: pushing the target branch, publishing retained Change branches and terminal tags, and reconciling GitHub issues (by delegating to the existing `syncIssues`). `codepatrol-git` is renamed to `codepatrol-sync` to match.
+- Outcome: Close becomes **fully local** and puts **exactly one commit** on the target — a squash whose tree is byte-identical to the Verify-accepted terminal tree — while **retaining** the feature branch so the full lifecycle history stays checkout-able locally until it has been published. (Lineage itself is anchored by the terminal tag, which Close already creates and which alone suffices — see Current evidence; retention exists for local inspectability, not for lineage.) A new `codepatrol sync` command becomes the single owner of every remote action: pushing the target branch, publishing retained Change branches and terminal tags, reconciling GitHub issues (by delegating to the existing `syncIssues`), and — once a closed Change's branch is safely on the remote — **deleting that branch locally**, so the local ref namespace stays bounded while its history lives on the remote. `codepatrol-git` is renamed to `codepatrol-sync` to match.
 
 ## Scope
 
 ### In scope
 
-- **Close squashes**: replace `closeWork`'s `git.mergeFf(tag)` with a squash so the target gains exactly one commit whose tree equals the terminal tag's tree; adjust `completeFinalization`'s target-head postcondition, which currently requires the target head to equal either the base or the terminal commit and will no longer hold once the target head is a new squash commit.
+- **Close squashes**: replace `closeWork`'s `git.mergeFf(tag)` with a squash so the target gains exactly one commit whose tree equals the terminal tag's tree.
+- **Close stays re-entrant**: both `closeWork`'s commit-outcome guard and `completeFinalization`'s target-head postcondition currently treat "target head equals `terminalCommit`" as the completed state. That holds for a fast-forward and **fails for a squash**, whose target head is a new commit equal to neither the base nor the terminal commit — so a recovery re-run would throw `TARGET_ADVANCED`. Both guards must instead treat **"the target's tree already equals the terminal tag's tree"** as the completed state, so Close remains idempotent after a partial failure.
 - **Close retains the feature branch on the `commit` outcome**: stop deleting `refs/heads/codepatrol/<work-id>` when the outcome is `commit`. The terminal tag is still created before any other ref mutation.
 - **Inspection dedupe (required by retention)**: `inspectChanges` must not validate the same resolved head twice. A retained branch and its terminal tag point at the same commit, so today's code would run one full `validateCheckpointLineage` per closed Change on **every** inspection — a measured ~2x latency regression (~8.8s → ~17s at today's 32 closed Changes) growing linearly forever. Skip re-validating a ref whose resolved head SHA was already validated in the same `inspectChanges` call.
 - **Close becomes local-only**: remove `push` from `CloseInput`, remove `pushError`/`pushSuggestion` from `CloseResult`, remove the push call and the "Consider: …" text from `src/cli/commands.ts`, and update `skills/codepatrol-close/SKILL.md` to state Close never touches the network.
 - **New `codepatrol sync` command** (`src/change/sync.ts` + CLI wiring in `args.ts`/`commands.ts`/`output.ts`), the single remote owner, with explicit opt-in targets: push the target branch, push retained Change branches and their terminal tags, and run issue reconciliation by calling the existing `syncIssues`. It must support `--dry-run` (report intended remote calls, make none) consistent with `issues sync`'s existing flag.
+- **`sync --prune-closed`**: after a Change branch has been **successfully pushed**, and only when that Change's record is terminal, delete the local `refs/heads/codepatrol/<work-id>`. Ordering is load-bearing: push first, delete only on success; a failed push must leave the branch in place. The terminal tag is **never** deleted — it is what keeps checkpoint objects reachable and the Change visible to `inspectChanges` (verified: after `git gc --prune=now` with the branch deleted and the tag kept, every checkpoint object survives and `isAncestor(checkpoint, tag)` still passes). Deletion reuses the existing `GitAdapter.deleteBranch(name, expectedSha)`, whose `update-ref -d <ref> <expected>` form refuses to delete a ref that has moved. This replaces the previous revision's unbounded-growth deferral; what remains deferred is only that pruning is opt-in (DC-1) and that the remote is never pruned (DC-4).
 - **Skill rename `codepatrol-git` → `codepatrol-sync`**: rewrite `skills/codepatrol-git/SKILL.md` as `skills/codepatrol-sync/SKILL.md` covering the broader remote scope, and update `skills/catalog.yaml`'s entry accordingly.
 - Regression tests for every behavior above, in the existing test files that already cover the corresponding seams (`src/change/git.test.ts` for close/git semantics, `src/change/close-push.test.ts` repurposed or removed, a new `src/change/sync.test.ts` for the sync command, `src/cli/cli.test.ts` for CLI wiring).
 
@@ -59,6 +61,24 @@ timings. Load-bearing facts restated:
 - Close is the only remote-touching stage: `git.push` (`git.ts:106-112`) has
   exactly one production caller, `closeChangeLocked` (`orchestrator.ts:450-456`).
 - `origin` is configured (`https://github.com/shiborgi/codepatrol.git`).
+- **The terminal tag alone anchors lineage; the branch does not.** Deleting
+  the branch is already safe today for exactly this reason. Retention is
+  therefore justified by local *inspectability* (a checkout-able branch),
+  not by lineage — which is why pruning it after publication costs nothing.
+- **Close's re-entrancy guard is fast-forward-specific.** After `mergeFf`
+  the target head equals `terminalCommit`, so a re-run no-ops; after a squash
+  it equals neither the base nor the terminal commit, so the same guard
+  throws `TARGET_ADVANCED`. `git.test.ts:266` already exercises that re-run
+  and asserts it succeeds (line 283). Tree equality is the squash-correct
+  completed-state test.
+- **Pruning the local branch after a successful push is verified safe**:
+  with the branch deleted and the tag kept, `refs/heads/codepatrol` drops to
+  0 refs, every checkpoint object survives
+  `git reflog expire --expire=now --all && git gc --prune=now`,
+  `isAncestor(checkpoint, tag)` still passes, and the remote retains the
+  branch. Deleting the **tag** as well is not safe — `inspectChanges` scans
+  only `refs/heads/codepatrol` and `refs/tags/codepatrol`, so the Change
+  would become locally invisible.
 
 ## Proposed design
 
@@ -145,8 +165,10 @@ rewritten for the broader remote scope, with `skills/catalog.yaml`'s key and
   the Verify-accepted terminal tree (asserted in code, not assumed);
   checkpoint lineage must remain fully validatable after Close; the existing
   217-test suite must stay green.
-- Expected surface delta: `src/change/orchestrator.ts` (squash, retention,
-  dedupe, push removal), `src/change/git.ts` (+1 adapter method),
+- Expected surface delta: `src/change/orchestrator.ts` (squash,
+  squash-aware re-entrancy guards, retention, dedupe, push removal),
+  `src/change/git.ts` (+1 adapter method, `mergeSquash`; pruning reuses the
+  existing `deleteBranch`),
   `src/change/types.ts` (`CloseInput`/`CloseResult` field removals),
   `src/change/sync.ts` (new), `src/cli/{args,commands,output}.ts` (wiring),
   `skills/codepatrol-sync/SKILL.md` (renamed from `codepatrol-git`),
@@ -158,7 +180,8 @@ rewritten for the broader remote scope, with `skills/catalog.yaml`'s key and
 
 | ID | Chosen simplification | Known ceiling | Observable trigger | Upgrade path |
 |---|---|---|---|---|
-| DC-1 | Retained branches accumulate without bound; nothing prunes them | `refs/heads/codepatrol/*` grows by one ref per closed Change forever; even with head dedupe, each ref still costs one `git.head` + one `git.show` per inspection | Inspection latency climbs materially again once retained branches number in the hundreds, or a user asks how to prune closed branches | Add an explicit, authority-gated `sync --prune-closed` (or a `close --no-retain` opt-out) informed by the real ref count at that point |
+| DC-1 | Pruning is opt-in (`sync --prune-closed`), not automatic, so a user who never passes the flag still accumulates local branches | `refs/heads/codepatrol/*` grows by one ref per closed-but-unpruned Change; the head-SHA dedupe bounds the *validation* cost but each ref still costs one `git.head` + one `git.show` per inspection | A user reports inspection latency climbing with many closed Changes and reports never having run `sync --prune-closed` | Make pruning the default for closed Changes in `sync`, or prompt for it, once real usage shows the opt-in is routinely missed |
+| DC-4 | Pruning removes only the local branch; the remote accumulates one branch per closed Change forever | `origin` grows a `codepatrol/<work-id>` branch per Change, which no Codepatrol command removes | The remote's branch list becomes unwieldy, or a hosting-provider ref limit is approached | Add a remote-prune capability to `sync` with its own explicit authority gate, since deleting remote refs is destructive and outside this Change's "never delete remote refs" boundary |
 | DC-2 | `sync` pushes only refs that already exist locally; it never fetches, and so cannot detect that the remote has advanced ahead of the local target | A push against an advanced remote fails with git's own non-fast-forward error rather than a Codepatrol-diagnosed `TARGET_ADVANCED` | A user reports a confusing raw git rejection from `sync` | Add a fetch-and-compare preflight to `sync`, reusing the `TARGET_ADVANCED` taxonomy Close already uses locally |
 | DC-3 | Branch↔issue annotation is not implemented (only the existing derivable relation and auto-close) | Closed issues carry no pointer back to the branch or squashed commit that resolved them | The filed backlog item is scheduled, or a user asks which commit closed an issue | Implement the filed follow-up with its own idempotency evidence |
 
@@ -215,6 +238,8 @@ rewritten for the broader remote scope, with `skills/catalog.yaml`'s key and
 - AC-4: `inspectChanges` validates each distinct resolved head SHA at most once per call: in a workspace where a closed Change has both a retained branch and a terminal tag pointing at the same commit, the number of `validateCheckpointLineage` invocations equals the number of *distinct* heads, not the number of refs (asserted via an instrumented/spy `GitAdapter` or an equivalent direct count, not by wall-clock timing).
 - AC-5: `CloseInput` no longer accepts `push`: `codepatrol change close --input` with `{"outcome":"commit","actor":"…","authority":"…","push":true}` fails with `INVALID_ARGUMENT` naming the unknown field `push`; `CloseResult` no longer carries `pushError` or `pushSuggestion`; and no code path under `closeChange` calls `git.push`.
 - AC-6: `codepatrol sync` exists as a CLI command, is listed in `KNOWN_COMMANDS` and the help text, and can (a) push the target branch, (b) push a retained Change branch and its terminal tag, and (c) reconcile issues by delegating to `syncIssues` — each verified against an injected adapter double, with `--dry-run` performing **zero** remote calls while still reporting the intended ones.
+- AC-9: Close is re-entrant after a partial failure under squash: injecting a failure immediately after the squash succeeds causes `closeChange` to reject, and a subsequent `closeChange` with the same input **completes successfully** (`outcome === "committed"`) without throwing `TARGET_ADVANCED`, leaving exactly one commit on the target. Verified through the existing recovery test at `src/change/git.test.ts:266`, whose injected-failure double must be retargeted from `mergeFf` to `mergeSquash`.
+- AC-10: `codepatrol sync --prune-closed` deletes the local `refs/heads/codepatrol/<work-id>` for a terminal Change **only after** its branch pushed successfully, and never deletes the terminal tag. With an adapter double whose `push` fails for that ref, the local branch **still exists** afterwards. After a successful prune, `codepatrol change inspect --id <work-id>` and `codepatrol status --all` still resolve the Change (lineage intact via the retained tag), and `refs/heads/codepatrol` contains no ref for it.
 - AC-7: `skills/codepatrol-sync/SKILL.md` exists (replacing `skills/codepatrol-git/SKILL.md`), `skills/catalog.yaml` names `codepatrol-sync` with no dangling reference to `codepatrol-git`, `skills/codepatrol-close/SKILL.md` states Close performs no remote action, `skills/_shared/CODEPATROL-CLI.md`'s `close.json` example no longer shows `push`, and `npm run lint:skills` passes.
 - AC-8: `npm run verify` (typecheck + full suite + build + smoke-cli + lint-skills) passes with zero failures and a test count strictly greater than the 217 baseline.
 

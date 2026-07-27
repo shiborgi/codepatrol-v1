@@ -177,7 +177,93 @@ separable gap — recorded as a backlog follow-up rather than folded in here,
 since it needs its own evidence about comment formatting and idempotency
 (re-running sync must not post duplicate comments).
 
-## 8. Rollback is deliberately left alone
+## 8. Close re-entrancy is an existing, tested guarantee that squashing silently removes
+
+`closeWork`'s current commit-outcome guard is:
+
+```
+if (checkedOutHead === view.identity.base_commit) await git.mergeFf(tag, signal);
+else if (checkedOutHead !== terminalCommit) throw CodepatrolError("TARGET_ADVANCED", …);
+```
+
+Under fast-forward this is idempotent: after a successful `mergeFf(tag)` the
+target head **equals** `terminalCommit`, so a recovery re-run takes neither
+branch and completes. Under squash the target head becomes a **new** commit
+that is neither `base_commit` nor `terminalCommit`, so the same guard throws
+`TARGET_ADVANCED`. Simulated directly against a squashed repo:
+
+```
+base_commit              = 5a88381…
+terminalCommit           = 41f09a7…
+target head after squash = 1cc8ea4…   (neither)
+guard -> THROWS TARGET_ADVANCED
+```
+
+This is not a theoretical path. `src/change/git.test.ts:266` ("commit
+finalization fast-forwards the unchanged target and preserves a terminal
+tag") is precisely a close-recovery test: it injects a post-merge failure via
+`FailAfterMergeGit`, asserts the rejection, drifts the branch and asserts
+`CHANGE_DRIFT`, resets, then **re-runs `closeChange` and asserts it
+succeeds** (`assert.equal(result.outcome, "committed")`, line 283).
+
+Three further assertions in that same test break under squash and must be
+updated deliberately rather than discovered as surprise failures:
+
+- `FailAfterMergeGit` (`git.test.ts:57`) overrides `mergeFf`, which
+  `closeWork` no longer calls once it squashes — the injected failure would
+  never fire and `assert.rejects(…, /injected after merge/)` (line 278)
+  would fail. The double must override `mergeSquash` instead.
+- Line 283 asserts `run(["rev-parse", "HEAD"]) === result.terminalCommit`.
+  Under squash HEAD is the new squash commit, not the tag's commit.
+- Line 283 asserts `run(["branch", "--list", …]) === ""` (branch deleted).
+  Retention inverts this.
+
+The correct completed-state test under squash is **tree equality**: the
+target's tree already equalling the terminal tag's tree means the squash
+landed. That is the same basis the plan already applies to
+`completeFinalization`, so both guards can use one consistent rule.
+
+## 9. Pruning the local branch after a successful push — verified safe
+
+The retained branch is what makes `refs/heads/codepatrol/*` grow without
+bound. Deleting it locally **after** its history is safely on the remote
+resolves that, and is safe precisely because the terminal tag, not the
+branch, is what anchors lineage (§3).
+
+Verified end to end against a real bare remote — push branch + tag + target,
+delete the local branch, then run the most aggressive prune git offers:
+
+```
+$ git push origin codepatrol/x codepatrol/committed/x main
+$ git branch -D codepatrol/x
+$ git reflog expire --expire=now --all && git gc --prune=now
+  refs/heads/codepatrol left: 0
+  refs/tags/codepatrol  left: 1
+  checkpoint object alive after aggressive gc: YES
+  isAncestor(checkpoint, tag): OK
+  remote still has branch: codepatrol/x
+```
+
+Every checkpoint object survives because the tag still reaches them, so
+`validateCheckpointLineage` and `validateAcceptedRefArtifacts` keep working,
+and `listWorkingTreeChangeIds`'s
+`validateWorkspaceArtifacts(…, accepted.checkpoint, …)` path resolves too.
+Meanwhile `inspectChanges`'s **unconditional** `refs/heads/codepatrol` scan
+drops to zero refs for closed Changes — a strictly better outcome than the
+head-SHA dedupe alone, which only avoids double-counting.
+
+The boundary is the tag. Deleting it as well is **not** safe: `inspectChanges`
+scans only `refs/heads/codepatrol` and `refs/tags/codepatrol`, so the Change
+becomes invisible locally, and its objects then survive only incidentally via
+`refs/remotes/origin/*` — which `git remote prune` or a differently-configured
+clone can remove. Confirmed separately that a fresh `git clone` does refetch
+tags by default, so history genuinely lives on the remote either way; the
+local tag is kept for the tool's own validation, not for archival.
+
+Ordering is therefore load-bearing: **push first, delete only on success.**
+A failed push must leave the branch in place.
+
+## 10. Rollback is deliberately left alone
 
 The request names only the commit path ("apenas o commit final e merge na
 branch main ... mantendo a branch da change"). Rollback's current behavior
