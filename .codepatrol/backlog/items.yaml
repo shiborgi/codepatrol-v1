@@ -322,15 +322,15 @@ items:
     title: Review stage returned 2+ times — surface the top review defects to the next Plan and consider a pre-Review `assess-change` precondition.
     priority: p2
     area: workflow
-    status: candidate
+    status: scheduled
     evidence: []
     source:
       kind: close-trace
       workId: 2026-07-26-document-transition-close-payloads
-    workId: null
+    workId: 2026-07-27-plan-self-consistency-check
     count: 1
     firstSeenAt: 2026-07-27T00:30:07.613Z
-    lastSeenAt: 2026-07-27T00:30:07.613Z
+    lastSeenAt: 2026-07-27T00:34:42.138Z
   - id: session-item-s-claimed-but-never-closed-review-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
     title: "Session item(s) claimed but never closed: review/2/report. A harness stopped mid-stage; re-prime the session to resume."
     priority: p3
