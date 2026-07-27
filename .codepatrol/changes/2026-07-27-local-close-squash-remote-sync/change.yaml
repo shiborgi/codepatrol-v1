@@ -735,3 +735,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: codepatrol-verify 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: e007ae67-bc38-44e8-bd12-ab3868ab222f
+    at: 2026-07-27T14:27:49.875Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 2
+    type: run-recorded
+    run:
+      id: verify-2
+      started_at: 2026-07-27T14:22:59Z
+      finished_at: 2026-07-27T14:27:39Z
+      elapsed_ms: 280000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
