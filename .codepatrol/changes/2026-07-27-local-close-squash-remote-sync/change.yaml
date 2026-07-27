@@ -580,3 +580,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 24a8d816-1e2a-41e7-b1c6-ea8f0fca2052
+    at: 2026-07-27T03:52:14.038Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 8
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 37954933af3b1c5b772e12f0b154df03fc74c9d4
+    tree: a86bd4181aad3bc0f004f801b390775148062d97
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/review/report.md
+        sha256: 03ece51078879e9105dc9066a092d5d89a00825808bbcfb9476c68b404772e61
+        intent: create
+    next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
