@@ -220,3 +220,10 @@ events:
     to_stage: plan
     reason: "fix-first: AC-6 promises zero remote calls for sync --dry-run, but the required unchanged syncIssues delegation always performs gh availability/list reads; choose and test one compatible contract."
     next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 7ffc8e65-e118-4f01-8e58-90d221e3bc86
+    at: 2026-07-27T03:03:57.819Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 4
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
