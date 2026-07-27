@@ -615,3 +615,42 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: cfafd945-3585-43d7-9df7-290134991a91
+    at: 2026-07-27T04:21:30.876Z
+    actor: minimax/MiniMax-M3
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: d50b1170ca3d6a5b826c7ff2b90b8245f5398e93
+    tree: e13b437a573305b058dd77c872e84879d840105c
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/apply/journal.md
+        sha256: 663e5c9a83328623c5ace5dc0009bab5249154c839e4fc2150d849e02c76631c
+        intent: create
+    changes:
+      - src/change/git.ts
+      - src/change/orchestrator.ts
+      - src/change/types.ts
+      - src/change/sync.ts
+      - src/change/git.test.ts
+      - src/change/close-push.test.ts
+      - src/change/close-integration.test.ts
+      - src/change/sync.test.ts
+      - src/cli/args.ts
+      - src/cli/commands.ts
+      - src/cli/output.ts
+      - src/cli/cli.test.ts
+      - scripts/skills-contract.test.mjs
+      - skills/codepatrol-sync/SKILL.md
+      - skills/codepatrol-close/SKILL.md
+      - skills/catalog.yaml
+      - skills/_shared/STAGE-IO.md
+      - skills/_shared/CODEPATROL-CLI.md
+      - skills/codepatrol-git/SKILL.md
+    next_action: codepatrol-verify 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 26749
+      at: 2026-07-27T04:21:30.787Z
