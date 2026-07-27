@@ -246,3 +246,27 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 4da78083-b900-410b-9c46-a0d03c1e3bbe
+    at: 2026-07-27T21:12:33.650Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: a0aaad2ccdc50bd6d755870117ca94acb5c0d13f
+    tree: 9497fb1fbf368656af9a8beeca70174a43c20cd8
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/apply/journal.md
+        sha256: 1a9302df5c70f0b65eaa49a7f9ccb80bd99de02557c3851a8a97c9c6b0ea133a
+        intent: create
+    changes:
+      - src/change/change.test.ts
+      - src/change/orchestrator-parallel.test.ts
+      - src/change/orchestrator.ts
+      - src/change/validation.ts
+    next_action: codepatrol-verify 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 27475
+      at: 2026-07-27T21:12:33.581Z
