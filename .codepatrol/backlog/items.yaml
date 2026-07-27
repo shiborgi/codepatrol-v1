@@ -344,3 +344,19 @@ items:
     count: 1
     firstSeenAt: 2026-07-27T00:30:07.643Z
     lastSeenAt: 2026-07-27T00:30:07.643Z
+  - id: sync-should-annotate-the-github-issue-with-its-change-branch-and-squashed-commit-when-closing-it
+    title: Sync should annotate the GitHub issue with its Change branch and squashed commit when closing it
+    priority: p3
+    area: workflow
+    status: candidate
+    evidence:
+      - src/change/issue-sync.ts:129-137 closes linked done/dismissed issues but posts no comment
+      - src/change/backlog.ts:15-27 BacklogItem already carries workId + externalRef, so the branch/issue relation is derivable with no schema change
+      - src/change/orchestrator.ts:437-444 Close already flips linked scheduled items to done
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-local-close-squash-remote-sync
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T02:23:27.870Z
+    lastSeenAt: 2026-07-27T02:23:27.870Z
