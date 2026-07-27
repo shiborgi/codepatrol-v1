@@ -291,3 +291,10 @@ events:
     to_stage: plan
     reason: "fix-first: remove stale commit+push Close affordances and add/wire the GitAdapter override required for deterministic sync CLI tests."
     next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 60e5df00-106b-421d-8715-2cbb354d3fec
+    at: 2026-07-27T03:14:06.247Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 5
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
