@@ -72,9 +72,11 @@ export async function syncRemote(workspace: string, options: RemoteSyncOptions =
 		}
 	}
 
+	const branchRefs = new Set<string>();
 	if (options.branches) {
 		const branches = await git.refs(BRANCH_PREFIX, signal);
 		const tags = await git.refs(TAG_PREFIX, signal);
+		for (const ref of branches) branchRefs.add(ref);
 		for (const ref of [...branches, ...tags]) {
 			result.pushedRefs.push(ref);
 			if (!dryRun) {
@@ -88,18 +90,19 @@ export async function syncRemote(workspace: string, options: RemoteSyncOptions =
 		result.issues = await syncIssues(workspace, options.issues, { signal, dryRun, ...(options.gh ? { gh: options.gh } : {}) });
 	}
 
-	if (options.pruneClosed && !dryRun) {
+	if (options.pruneClosed) {
 		const views = await inspectChanges(workspace, { all: true }, { signal, git });
 		const terminal = new Map<string, string>();
 		for (const view of views) {
-			if (view.state === "terminal") terminal.set(`codepatrol/${view.identity.work_id}`, view.terminalCommit ?? "");
+			if (view.state === "terminal" && view.terminalCommit) terminal.set(`codepatrol/${view.identity.work_id}`, view.terminalCommit);
 		}
 		for (const ref of result.pushedRefs) {
-			if (!ref.startsWith(BRANCH_PREFIX)) continue;
+			if (!branchRefs.has(ref)) continue;
 			if (result.failures.some((failure) => failure.ref === ref)) continue;
-			if (!terminal.has(ref.slice(BRANCH_PREFIX.length))) continue;
-			const expected = terminal.get(ref.slice(BRANCH_PREFIX.length))!;
-			try { await git.deleteBranch(ref.slice(BRANCH_PREFIX.length), expected, signal); result.prunedBranches.push(ref); }
+			const expected = terminal.get(ref);
+			if (!expected) continue;
+			if (dryRun) { result.prunedBranches.push(ref); continue; }
+			try { await git.deleteBranch(ref, expected, signal); result.prunedBranches.push(ref); }
 			catch (cause) { const error = cause as { code?: string; message?: string }; result.failures.push({ ref, code: error.code ?? "DELETE_FAILED", message: error.message ?? String(cause) }); }
 		}
 	}

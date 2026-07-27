@@ -59,3 +59,28 @@
 - DC-1 (pruning only behind `--prune-closed`), DC-2 (no fetch/rebase/force/PR), DC-3 (no issue annotation), and DC-4 (no remote pruning) all remain unchanged: pruning is opt-in, the only remote writes are `git.push`/the `gh` writes `syncIssues` already governs, and no `gh`-side annotation or remote ref removal is added.
 - Rollback of this Change reverts fast-forward Close, branch deletion, the `push` field, and removes `sync` and its flag set; verified by inspection of the diff.
 - Token coverage remains at 0/7 (the harness exposes no authoritative per-run usage hook; runs record `unavailable`).
+
+## Attempt 2 — Verify-1 return corrections
+
+Verify-1 returned: "AC-10 fails: sync pruning compares short refs with refs/heads/codepatrol/, so an eligible terminal branch is never deleted. Add pruning, Change-branch target-resolution, and injected CLI sync coverage."
+
+### T6 — prune fix + sync coverage
+
+- Root cause confirmed: `NodeGitAdapter.refs` returns `%(refname:short)` names (`codepatrol/<id>`), while the prune loop matched `refs/heads/codepatrol/`, so no ref ever qualified. Red first: the two new prune tests failed against the unfixed module (8/10 pass), then passed after the fix (10/10).
+- Fix (`src/change/sync.ts`): branch short-names collected into a `branchRefs` set during the `branches` push loop; the prune loop now qualifies refs by set membership (never a tag), compares against `codepatrol/<work-id>` short names directly, and passes the short name to `git.deleteBranch` (which prefixes `refs/heads/` itself). Dry-run now records intended names in `prunedBranches` with zero `deleteBranch` calls, per plan T6 step 3.
+- New `sync.test.ts` cases (6): Change-branch target resolution (`currentBranch` = `codepatrol/<id>` → pushes `main`), shared-target resolution (two Changes targeting `main` → pushed once), prune after successful push (deletes with the exact head SHA, branch gone, tag kept, `inspectChanges` still resolves the Change terminal/committed — AC-10), failed push blocks prune (branch kept, failure reported), non-terminal never pruned, dry-run records intended prunes without deleting.
+- `npm run typecheck` clean; `node --test src/change/sync.test.ts` 10/10 pass.
+
+### T7 — injected CLI sync coverage
+
+- No production change needed: attempt 1 already wired `case "sync"` with `overrides.git`/`overrides.gh` threading (`commands.ts:213-230`). Verify-1 asked for the missing injected coverage.
+- Added 6 `cli.test.ts` cases driving the real `parseArgs` + `executeCommand` with a pure `SyncCliGit` double and `SyncCliGh` double (zero real network): default row selects all three and records target+branch+tag pushes plus gh reads; `--branches` narrows (currentBranch rigged to throw if resolution ran; gh untouched); `--prune-closed` without selectors still defaults `branches` true; `--force` rejected by `COMMAND_OPTIONS`; `--target-branch release` pushes exactly the override; `--target-branch :refs/heads/name` rejects `INVALID_ARGUMENT` with zero recorded pushes (AC-11).
+- `node --test src/cli/cli.test.ts` 22/22 pass; typecheck clean.
+
+### T9 — final verification (attempt 2)
+
+- `npm run verify` (the configured `applyGate`) passes: typecheck, 236/236 tests (224 baseline-carry + 6 sync + 6 CLI new), build, CLI smoke, skill lint.
+- Greps: `pushSuggestion|pushError` in `src/` → none; `git.push` under `closeChange` → none (only array `.push`); `commit+push` in `skills/ src/ scripts/` → zero hits; `codepatrol-git` → zero hits.
+- `git diff --stat main` surface is unchanged from attempt 1's forecast — exactly the 19 declared files; attempt 2 touched only `src/change/sync.ts`, `src/change/sync.test.ts`, `src/cli/cli.test.ts` inside that set.
+- DC-1..DC-4 hold: pruning stays behind `--prune-closed`, no fetch/rebase/force/PR, no issue annotation, no remote pruning.
+- Residual risk: none new — the AC-10 ordering (push before prune, delete via `update-ref -d` with expected SHA) is now covered by direct regression tests.

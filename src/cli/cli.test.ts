@@ -5,6 +5,12 @@ import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { parseArgs } from "./args.js";
+import { executeCommand } from "./commands.js";
+import type { GitAdapter } from "../change/git.js";
+import type { GhAdapter, RemoteIssue } from "../change/issue-sync.js";
+import type { RemoteSyncResult } from "../change/sync.js";
+import { CodepatrolError } from "../shared/errors.js";
 
 const project = resolve(import.meta.dirname, "..", "..");
 const entry = join(project, "src", "cli", "main.ts");
@@ -335,4 +341,127 @@ test("CLI change session still reports CHANGE_CONFLICT for a well-formed but sta
     assert.equal(wrongAttempt.status, 4, wrongAttempt.stderr || wrongAttempt.stdout);
     assert.equal(JSON.parse(wrongAttempt.stdout).error.code, "CHANGE_CONFLICT");
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+class SyncCliGit implements GitAdapter {
+	pushes: string[] = [];
+	deletes: string[] = [];
+	branchRefs: string[] = [];
+	tagRefs: string[] = [];
+	failCurrentBranch = false;
+	async assertTrusted(): Promise<void> {}
+	async status(): Promise<string> { return ""; }
+	async currentBranch(): Promise<string> { if (this.failCurrentBranch) throw new Error("target resolution must not run"); return "main"; }
+	async head(): Promise<string> { return "a".repeat(40); }
+	async tree(): Promise<string> { return "b".repeat(40); }
+	async branchExists(): Promise<boolean> { return false; }
+	async createBranch(): Promise<void> {}
+	async checkout(): Promise<void> {}
+	async add(): Promise<void> {}
+	async unstage(): Promise<void> {}
+	async commit(): Promise<string> { return "c".repeat(40); }
+	async tag(): Promise<void> {}
+	async deleteBranch(name: string): Promise<void> { this.deletes.push(name); }
+	async mergeFf(): Promise<void> {}
+	async mergeSquash(): Promise<void> {}
+	async refs(prefix: string): Promise<string[]> { return prefix === "refs/heads/codepatrol/" ? this.branchRefs : prefix === "refs/tags/codepatrol/" ? this.tagRefs : []; }
+	async show(): Promise<string | undefined> { return undefined; }
+	async pathExists(): Promise<boolean> { return false; }
+	async readFile(): Promise<Buffer | undefined> { return undefined; }
+	async files(): Promise<string[]> { return []; }
+	async changedPaths(): Promise<string[]> { return []; }
+	async isAncestor(): Promise<boolean> { return true; }
+	async push(remote: string, branch: string): Promise<string> { this.pushes.push(`${remote} ${branch}`); return ""; }
+}
+
+class SyncCliGh implements GhAdapter {
+	asserted = false; listed = false; writes = 0;
+	async assertAvailable(): Promise<void> { this.asserted = true; }
+	async listIssues(): Promise<RemoteIssue[]> { this.listed = true; return []; }
+	async ensureLabel(): Promise<void> { this.writes++; }
+	async createIssue(): Promise<RemoteIssue> { this.writes++; throw new Error("no issue to create"); }
+	async closeIssue(): Promise<void> { this.writes++; }
+}
+
+test("CLI sync with no selector flags selects target, branches and issues through injected adapters only", async () => {
+	const root = mkdtempSync(join(tmpdir(), "codepatrol-cli-sync-default-"));
+	try {
+		const gitDouble = new SyncCliGit();
+		gitDouble.branchRefs = ["codepatrol/2026-07-27-cli-x"];
+		gitDouble.tagRefs = ["codepatrol/committed/2026-07-27-cli-x"];
+		const gh = new SyncCliGh();
+		const args = parseArgs(["sync", "--target-branch", "main"]);
+		const result = await executeCommand(args, root, new AbortController().signal, { git: gitDouble, gh });
+		const data = result.data as RemoteSyncResult;
+		assert.deepEqual(gitDouble.pushes, ["origin main", "origin codepatrol/2026-07-27-cli-x", "origin codepatrol/committed/2026-07-27-cli-x"]);
+		assert.equal(gh.asserted, true);
+		assert.equal(gh.listed, true);
+		assert.equal(gh.writes, 0);
+		assert.equal(data.dryRun, false);
+		assert.match(result.text, /main/);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI sync --branches narrows selection to branches and never resolves a target or touches gh", async () => {
+	const root = mkdtempSync(join(tmpdir(), "codepatrol-cli-sync-branches-"));
+	try {
+		const gitDouble = new SyncCliGit();
+		gitDouble.branchRefs = ["codepatrol/2026-07-27-cli-b"];
+		gitDouble.tagRefs = ["codepatrol/committed/2026-07-27-cli-b"];
+		gitDouble.failCurrentBranch = true;
+		const gh = new SyncCliGh();
+		const args = parseArgs(["sync", "--branches"]);
+		const result = await executeCommand(args, root, new AbortController().signal, { git: gitDouble, gh });
+		const data = result.data as RemoteSyncResult;
+		assert.deepEqual(gitDouble.pushes, ["origin codepatrol/2026-07-27-cli-b", "origin codepatrol/committed/2026-07-27-cli-b"]);
+		assert.equal(gh.asserted, false);
+		assert.equal(data.issues, undefined);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI sync --prune-closed without selector flags still defaults branches to true", async () => {
+	const root = mkdtempSync(join(tmpdir(), "codepatrol-cli-sync-prune-"));
+	try {
+		const gitDouble = new SyncCliGit();
+		gitDouble.branchRefs = ["codepatrol/2026-07-27-cli-p"];
+		gitDouble.tagRefs = ["codepatrol/committed/2026-07-27-cli-p"];
+		const gh = new SyncCliGh();
+		const args = parseArgs(["sync", "--prune-closed", "--target-branch", "main"]);
+		const result = await executeCommand(args, root, new AbortController().signal, { git: gitDouble, gh });
+		const data = result.data as RemoteSyncResult;
+		assert.deepEqual(gitDouble.pushes, ["origin main", "origin codepatrol/2026-07-27-cli-p", "origin codepatrol/committed/2026-07-27-cli-p"]);
+		assert.deepEqual(gitDouble.deletes, []);
+		assert.deepEqual(data.prunedBranches, []);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI sync rejects an unknown flag through COMMAND_OPTIONS validation", () => {
+	assert.throws(() => parseArgs(["sync", "--force"]), (error: unknown) => error instanceof CodepatrolError && error.code === "INVALID_ARGUMENT" && /--force is not valid for sync/.test(error.message));
+});
+
+test("CLI sync --target --target-branch release pushes exactly the override", async () => {
+	const root = mkdtempSync(join(tmpdir(), "codepatrol-cli-sync-override-"));
+	try {
+		const gitDouble = new SyncCliGit();
+		gitDouble.failCurrentBranch = true;
+		const gh = new SyncCliGh();
+		const args = parseArgs(["sync", "--target", "--target-branch", "release"]);
+		const result = await executeCommand(args, root, new AbortController().signal, { git: gitDouble, gh });
+		const data = result.data as RemoteSyncResult;
+		assert.deepEqual(gitDouble.pushes, ["origin release"]);
+		assert.deepEqual(data.pushedRefs, ["release"]);
+		assert.equal(gh.asserted, false);
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI sync --target-branch rejects a deletion refspec before the adapter records any push", async () => {
+	const root = mkdtempSync(join(tmpdir(), "codepatrol-cli-sync-refspec-"));
+	try {
+		const gitDouble = new SyncCliGit();
+		const gh = new SyncCliGh();
+		const args = parseArgs(["sync", "--target-branch", ":refs/heads/name"]);
+		await assert.rejects(executeCommand(args, root, new AbortController().signal, { git: gitDouble, gh }), (error: unknown) => error instanceof CodepatrolError && error.code === "INVALID_ARGUMENT");
+		assert.deepEqual(gitDouble.pushes, []);
+		assert.equal(gh.asserted, false);
+	} finally { rmSync(root, { recursive: true, force: true }); }
 });
