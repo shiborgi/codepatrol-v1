@@ -263,7 +263,59 @@ local tag is kept for the tool's own validation, not for archival.
 Ordering is therefore load-bearing: **push first, delete only on success.**
 A failed push must leave the branch in place.
 
-## 10. Rollback is deliberately left alone
+## 11. Returned-review correction: pruning-scope contradiction and missing CLI flag contract
+
+Attempt 2 was returned `fix-first` on two findings, both independently
+re-verified before correcting:
+
+1. **Stale global constraint.** `plan.md`'s Simplicity proof still listed
+   "no branch pruning (DC-1)" under "Forbidden speculative surface"
+   (introduced in attempt 1, never revisited when attempt 2 added
+   `sync --prune-closed`), directly contradicting the same document's T6/T7
+   and `spec.md`'s Scope, all of which make pruning required, opt-in
+   behavior. Confirmed by direct read: `plan.md`'s Simplicity proof
+   still said this verbatim while T6 step 3 fully specifies
+   `pruneClosed`'s implementation. Fixed by restating the constraint as
+   "branch pruning exists only behind `--prune-closed`; DC-1 is its
+   opt-in-ness, not its absence."
+2. **No concrete CLI flag contract for `sync`.** `RemoteSyncOptions`
+   (`plan.md` T6 step 2) defines `target?: boolean; branches?: boolean;
+   issues?: SyncDirection | false` as TypeScript fields, but T7 step 2 only
+   says "the target/branches/issues selectors chosen in T6" — T6 never
+   names a flag. Confirmed by direct read of T7: no flag name, no default,
+   no interaction with `--prune-closed` is specified anywhere. Without this
+   an Apply agent has no single correct `args.ts`/`commands.ts` mapping to
+   implement, and AC-6 (CLI acceptance) has nothing concrete to test against.
+
+Designed the flag contract by extending the codebase's own existing
+pattern rather than inventing a new one — `issues sync --direction
+pull|push|both` (`args.ts:38,60`) is already the precedent for "one
+existing boolean-adjacent flag selects reconciliation direction, a
+`--dry-run` boolean gates all writes":
+
+- `--target` (boolean, added to `BOOLEAN_FLAGS`): select pushing the target
+  branch.
+- `--branches` (boolean): select pushing retained Change branches and their
+  terminal tags.
+- `--issues` (boolean): select issue reconciliation; when set, the
+  *existing* `--direction pull|push|both` flag (already registered for
+  `issues.sync`, reused verbatim) controls its direction, defaulting to
+  `both` exactly as `issues sync` already does.
+- `--prune-closed` (boolean): as designed in attempt 2 — prune only refs
+  pushed successfully in the same invocation.
+- **Default when none of `--target`/`--branches`/`--issues` is given: all
+  three are selected** ("sync everything"), mirroring `issues sync`'s own
+  default of `direction: both` when unspecified — omitting selectors is
+  already this codebase's convention for "the permissive default," not
+  "do nothing." Passing any one of the three narrows to exactly the
+  selected subset(s).
+- `--prune-closed` requires no explicit dependency check on `--branches`:
+  because pruning eligibility is defined as "the ref was pushed in *this*
+  run" (T6 step 3, unchanged), passing `--prune-closed` without
+  `--branches` selected simply prunes nothing (a safe no-op), since no
+  branch ref appears in that run's `pushedRefs`.
+
+## 12. Rollback is deliberately left alone
 
 The request names only the commit path ("apenas o commit final e merge na
 branch main ... mantendo a branch da change"). Rollback's current behavior

@@ -35,9 +35,10 @@ existing `codepatrol-git` skill to match.
   and gains its sync caller), `syncIssues` (called unchanged), `git.tree`
   (already used for tree comparison in lineage validation), `addRecord`'s
   existing identical-record tolerance (what makes head dedupe safe).
-- Forbidden speculative surface: no branch pruning (DC-1), no fetch/rebase/
-  force/PR (DC-2), no issue annotation (DC-3), no rollback change, no
-  history rewrite of existing `main` commits.
+- Forbidden speculative surface: branch pruning exists **only** behind the
+  explicit `--prune-closed` flag — its opt-in-ness, not its absence, is
+  DC-1; no fetch/rebase/force/PR (DC-2), no issue annotation (DC-3), no
+  rollback change, no history rewrite of existing `main` commits.
 - Expected surface delta: 4 production source files edited, 1 added
   (`sync.ts`), 3 CLI files wired, 4 skill/doc files, 4 test files.
 
@@ -289,6 +290,27 @@ otherwise add. Satisfies AC-4.
 - Add: `src/change/sync.ts`
 - Add: `src/change/sync.test.ts`
 
+**CLI flag contract** (decided here so T7 has a concrete mapping to wire,
+not a deferred choice — extends the existing `issues sync --direction`
+pattern rather than inventing a new one):
+
+| Flag | Type | Maps to | Default when **no** selector flag is given |
+|---|---|---|---|
+| `--target` | boolean | `RemoteSyncOptions.target` | `true` |
+| `--branches` | boolean | `RemoteSyncOptions.branches` | `true` |
+| `--issues` | boolean | `RemoteSyncOptions.issues !== false` | `true` |
+| `--direction pull\|push\|both` | value (existing flag, reused) | `RemoteSyncOptions.issues`'s direction when `--issues` is set | `"both"` (identical to `issues sync`'s own default) |
+| `--prune-closed` | boolean | `RemoteSyncOptions.pruneClosed` | `false` |
+| `--dry-run` | boolean (existing flag, reused) | `RemoteSyncOptions.dryRun` | `false` |
+
+Passing **any** of `--target`/`--branches`/`--issues` narrows selection to
+exactly the flags given (e.g. `sync --branches` pushes only branches/tags,
+skipping target and issues); passing none selects all three, mirroring
+`issues sync`'s own permissive default. `--prune-closed` needs no explicit
+dependency on `--branches`: pruning eligibility is "the ref was pushed in
+*this* run" (step 3 below), so `--prune-closed` without `--branches`
+prunes nothing — a safe no-op, not an error.
+
 **Steps:**
 
 1. Re-read `src/change/issue-sync.ts:62-77` (`SyncDirection` at `:62`,
@@ -298,11 +320,15 @@ otherwise add. Satisfies AC-4.
    - `interface RemoteSyncOptions { signal?: AbortSignal; git?: GitAdapter; gh?: GhAdapter; dryRun?: boolean; target?: boolean; branches?: boolean; issues?: SyncDirection | false; pruneClosed?: boolean }`
    - `interface RemoteSyncResult { pushedRefs: string[]; prunedBranches: string[]; skipped: string[]; failures: { ref: string; code: string; message: string }[]; issues?: IssueSyncResult; dryRun: boolean }`
    - `async function syncRemote(workspace: string, options: RemoteSyncOptions = {}): Promise<RemoteSyncResult>`
-     which: resolves the target branch from the workspace's Changes (or
-     falls back to the current branch's configured target), collects
+     which: applies the "no selector given = all true" default from the
+     table above (the CLI layer in T7 passes fully-resolved booleans, so
+     `syncRemote` itself just trusts `target`/`branches`/`issues` as given —
+     the default resolution happens once, in `commands.ts`, not duplicated
+     here); resolves the target branch from the workspace's Changes (or
+     falls back to the current branch's configured target); collects
      `refs/heads/codepatrol/*` and `refs/tags/codepatrol/*` when `branches`
-     is set, pushes each selected ref via `git.push("origin", ref)`
-     accumulating per-ref failures instead of aborting the whole run, and
+     is set; pushes each selected ref via `git.push("origin", ref)`
+     accumulating per-ref failures instead of aborting the whole run; and
      calls `syncIssues(workspace, direction, { signal, dryRun, gh })` when
      `issues` is not `false`. When `dryRun` is set it records intended refs
      in `pushedRefs` and performs **zero** `git.push` calls.
@@ -360,26 +386,44 @@ otherwise add. Satisfies AC-4.
    `output.ts:48-54` (help lines) plus `:176-187`
    (`renderIssueSyncResult`) — the three parallel registries the CLI keeps
    in sync by hand.
-2. In `args.ts`: add any new flag names to `KNOWN` (and to `BOOLEAN_FLAGS`
-   if boolean), and add a `["sync", new Set([...])]` entry to
-   `COMMAND_OPTIONS` covering the flags `sync` accepts — at minimum
-   `dry-run` and `prune-closed` (both boolean), plus the target/branches/
-   issues selectors chosen in T6. `prune-closed` must also be added to
-   `BOOLEAN_FLAGS` and `KNOWN`, and mapped onto `ParsedArgs` as
-   `pruneClosed`.
-3. In `commands.ts`: add a `case "sync":` that maps parsed args to
-   `RemoteSyncOptions`, calls `syncRemote`, and returns
-   `{ data, text: renderRemoteSyncResult(data) }`, following the
-   `issues.sync` case's shape including the `overrides` hook for injected
-   adapters used by tests.
+2. In `args.ts`: add `target: boolean; branches: boolean; issues: boolean;
+   pruneClosed: boolean;` to the `ParsedArgs` interface (immediately after
+   `dryRun?: boolean;` at `:30`); add `target`, `branches`, `issues`,
+   `prune-closed` to `BOOLEAN_FLAGS` and `KNOWN` (`direction` and `dry-run`
+   are already registered — reused as-is); set the four new fields in
+   `parseArgs`'s returned object via `values.has(...)`, matching the
+   existing `force`/`exact`/`dryRun` pattern exactly; and add
+   `["sync", new Set(["target", "branches", "issues", "direction",
+   "prune-closed", "dry-run"])]` to `COMMAND_OPTIONS` — the exact flag set
+   from T6's CLI flag contract table, no more, no less.
+3. Boolean flags in `parseArgs` resolve via `values.has(name)`, so
+   `args.target`/`args.branches`/`args.issues` are always `true`/`false`,
+   never `undefined` — there is no way to distinguish "flag omitted" from
+   "flag explicitly false" at that layer, so the default resolves on
+   values, not presence. In `commands.ts`, add a `case "sync":` that
+   computes `const noSelector = !args.target && !args.branches &&
+   !args.issues;` and resolves `target: noSelector || args.target`,
+   `branches: noSelector || args.branches`, `issues: (noSelector ||
+   args.issues) ? (args.direction ?? "both") as SyncDirection : false` —
+   this is exactly T6's table ("no selector flag true" implies the
+   permissive default; any one true narrows to the given subset). Maps the
+   result plus `dryRun`/`pruneClosed` to `RemoteSyncOptions`, calls
+   `syncRemote`, and returns `{ data, text: renderRemoteSyncResult(data) }`,
+   following the `issues.sync` case's shape including the `overrides` hook
+   for injected adapters used by tests.
 4. In `output.ts`: add a `sync [--dry-run] [--prune-closed]` help line
    beside the existing `issues sync` line, and add `renderRemoteSyncResult`
    modeled on `renderIssueSyncResult` — one summary line plus indented
    detail lines for pushed refs, pruned branches, skipped refs, and
    failures.
-5. In `cli.test.ts`: add a case asserting `sync` is reachable through the
-   real arg parser with injected adapter overrides, and that an unknown flag
-   for `sync` is rejected by `COMMAND_OPTIONS` validation.
+5. In `cli.test.ts`: add cases asserting, through the real arg parser with
+   injected adapter overrides: (a) `sync` with no selector flags resolves
+   `target`/`branches`/`issues` all `true` (the default row of T6's table);
+   (b) `sync --branches` resolves only `branches: true`, `target: false`,
+   `issues: false` (narrowing); (c) `sync --prune-closed` alone still
+   defaults `branches` to `true` (so pruning has refs to consider) per the
+   same default rule; (d) an unknown flag for `sync` (e.g. `--force`) is
+   rejected by `COMMAND_OPTIONS` validation.
 6. Run `npm run typecheck`, then `npm test`. Expected: all green.
 
 **Task result:** diff, `npm test` output, appended to `apply/journal.md`.
@@ -454,10 +498,13 @@ Satisfies AC-8.
    `skills/codepatrol-close/SKILL.md`, `skills/_shared/CODEPATROL-CLI.md`,
    and the four test files. Any file outside that set is undeclared surface
    and must be explained in the journal.
-4. Confirm no DC trigger fired: no branch pruning, fetch/rebase/force, or
-   issue annotation was added.
-5. Rollback check: confirm a single `git revert` of the resulting commit
-   would restore fast-forward Close, branch deletion, and the `push` field.
+4. Confirm no DC trigger fired: pruning stays behind `--prune-closed` and
+   is never automatic (DC-1); no fetch/rebase/force/PR was added (DC-2); no
+   issue annotation was added (DC-3); the remote branch list is never
+   pruned by any command (DC-4).
+5. Rollback check: confirm a single `git revert` of the resulting commit(s)
+   would restore fast-forward Close, branch deletion, the `push` field, and
+   remove `sync` (including `--prune-closed`) entirely.
 
 **Task result:** the `npm run verify` output, grep results, `git diff --stat`
 reconciliation, and residual-risk statement appended to `apply/journal.md`.
