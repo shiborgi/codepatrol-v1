@@ -586,6 +586,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-27-trace-path-workspace-containment
+    externalRef:
+      provider: github
+      number: 26
+      url: https://github.com/shiborgi/codepatrol/issues/26
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T19:54:07.590Z
