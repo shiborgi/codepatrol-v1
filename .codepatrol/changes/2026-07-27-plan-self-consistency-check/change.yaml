@@ -238,3 +238,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-close 2026-07-27-plan-self-consistency-check commit+push on codepatrol/2026-07-27-plan-self-consistency-check
+  - id: dea1e966-2a28-4086-8343-7194e465e5fd
+    at: 2026-07-27T01:05:44.955Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-1
+      started_at: 2026-07-27T01:05:28Z
+      finished_at: 2026-07-27T01:05:39Z
+      elapsed_ms: 11000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
