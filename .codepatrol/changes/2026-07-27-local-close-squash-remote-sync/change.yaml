@@ -684,3 +684,10 @@ events:
     to_stage: apply
     reason: "AC-10 fails: sync pruning compares short refs with refs/heads/codepatrol/, so an eligible terminal branch is never deleted. Add pruning, Change-branch target-resolution, and injected CLI sync coverage."
     next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 10f25e70-c27f-49f4-95dc-351be38f5ab4
+    at: 2026-07-27T12:20:08.395Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
