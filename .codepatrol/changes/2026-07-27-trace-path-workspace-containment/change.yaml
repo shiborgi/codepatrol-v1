@@ -48,3 +48,10 @@ events:
         sha256: 48d0e7f3c49f58b38bd94da0f04f59da38cd6fcb9c2952371ba099133f78a8ea
         intent: create
     next_action: codepatrol-review 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: faa800d5-1ddf-44e0-91b4-5784092f5d9a
+    at: 2026-07-27T18:16:46.066Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: Review Plan revision 1 for 2026-07-27-trace-path-workspace-containment
