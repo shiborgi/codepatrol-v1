@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parse, stringify } from "yaml";
@@ -16,6 +16,23 @@ function at(second: number) { return { now: new Date(`2026-07-22T10:00:${String(
 function initialize(workspace: string): string {
 	writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
 	run(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); run(workspace, ["add", "."]); run(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]); return run(workspace, ["rev-parse", "HEAD"]);
+}
+async function advanceThroughApplyWithChangesPath(workspace: string, id: string, changePath: string, removeVia: "plainRm" | "gitRm"): Promise<void> {
+	await startChange(workspace, { workId: id, title: "Apply deletion", targetBranch: "main", actor: "codex" }, at(1));
+	const planDir = join(workspace, `.codepatrol/changes/${id}/plan`); mkdirSync(planDir, { recursive: true });
+	const spec = `.codepatrol/changes/${id}/plan/spec.md`; const plan = `.codepatrol/changes/${id}/plan/plan.md`;
+	writeFileSync(join(workspace, spec), "spec\n"); writeFileSync(join(workspace, plan), "plan\n");
+	await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "plan", run: { id: `${id}-plan`, started_at: "2026-07-22T10:00:02Z", finished_at: "2026-07-22T10:00:03Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(3));
+	await transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage: "plan", result: "ready", artifacts: [binding(workspace, spec), binding(workspace, plan)], nextAction: "review" }, at(4));
+	await transitionChange(workspace, id, { type: "begin", actor: "codex", stage: "review", nextAction: "complete review" }, at(5));
+	const reviewDir = join(workspace, `.codepatrol/changes/${id}/review`); mkdirSync(reviewDir, { recursive: true }); const report = `.codepatrol/changes/${id}/review/report.md`; writeFileSync(join(workspace, report), "approve\n");
+	await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "review", run: { id: `${id}-review`, started_at: "2026-07-22T10:00:06Z", finished_at: "2026-07-22T10:00:07Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(7));
+	await transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage: "review", result: "approve", artifacts: [binding(workspace, report)], nextAction: "apply" }, at(8));
+	await transitionChange(workspace, id, { type: "begin", actor: "codex", stage: "apply", nextAction: "complete apply" }, at(9));
+	const applyDir = join(workspace, `.codepatrol/changes/${id}/apply`); mkdirSync(applyDir, { recursive: true }); const journal = `.codepatrol/changes/${id}/apply/journal.md`; writeFileSync(join(workspace, journal), "apply\n");
+	if (removeVia === "gitRm") run(workspace, ["rm", changePath]); else rmSync(join(workspace, changePath));
+	await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "apply", run: { id: `${id}-apply`, started_at: "2026-07-22T10:00:10Z", finished_at: "2026-07-22T10:00:11Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(11));
+	await transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage: "apply", result: "implemented", artifacts: [binding(workspace, journal)], changes: [changePath], nextAction: "continue" }, at(12));
 }
 async function advanceThroughVerify(workspace: string, id: string): Promise<void> {
 	await startChange(workspace, { workId: id, title: "Verified candidate", targetBranch: "main", actor: "codex" }, at(1));
@@ -162,6 +179,18 @@ test("checkpoint cannot satisfy required artifacts with delete bindings", async 
 	await assert.rejects(transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage: "plan", result: "ready", artifacts: [{ path: `${prefix}/spec.md`, sha256: "a".repeat(64), intent: "delete" }, { path: `${prefix}/plan.md`, sha256: "b".repeat(64), intent: "delete" }], nextAction: "review" }, at(4)), (error: unknown) => error instanceof CodepatrolError && error.code === "CHANGE_INVALID");
 });
 
+test("apply checkpoint succeeds when a changes[] path was removed with plain rm", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-apply-plain-rm-")); initialize(workspace); const id = "2026-07-27-apply-plain-rm"; const changePath = "CHANGE.txt";
+	writeFileSync(join(workspace, changePath), "remove me\n"); run(workspace, ["add", changePath]); run(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "pre-existing production file"]);
+	await advanceThroughApplyWithChangesPath(workspace, id, changePath, "plainRm");
+});
+
+test("apply checkpoint succeeds when a changes[] path was already removed with git rm", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-apply-git-rm-")); initialize(workspace); const id = "2026-07-27-apply-git-rm"; const changePath = "CHANGE.txt";
+	writeFileSync(join(workspace, changePath), "remove me\n"); run(workspace, ["add", changePath]); run(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "pre-existing production file"]);
+	await advanceThroughApplyWithChangesPath(workspace, id, changePath, "gitRm");
+	assert.equal(run(workspace, ["ls-tree", "-r", "--name-only", "HEAD"]).split("\n").includes(changePath), false);
+});
 test("inspect validates accepted artifacts loaded only from an active branch", async () => {
 	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-inspect-ref-")); initialize(workspace); const id = "2026-07-22-inspect-ref";
 	await startChange(workspace, { workId: id, title: "Inspect", targetBranch: "main", actor: "codex" }, at(1));

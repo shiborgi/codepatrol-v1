@@ -288,7 +288,10 @@ async function buildCheckpointEvent(git: GitAdapter, workspace: string, workId: 
 	}
 
 	const committedPaths = [...new Set([...paths, ...intent.artifacts.map((item) => item.path)])];
-	await git.add(committedPaths, options.signal);
+	const toAdd = committedPaths.filter((path) => existsSync(resolveInside(workspace, path)));
+	const toUnstage = committedPaths.filter((path) => !existsSync(resolveInside(workspace, path)));
+	if (toAdd.length) await git.add(toAdd, options.signal);
+	if (toUnstage.length) await git.unstage(toUnstage, options.signal);
 	const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal, committedPaths); const tree = await git.tree(checkpoint, options.signal);
 	const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`${changeDirectoryRelativePath(workId)}/`) && !path.startsWith(backlogRelativePrefix())).sort();
 	if (unexpectedFinal.length || JSON.stringify(finalProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Checkpoint commit does not match its declared artifact and production paths.", 4);
