@@ -433,3 +433,10 @@ events:
     to_stage: plan
     reason: "fix-first: target resolution must accept shared target branches and test normal main use with multiple Change records."
     next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: ca1e3cff-9329-4e5f-91e9-cee58a197704
+    at: 2026-07-27T03:33:21.925Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 7
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
