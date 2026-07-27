@@ -331,10 +331,15 @@ step 2 below; total over every input, never guesses):
    propagate it — do not fall through to step 4 for a branch that looks
    like a Change branch but isn't one.
 4. Otherwise, call `inspectChanges(workspace, { all: true }, { signal })`
-   and check whether any returned view's `identity.target_branch` equals
-   `current`. If exactly one does (in practice always the case, since every
-   Change in a given workspace conventionally shares one target — see
-   evidence — but the check is per-Change, not assumed), push `current`.
+   and check whether **at least one** returned view's
+   `identity.target_branch` equals `current`
+   (`views.some((v) => v.identity.target_branch === current)`) — this is
+   an existence check, not a uniqueness check: the value pushed is
+   `current` itself, already known, not any field read off a specific
+   matching record, so multiple Changes sharing one target (the normal
+   case in this repository — 33 records currently target `main`, per
+   evidence) must all satisfy this check simultaneously, not conflict. If
+   at least one matches, push `current`.
 5. If neither step 3 nor step 4 resolves a branch, throw
    `CodepatrolError("INVALID_ARGUMENT", \`Cannot resolve a target branch
    from ${current}; pass --target-branch <name>.\`, 2)` — `sync --target`
@@ -405,8 +410,11 @@ prunes nothing — a safe no-op, not an error.
    `codepatrol/<work-id>` branch for a real fixture Change targeting
    `main`, target-only push resolves and pushes exactly `main`
    (resolution step 3); (a2) with `currentBranch` returning `main` itself
-   and a fixture Change recording `main` as its target, target-only push
-   resolves and pushes `main` (step 4); (a3) with `currentBranch`
+   and **multiple** fixture Changes (at least two) each recording `main`
+   as their target, target-only push still resolves and pushes `main`
+   exactly once — the red-capable regression for the returned-review
+   finding: a version of step 4 requiring an exactly-one match would fail
+   this case; (a3) with `currentBranch`
    returning an unrelated branch name matching no Change's `codepatrol/`
    prefix and no Change's `target_branch`, target-only push **rejects**
    with `INVALID_ARGUMENT` and the double's `push` is never called (step

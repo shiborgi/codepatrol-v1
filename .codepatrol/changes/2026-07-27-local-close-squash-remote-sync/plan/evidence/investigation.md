@@ -477,7 +477,40 @@ id, and rejecting an unresolvable case with a named `INVALID_ARGUMENT`
 mirrors `assertCloseInput`/`assertTransitionIntent`'s own discipline of
 never silently guessing at ambiguous input.
 
-## 18. Rollback is deliberately left alone
+## 19. Returned-review correction: step 4's "exactly one" match contradicted this Change's own evidence
+
+Attempt 6 was returned `fix-first` on one finding: T6's target-resolution
+step 4 required **exactly one** Change record to have
+`identity.target_branch === current` before pushing `current`, while this
+Change's own evidence (§1 above) already established that every real
+Change in this repository targets `main`. Re-verified directly, live:
+
+```
+$ grep -c "target_branch: main" .codepatrol/changes/*/change.yaml 2>/dev/null | grep -v ":0" | wc -l
+33
+```
+
+33 Change records currently match `target_branch: main` simultaneously.
+Step 4's own parenthetical ("in practice always the case, since every
+Change in a given workspace conventionally shares one target — see
+evidence") *cited* this exact fact while the surrounding rule
+("if exactly one does") demanded the opposite condition — the single most
+common invocation (`sync --target` on `main`, right after a normal Close)
+would have failed with no match satisfying "exactly one," despite the
+prose insisting it was the expected path. A genuine self-contradiction
+within the same paragraph, not merely an omission.
+
+**Fix**: step 4 only needs to confirm `current` is a *known* target branch
+at all — it does not need to pick out one specific Change record from
+among the matches, because the value being pushed is `current` itself
+(already known), not any field read off whichever Change record matched.
+The correct predicate is existence, not uniqueness:
+`views.some((v) => v.identity.target_branch === current)`. Corrected
+step 4 to "if **at least one** does, push `current`" and removed the
+incorrect parenthetical entirely (its factual claim was right; its
+placement beside a cardinality rule it contradicted was the defect).
+
+## 20. Rollback is deliberately left alone
 
 The request names only the commit path ("apenas o commit final e merge na
 branch main ... mantendo a branch da change"). Rollback's current behavior
