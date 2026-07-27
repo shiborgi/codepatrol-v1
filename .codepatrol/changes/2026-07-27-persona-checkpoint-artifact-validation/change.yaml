@@ -291,3 +291,17 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 8b8dcc77-4f2e-4270-816f-e19033ccbbd2
+    at: 2026-07-27T21:23:51.833Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: 90d264d09ff2c13bb6ee6b5d0e0317cac4073360
+    tree: 0ff5755c53cd74a1ac156492c4db55055dd6e6ba
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/verify/report.md
+        sha256: 8d6c4749dbc82133659471ae7deb39e23c804bd399838443c1929f7681c4f299
+        intent: create
+    next_action: codepatrol-close 2026-07-27-persona-checkpoint-artifact-validation commit|rollback on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
