@@ -149,3 +149,10 @@ events:
     to_stage: plan
     reason: "fix-first: plan T1 does not establish the immutable baseline required by delete-intent artifact validation; specify a baseline-seeded Plan fixture or an explicit prior-attempt lifecycle."
     next_action: codepatrol-plan 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
+  - id: d38eae7a-2641-4808-b4ce-6dc88ac597ca
+    at: 2026-07-27T01:45:32.626Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
