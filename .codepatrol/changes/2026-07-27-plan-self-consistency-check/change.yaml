@@ -146,3 +146,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: a9e5a235-c6a8-4b8e-994e-59bbc0e272d6
+    at: 2026-07-27T00:50:16.549Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-returned
+    to_stage: apply
+    reason: "Candidate fails git diff --check: apply/journal.md line 19 has trailing whitespace. Remove it, rerun git diff --check and focused skill lint, then checkpoint a clean candidate."
+    next_action: codepatrol-apply 2026-07-27-plan-self-consistency-check on codepatrol/2026-07-27-plan-self-consistency-check
