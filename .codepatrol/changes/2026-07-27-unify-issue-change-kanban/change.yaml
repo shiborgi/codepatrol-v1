@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: e08b9e02-d371-4a80-8d3b-8b6a491138cb
+    at: 2026-07-27T23:27:28.736Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: da89c77bffbd290ae3e0364bc30924f1f4f3a40e
+    tree: 8e924f83fdfa25c93ebacbee2c6048c771f1bb8c
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-unify-issue-change-kanban/review/report.md
+        sha256: 91f6a2cefe0a0ca9e870511c349e48835d42f9b650295f22b6dcc97844888339
+        intent: create
+    next_action: codepatrol-apply 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
