@@ -1,5 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname } from "node:path";
+import { tracePath } from "../shared/state.js";
+import { CodepatrolError } from "../shared/errors.js";
 
 export type TraceEntry =
 	| { kind: "command"; at: string; command: string; args: Record<string, unknown> }
@@ -11,7 +13,7 @@ const SECRET_KEYS = new Set(["apikey", "api_key", "authorization", "token", "pas
 const MAX_TRACE_BYTES = 10 * 1024 * 1024;
 
 export function path(workspace: string, workId: string): string {
-	return join(workspace, ".codepatrol", "runtime", "traces", `${workId}.jsonl`);
+	return tracePath(workspace, workId);
 }
 
 function ensureDir(workspace: string, workId: string): void {
@@ -80,18 +82,23 @@ export function appendRaw(workspace: string, workId: string, rawLine: string): v
 }
 
 export function read(workspace: string, workId: string): TraceEntry[] {
-	const p = path(workspace, workId);
-	if (!existsSync(p)) return [];
-	const out: TraceEntry[] = [];
-	for (const line of readFileSync(p, "utf8").split("\n")) {
-		if (!line.trim()) continue;
-		try {
-			out.push(JSON.parse(line) as TraceEntry);
-		} catch (error) {
-			process.stderr.write(`[trace] skipping malformed line: ${(error as Error).message}\n`);
+	try {
+		const p = path(workspace, workId);
+		if (!existsSync(p)) return [];
+		const out: TraceEntry[] = [];
+		for (const line of readFileSync(p, "utf8").split("\n")) {
+			if (!line.trim()) continue;
+			try {
+				out.push(JSON.parse(line) as TraceEntry);
+			} catch (error) {
+				process.stderr.write(`[trace] skipping malformed line: ${(error as Error).message}\n`);
+			}
 		}
+		return out;
+	} catch (error) {
+		if (error instanceof CodepatrolError) return [];
+		throw error;
 	}
-	return out;
 }
 
 export function close(workspace: string, workId: string): void {

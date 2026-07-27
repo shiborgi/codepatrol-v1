@@ -1,0 +1,337 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-27-trace-path-workspace-containment
+  title: Contain trace paths derived from CLI --id within the workspace
+  created_at: 2026-07-27T18:02:05.090Z
+  branch: codepatrol/2026-07-27-trace-path-workspace-containment
+  target_branch: main
+  base_commit: 134f46d94fdeb729092509b8646bb22b2de744c1
+events:
+  - id: 37989107-6414-4b77-bf67-f941e9f8e8fa
+    type: change-started
+    at: 2026-07-27T18:02:05.090Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: 4a5ce4e2-176c-4fe3-a1ba-5428bb0261b7
+    at: 2026-07-27T18:09:13.211Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-1
+      started_at: 2026-07-27T18:02:05.090Z
+      finished_at: 2026-07-27T18:40:00.000Z
+      elapsed_ms: 2274910
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 44c3aa3c-b1c3-440b-a32c-0fd6420f6f95
+    at: 2026-07-27T18:09:20.536Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: a800173b3554275d72eb0656b76f3f5c10776739
+    tree: 64a03a5846bb381fa7f97d1c1fe9594768dac75f
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/spec.md
+        sha256: a33e56bb398b47cb29a34f9ead7e5ecdbdec80a8cf939a1351fed739fb54d766
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/plan.md
+        sha256: 69eef31e0970213963c24f94fedd87d26e7ecbef9be1cc4f396cda068e242f4a
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/evidence/investigation.md
+        sha256: 48d0e7f3c49f58b38bd94da0f04f59da38cd6fcb9c2952371ba099133f78a8ea
+        intent: create
+    next_action: codepatrol-review 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: faa800d5-1ddf-44e0-91b4-5784092f5d9a
+    at: 2026-07-27T18:16:46.066Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: Review Plan revision 1 for 2026-07-27-trace-path-workspace-containment
+  - id: 475ee343-b052-453d-a80c-7f92a12b151a
+    at: 2026-07-27T18:18:54.197Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-opencode-1
+      started_at: 2026-07-27T18:16:27.000Z
+      finished_at: 2026-07-27T18:18:29.000Z
+      elapsed_ms: 122000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 9fec6958-a09c-4f03-9481-6aa430dd06c5
+    at: 2026-07-27T18:21:16.333Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: T1 uses resolveInside(workspace, RUNTIME_DIR/traces/workId.jsonl), which enforces only workspace containment and accepts the Plan AC-1 input ../../escape-marker as .codepatrol/escape-marker.jsonl. Re-plan tracePath to prove containment relative to the traces root and correct plan/plan.md line 101 whitespace."
+    next_action: "codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment: revise spec.md and plan.md for traces-subtree containment, retain both traversal red cases, and fix line 101 whitespace."
+  - id: f85bfd06-8e5e-4e3a-94cf-f7c182c79935
+    at: 2026-07-27T18:27:38.686Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: 5a678e23-a116-4c22-8181-b326cbc82973
+    at: 2026-07-27T18:27:44.890Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-2
+      started_at: 2026-07-27T18:45:00.000Z
+      finished_at: 2026-07-27T19:05:00.000Z
+      elapsed_ms: 1200000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 2787822f-6442-46b2-9e12-0f4414868fcb
+    at: 2026-07-27T18:31:47.261Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-checkpointed
+    result: ready
+    checkpoint: e9eb264a94aed38b89666182c3d194a25ba4b018
+    tree: 2e98e65801d9e7757724a10a9c06bc62f389d944
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/spec.md
+        sha256: e5b92d29afc5db8677ce34b332ed1b3bb85912d187bc2f992985e68bfb3cc921
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/plan.md
+        sha256: 52e7b414ebc3c58bea7c778a47e0dd4854264241241fdbbd6417d4fb4bc59db7
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/evidence/investigation.md
+        sha256: 48d0e7f3c49f58b38bd94da0f04f59da38cd6fcb9c2952371ba099133f78a8ea
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: bd1c8841-d858-4f5a-b99a-a228afb0626b
+    at: 2026-07-27T18:41:36.545Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-began
+    next_action: Review Plan revision 2 for 2026-07-27-trace-path-workspace-containment
+  - id: c97969ae-7a93-44f4-8820-8b21ed73d4c2
+    at: 2026-07-27T18:44:49.322Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: run-recorded
+    run:
+      id: review-opencode-2
+      started_at: 2026-07-27T18:41:36.545Z
+      finished_at: 2026-07-27T18:44:37.000Z
+      elapsed_ms: 180455
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 6fffc360-12d3-4ad0-8ec2-e19dde4f0719
+    at: 2026-07-27T18:45:20.633Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: revision 2 only compares lexical tracesRoot/candidate paths. A workId traversing an existing symlink inside runtime/traces to another workspace-contained directory passes resolveInside and relative(), then writes outside the traces subtree. Re-plan canonical traces-root containment or reject nested workId path segments, and add a symlink red/green fixture."
+    next_action: "codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment: revise spec.md, plan.md, and evidence for canonical traces-subtree containment; add workspace-contained symlink traversal tests while preserving the traversal and slug cases."
+  - id: 51ce4835-f0c4-48e6-8220-5cd085911dd3
+    at: 2026-07-27T18:52:04.118Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: 2d187f97-49d1-4547-a599-60b06f3d9fd2
+    at: 2026-07-27T18:52:09.832Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: run-recorded
+    run:
+      id: plan-3
+      started_at: 2026-07-27T19:10:00.000Z
+      finished_at: 2026-07-27T19:35:00.000Z
+      elapsed_ms: 1500000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 6a641f34-bf50-4124-8b91-bb662fcf8a04
+    at: 2026-07-27T18:52:19.937Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 9a4451ebf48bd5fb4d0bc314feabfcd9c958432d
+    tree: 4b9caa75295af38e0cb63a25b4362f8ff0c1f701
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/spec.md
+        sha256: 66f5773cb244945e919b47946dcd980cc9bed75f3ac22f7bf5ac93467b3c8ad7
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/plan.md
+        sha256: 83a2729b5389b02ad9e9e16c89857f9a0b3dcbe489c186c9dc37c0f4e3dd0f13
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/evidence/investigation.md
+        sha256: 164798364aeb49f309357feaafd13b76562c6c03f79c4bfaa059028c5528bbcd
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: 7ccf6aef-0d26-470d-ba10-79867090433b
+    at: 2026-07-27T19:09:25.447Z
+    actor: opencode
+    stage: review
+    attempt: 3
+    type: stage-began
+    next_action: Review Plan revision 3 for 2026-07-27-trace-path-workspace-containment
+  - id: dd0bb092-00d4-4d25-bf32-1283cb874a0c
+    at: 2026-07-27T19:12:02.270Z
+    actor: opencode
+    stage: review
+    attempt: 3
+    type: run-recorded
+    run:
+      id: review-opencode-3
+      started_at: 2026-07-27T19:09:25.447Z
+      finished_at: 2026-07-27T19:11:47.000Z
+      elapsed_ms: 141553
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 6a0401e8-6a92-43e7-8a43-a701b12c0d30
+    at: 2026-07-27T19:12:18.091Z
+    actor: opencode
+    stage: review
+    attempt: 3
+    type: stage-checkpointed
+    result: approve
+    checkpoint: b405b0553b559d1cdb07c540e1696c6357367710
+    tree: 32d07ef6b285a97b090e2e9d5f34eb0e5a7ce064
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/review/report.md
+        sha256: 260a979b770cf1c432c5f15c4419176479076b498b64406585b240e55bd58b1f
+        intent: create
+    next_action: codepatrol-apply 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: 375c6e4e-0bc7-4b73-b456-c3dc34d876b1
+    at: 2026-07-27T19:26:17.468Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: c352e78d-16db-4f81-ad70-03b455f6b2bf
+    at: 2026-07-27T19:32:27.351Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-27T19:26:16Z
+      finished_at: 2026-07-27T19:32:15Z
+      elapsed_ms: 359000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: db733dfb-5ab1-4cc2-a4c8-2a2564c0802f
+    at: 2026-07-27T19:32:55.339Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: cba71ca14badcf8644a5a0bd294c17779a9f9bc8
+    tree: cbb9971050804c1bbe9348059bcf1358590d084b
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/apply/journal.md
+        sha256: 3f2c0517b90acf15d59c85e3d47310d2f04394ec0f1976b75a9109bfb1a7708d
+        intent: create
+    changes:
+      - src/change/trace.test.ts
+      - src/change/trace.ts
+      - src/shared/state.ts
+    next_action: codepatrol-verify 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 27271
+      at: 2026-07-27T19:32:55.274Z
+  - id: f3edae5a-4e6a-43f3-bbe3-85fc5fe0bf9a
+    at: 2026-07-27T19:44:05.754Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: Verify candidate cba71ca14badcf8644a5a0bd294c17779a9f9bc8 for 2026-07-27-trace-path-workspace-containment
+  - id: 8285fbe4-ad96-45bc-ba06-fe46e8d26116
+    at: 2026-07-27T19:46:45.687Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-opencode-1
+      started_at: 2026-07-27T19:43:44.000Z
+      finished_at: 2026-07-27T19:46:21.000Z
+      elapsed_ms: 157000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 9f9164fd-4e0e-43f9-ab19-e0d8effb0eeb
+    at: 2026-07-27T19:46:58.974Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: f391c8791615d71692c35676871fc292ab4c6c7e
+    tree: 5491290b23dd2d151e16a5ea05ff18cf787e0c41
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/verify/report.md
+        sha256: fcb37a2199b8342d4cce168ea3691fb940faf148d735942697ee56217b7e4048
+        intent: create
+    next_action: codepatrol-close 2026-07-27-trace-path-workspace-containment commit|rollback on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: d9905a0e-7f49-402a-917a-7882b9b7ba12
+    at: 2026-07-27T19:53:29.040Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-27-trace-path-workspace-containment commit on codepatrol/2026-07-27-trace-path-workspace-containment
+  - id: bb147b30-7e1c-4d10-9603-93243b785bd2
+    at: 2026-07-27T19:53:42.681Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-1
+      started_at: 2026-07-27T20:05:00.000Z
+      finished_at: 2026-07-27T20:07:00.000Z
+      elapsed_ms: 120000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: a7b9cd62-7fa3-4b03-bb05-b91a31c8eeff
+    at: 2026-07-27T19:54:07.498Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 7892aa525909a2ff99073c8ab65aa46a1118c108
+    tag: codepatrol/committed/2026-07-27-trace-path-workspace-containment
+    receipt: close/receipt.md

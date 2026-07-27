@@ -1,4 +1,5 @@
 import { resolveInside } from "./workspace.js";
+import { CodepatrolError } from "./errors.js";
 
 export const STATE_VERSION = 1;
 
@@ -20,6 +21,13 @@ export function lockPath(workspace: string, name: string): string {
 
 export function stageSessionPath(workspace: string, workId: string, stage: string, attempt: number): string {
 	return resolveInside(workspace, `${RUNTIME_DIR}/sessions/${workId}/${stage}/${attempt}.json`);
+}
+
+export function tracePath(workspace: string, workId: string): string {
+	if (workId.includes("/") || workId.includes("\\")) {
+		throw new CodepatrolError("INVALID_WORKSPACE", `Work id must not contain a path separator: ${workId}`, 3);
+	}
+	return resolveInside(workspace, `${RUNTIME_DIR}/traces/${workId}.jsonl`);
 }
 
 export function runtimeRelativePrefix(): string {
