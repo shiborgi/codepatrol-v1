@@ -691,3 +691,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: d6dc63ec-e979-4f63-b104-51517e1659d4
+    at: 2026-07-27T12:40:34.225Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 2
+    type: run-recorded
+    run:
+      id: apply-2
+      started_at: 2026-07-27T12:20:07Z
+      finished_at: 2026-07-27T12:40:19Z
+      elapsed_ms: 1212000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
