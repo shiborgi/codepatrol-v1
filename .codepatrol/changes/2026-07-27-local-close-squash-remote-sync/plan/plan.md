@@ -51,7 +51,7 @@ existing `codepatrol-git` skill to match.
 | AC-3 | T3 | Test runs inspect/status/next against the retained branch + tag |
 | AC-4 | T4 | Spy `GitAdapter` counts lineage validations per distinct head |
 | AC-5 | T5 | Test asserts `push` is rejected by the exact-keys guard; no `git.push` under `closeChange` |
-| AC-6 | T6, T7 | `sync.test.ts` + `cli.test.ts` against injected doubles, incl. `--dry-run` zero-call assertion |
+| AC-6 | T6, T7 | `sync.test.ts` + `cli.test.ts` against injected doubles, incl. `--dry-run` zero-*mutation* assertion that also proves the inherited `syncIssues` reads still fire |
 | AC-7 | T8 | `npm run lint:skills`, catalog/doc greps |
 | AC-8 | T9 | `npm run verify` |
 | AC-9 | T2, T3 | `git.test.ts:266`'s re-run after an injected post-squash failure returns `outcome === "committed"` |
@@ -329,9 +329,20 @@ prunes nothing — a safe no-op, not an error.
      `refs/heads/codepatrol/*` and `refs/tags/codepatrol/*` when `branches`
      is set; pushes each selected ref via `git.push("origin", ref)`
      accumulating per-ref failures instead of aborting the whole run; and
-     calls `syncIssues(workspace, direction, { signal, dryRun, gh })` when
-     `issues` is not `false`. When `dryRun` is set it records intended refs
-     in `pushedRefs` and performs **zero** `git.push` calls.
+     calls `syncIssues(workspace, direction, { signal, dryRun, gh })`
+     unchanged when `issues` is not `false` — `dryRun` is passed straight
+     through, so `syncIssues`'s own existing behavior governs: its
+     unconditional `gh.assertAvailable`/`gh.listIssues` reads still run,
+     and only its writes (`ensureLabel`/`createIssue`/`closeIssue`,
+     `writeBacklog`) are suppressed, exactly as `issues sync --dry-run`
+     already behaves today. `syncRemote` introduces **no new dry-run logic
+     for the issues branch** — this is deliberate, not an oversight: `dryRun`
+     for `sync` as a whole means zero remote *mutations*, not zero remote
+     calls (see spec's Outcome and AC-6), and `syncIssues` already satisfies
+     that definition unmodified. When `dryRun` is set, `syncRemote` records
+     intended refs in `pushedRefs` and performs **zero** `git.push` calls
+     (this part of dry-run *is* new logic, since `git.push` has no
+     dry-run concept of its own).
 3. Implement `pruneClosed` inside `syncRemote`, after the push loop. For
    each `refs/heads/codepatrol/<work-id>` branch: skip unless that ref was
    pushed successfully in this run (never when its push is in `failures`),
@@ -351,8 +362,13 @@ prunes nothing — a safe no-op, not an error.
    pushes retained Change branches and their tags; (c) a failing push on one
    ref is reported in `failures` while other refs still push; (d)
    `dryRun: true` yields a populated `pushedRefs` with **zero** recorded
-   `push` calls and zero `gh` write calls; (e) `issues` delegates to
-   `syncIssues` and surfaces its result; (f) **`pruneClosed` deletes a
+   `push` calls, and — with `issues` selected — **zero** recorded `gh` write
+   calls (`ensureLabel`/`createIssue`/`closeIssue`) **while the double's
+   `assertAvailable` and `listIssues` are recorded as called** — asserting
+   the read-still-happens behavior explicitly (this is AC-6's "zero remote
+   mutations, not zero remote calls" contract, proven rather than assumed);
+   (e) `issues` delegates to `syncIssues` and surfaces its result; (f)
+   **`pruneClosed` deletes a
    terminal Change's branch only after its push succeeded** — assert
    `prunedBranches` contains it and `deleteBranch` was called with that
    ref's head SHA; (g) **a failed push blocks the prune** — with a double

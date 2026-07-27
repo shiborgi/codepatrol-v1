@@ -315,7 +315,52 @@ existing boolean-adjacent flag selects reconciliation direction, a
   `--branches` selected simply prunes nothing (a safe no-op), since no
   branch ref appears in that run's `pushedRefs`.
 
-## 12. Rollback is deliberately left alone
+## 13. Returned-review correction: `--dry-run` cannot mean zero remote calls when issues are selected
+
+Attempt 3 was returned `fix-first` on one finding: `spec.md`'s Intent
+(line 23, "make none") and AC-6 ("`--dry-run` performing **zero** remote
+calls") both promise no remote traffic at all, but `plan.md` T6 step 2
+requires `syncRemote` to delegate to the existing, unchanged `syncIssues`
+when `issues` is selected — and `syncIssues` cannot honor that promise.
+Confirmed by direct read of `src/change/issue-sync.ts:88-99`:
+
+```typescript
+export async function syncIssues(workspace: string, direction: SyncDirection, options: IssueSyncOptions = {}): Promise<IssueSyncResult> {
+	...
+	const dryRun = options.dryRun ?? false;
+	await gh.assertAvailable(signal);
+	const issues = await gh.listIssues(signal);
+	...
+```
+
+`gh.assertAvailable` and `gh.listIssues` run **unconditionally**, before
+`dryRun` is even read for any branching decision. `dryRun` only gates the
+three *write* calls further down (`gh.ensureLabel`, `gh.createIssue`,
+`gh.closeIssue`) and the two `writeBacklog` calls. This is `issues sync
+--dry-run`'s own existing, already-shipped definition of dry-run: **no
+remote mutations**, not **no remote calls** — confirmed this is not new
+behavior this Change would introduce, by checking `issues sync --dry-run`'s
+current documented contract (`skills/codepatrol-git/SKILL.md`'s own
+"`--dry-run`: report the would-be result with zero `gh` **write** calls and
+zero `items.yaml` writes" — write calls, not all calls, already the
+precedent).
+
+`spec.md`'s Out of scope already states "Any change to `syncIssues`'s own
+pull/push semantics ... stays exactly as they are" — so changing
+`syncIssues` to skip its read calls under `dryRun` is itself out of scope
+(and would be a behavior change to a component this Change deliberately
+does not touch). The only coherent fix compatible with that constraint is
+to correct `sync`'s own promise to match the primitive it composes: `sync
+--dry-run` means zero remote **mutations**, consistent across `git.push`
+(already correctly scoped that way in T6 step 2's existing prose) and
+`syncIssues` (inherits its existing, unchanged read-then-maybe-write
+shape). `git.push`, `gh.ensureLabel`, `gh.createIssue`, `gh.closeIssue`,
+`git.deleteBranch`, and both `writeBacklog` calls are the complete set of
+remote/durable *mutations* `sync` can trigger; `gh.assertAvailable` and
+`gh.listIssues` are read-only preconditions already exempt from dry-run in
+the component being reused.
+
+## 14. Rollback is deliberately left alone
 
 The request names only the commit path ("apenas o commit final e merge na
 branch main ... mantendo a branch da change"). Rollback's current behavior
