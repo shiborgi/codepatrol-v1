@@ -421,7 +421,63 @@ mechanical and follows the file's own existing pattern exactly: add
 `case "sync":`'s call to `syncRemote` the same way `overrides?.gh` already
 threads into `syncIssues`.
 
-## 16. Rollback is deliberately left alone
+## 17. Returned-review correction: `sync --target` had no deterministic target-branch selection rule
+
+Attempt 5 was returned `fix-first` on one finding: T6's prose — "resolves
+the target branch from the workspace's Changes (or falls back to the
+current branch's configured target)" — names no concrete algorithm and no
+"current branch's configured target" mechanism exists anywhere in this
+codebase to fall back to. Independently re-verified before designing a fix:
+
+- `ChangeIdentity.target_branch` (`src/change/types.ts:26`) is stored
+  **per Change**, not per branch or per workspace — confirmed by reading
+  the interface directly. The schema genuinely permits two Changes in the
+  same workspace to target different branches, even though every real
+  Change in this repository's own history targets `main`
+  (`grep target_branch: .codepatrol/changes/*/change.yaml | sort -u` →
+  exactly one distinct value, `main`).
+- No git-config-based "upstream target" mechanism exists:
+  `grep -n '"config"\|branch\..*\.merge\|upstream' src/change/git.ts` →
+  no hits. `GitAdapter.currentBranch()` (`git.ts:69`,
+  `symbolic-ref --quiet --short HEAD`) is the only branch-identity primitive.
+- `inspectChanges(workspace, query: ChangeQuery, options)` (already used
+  throughout `orchestrator.ts`) accepts `{ workId?: string; all?: boolean
+  }` and returns `ChangeView[]`, each carrying `identity.target_branch` —
+  the exact lookup needed, already exported, no new primitive required.
+
+Designed the algorithm the return itself sketched, made concrete and total
+(every input either resolves or produces an actionable `INVALID_ARGUMENT`,
+never a silent wrong push):
+
+1. Read `current = await git.currentBranch()`.
+2. If `current` starts with `codepatrol/`, the work id is
+   `current.slice("codepatrol/".length)`. Resolve that one Change via
+   `inspectChanges(workspace, { workId, all: true })` — `all: true`
+   matters here specifically because branches are now retained past Close
+   (this Change's own T2/T3), so a terminal Change's branch can be checked
+   out; `commands.ts`'s own `change.inspect`/`change.summary`/`change.doctor`
+   cases already always pass `{ workId, all: true }` together for exactly
+   this reason, confirmed by direct read (`commands.ts:130,134,162`) — and
+   use its `identity.target_branch`. (Lets `sync --target` run while still
+   on a feature branch, e.g. right after Apply/Verify, before Close.)
+3. Otherwise, `current` is a *candidate* target itself (the normal
+   post-Close case: standing on `main`). Confirm it is a genuine target by
+   checking `inspectChanges(workspace, { all: true })` for **any** Change
+   whose `identity.target_branch === current`. If found, push `current`.
+   If not, this is an unrelated branch with no known relationship to any
+   Change — reject with `INVALID_ARGUMENT` rather than guessing.
+4. An explicit `--target-branch <name>` flag bypasses steps 1-3 entirely,
+   for the case a user already knows exactly what they want pushed (e.g.
+   scripting, or a workspace whose only Change record was already pruned).
+
+This mirrors two already-established patterns in this codebase rather than
+inventing a new one: `inspectChanges({ workId })` is the exact idiom
+`change.summary`/`change.transition` already use to resolve one Change by
+id, and rejecting an unresolvable case with a named `INVALID_ARGUMENT`
+mirrors `assertCloseInput`/`assertTransitionIntent`'s own discipline of
+never silently guessing at ambiguous input.
+
+## 18. Rollback is deliberately left alone
 
 The request names only the commit path ("apenas o commit final e merge na
 branch main ... mantendo a branch da change"). Rollback's current behavior

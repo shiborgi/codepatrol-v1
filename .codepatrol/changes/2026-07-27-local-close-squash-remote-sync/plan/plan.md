@@ -51,7 +51,7 @@ existing `codepatrol-git` skill to match.
 | AC-3 | T3 | Test runs inspect/status/next against the retained branch + tag |
 | AC-4 | T4 | Spy `GitAdapter` counts lineage validations per distinct head |
 | AC-5 | T5 | Test asserts `push` is rejected by the exact-keys guard; no `git.push` under `closeChange` |
-| AC-6 | T6, T7 | `sync.test.ts` + `cli.test.ts` against injected doubles, incl. `--dry-run` zero-*mutation* assertion that also proves the inherited `syncIssues` reads still fire |
+| AC-6 | T6, T7 | `sync.test.ts` + `cli.test.ts` against injected doubles, incl. `--dry-run` zero-*mutation* assertion, the inherited `syncIssues` reads still firing, and all 3 target-resolution cases plus the `--target-branch` override |
 | AC-7 | T8 | `npm run lint:skills`, catalog/doc greps |
 | AC-8 | T9 | `npm run verify` |
 | AC-9 | T2, T3 | `git.test.ts:266`'s re-run after an injected post-squash failure returns `outcome === "committed"` |
@@ -312,8 +312,33 @@ pattern rather than inventing a new one):
 | `--branches` | boolean | `RemoteSyncOptions.branches` | `true` |
 | `--issues` | boolean | `RemoteSyncOptions.issues !== false` | `true` |
 | `--direction pull\|push\|both` | value (existing flag, reused) | `RemoteSyncOptions.issues`'s direction when `--issues` is set | `"both"` (identical to `issues sync`'s own default) |
+| `--target-branch <name>` | value | `RemoteSyncOptions.targetBranch` | unset (triggers the resolution algorithm below) |
 | `--prune-closed` | boolean | `RemoteSyncOptions.pruneClosed` | `false` |
 | `--dry-run` | boolean (existing flag, reused) | `RemoteSyncOptions.dryRun` | `false` |
+
+**Target-branch resolution algorithm** (governs `target: true`'s push in
+step 2 below; total over every input, never guesses):
+
+1. If `options.targetBranch` is set (from `--target-branch`), use it
+   directly — resolution stops here.
+2. Otherwise read `current = await git.currentBranch(signal)`.
+3. If `current` starts with `"codepatrol/"`, the work id is
+   `current.slice("codepatrol/".length)`. Call
+   `inspectChanges(workspace, { workId, all: true }, { signal })` (`all:
+   true` matters because a terminal Change's branch can still be checked
+   out now that Close retains it) and use the one result's
+   `identity.target_branch`. If `inspectChanges` throws `CHANGE_NOT_FOUND`,
+   propagate it — do not fall through to step 4 for a branch that looks
+   like a Change branch but isn't one.
+4. Otherwise, call `inspectChanges(workspace, { all: true }, { signal })`
+   and check whether any returned view's `identity.target_branch` equals
+   `current`. If exactly one does (in practice always the case, since every
+   Change in a given workspace conventionally shares one target — see
+   evidence — but the check is per-Change, not assumed), push `current`.
+5. If neither step 3 nor step 4 resolves a branch, throw
+   `CodepatrolError("INVALID_ARGUMENT", \`Cannot resolve a target branch
+   from ${current}; pass --target-branch <name>.\`, 2)` — `sync --target`
+   fails loudly rather than pushing an unrelated branch.
 
 Passing **any** of `--target`/`--branches`/`--issues` narrows selection to
 exactly the flags given (e.g. `sync --branches` pushes only branches/tags,
@@ -327,17 +352,23 @@ prunes nothing — a safe no-op, not an error.
 
 1. Re-read `src/change/issue-sync.ts:62-77` (`SyncDirection` at `:62`,
    `IssueSyncOptions` at `:64`, `IssueSyncResult` at `:71`) to match its
-   option/result conventions, and `src/change/git.ts:106-112` (`push`).
+   option/result conventions, `src/change/git.ts:106-112` (`push`), and
+   `src/change/orchestrator.ts:330` (`inspectChanges`'s exact signature,
+   `(workspace, query: ChangeQuery, options) => Promise<ChangeView[]>`) —
+   import `inspectChanges` from `./orchestrator.js` and `ChangeView` as a
+   type from `./types.js`.
 2. Create `src/change/sync.ts` exporting:
-   - `interface RemoteSyncOptions { signal?: AbortSignal; git?: GitAdapter; gh?: GhAdapter; dryRun?: boolean; target?: boolean; branches?: boolean; issues?: SyncDirection | false; pruneClosed?: boolean }`
+   - `interface RemoteSyncOptions { signal?: AbortSignal; git?: GitAdapter; gh?: GhAdapter; dryRun?: boolean; target?: boolean; targetBranch?: string; branches?: boolean; issues?: SyncDirection | false; pruneClosed?: boolean }`
    - `interface RemoteSyncResult { pushedRefs: string[]; prunedBranches: string[]; skipped: string[]; failures: { ref: string; code: string; message: string }[]; issues?: IssueSyncResult; dryRun: boolean }`
    - `async function syncRemote(workspace: string, options: RemoteSyncOptions = {}): Promise<RemoteSyncResult>`
      which: applies the "no selector given = all true" default from the
      table above (the CLI layer in T7 passes fully-resolved booleans, so
      `syncRemote` itself just trusts `target`/`branches`/`issues` as given —
      the default resolution happens once, in `commands.ts`, not duplicated
-     here); resolves the target branch from the workspace's Changes (or
-     falls back to the current branch's configured target); collects
+     here); when `target` is set, resolves the branch to push via the
+     Target-branch resolution algorithm above (this is the only place that
+     algorithm runs — `pushedRefs`/`failures` report on the resolved branch
+     name, not the literal string `"target"`); collects
      `refs/heads/codepatrol/*` and `refs/tags/codepatrol/*` when `branches`
      is set; pushes each selected ref via `git.push("origin", ref)`
      accumulating per-ref failures instead of aborting the whole run; and
@@ -370,7 +401,17 @@ prunes nothing — a safe no-op, not an error.
 4. Create `src/change/sync.test.ts` with injected doubles: a `GitAdapter`
    double recording every `push` and `deleteBranch` call, and a `GhAdapter`
    double. Cover:
-   (a) target-only push pushes exactly the target ref; (b) `branches: true`
+   (a) with the `GitAdapter` double's `currentBranch` returning a
+   `codepatrol/<work-id>` branch for a real fixture Change targeting
+   `main`, target-only push resolves and pushes exactly `main`
+   (resolution step 3); (a2) with `currentBranch` returning `main` itself
+   and a fixture Change recording `main` as its target, target-only push
+   resolves and pushes `main` (step 4); (a3) with `currentBranch`
+   returning an unrelated branch name matching no Change's `codepatrol/`
+   prefix and no Change's `target_branch`, target-only push **rejects**
+   with `INVALID_ARGUMENT` and the double's `push` is never called (step
+   5); (a4) `targetBranch: "release"` pushes `release` regardless of what
+   `currentBranch` returns (step 1, override); (b) `branches: true`
    pushes retained Change branches and their tags; (c) a failing push on one
    ref is reported in `failures` while other refs still push; (d)
    `dryRun: true` yields a populated `pushedRefs` with **zero** recorded
@@ -418,15 +459,20 @@ Completes AC-6, AC-11.
    `:176-187` (`renderIssueSyncResult`) — the three parallel registries the
    CLI keeps in sync by hand.
 2. In `args.ts`: add `target: boolean; branches: boolean; issues: boolean;
-   pruneClosed: boolean;` to the `ParsedArgs` interface (immediately after
-   `dryRun?: boolean;` at `:30`); add `target`, `branches`, `issues`,
-   `prune-closed` to `BOOLEAN_FLAGS` and `KNOWN` (`direction` and `dry-run`
-   are already registered — reused as-is); set the four new fields in
-   `parseArgs`'s returned object via `values.has(...)`, matching the
-   existing `force`/`exact`/`dryRun` pattern exactly; and add
+   pruneClosed: boolean; targetBranch?: string;` to the `ParsedArgs`
+   interface (immediately after `dryRun?: boolean;` at `:30`); add
+   `target`, `branches`, `issues`, `prune-closed` to `BOOLEAN_FLAGS` and
+   `KNOWN` (`direction` and `dry-run` are already registered — reused
+   as-is); add `target-branch` to `KNOWN` only (it is a **value** flag,
+   like `direction`/`stage`, not a boolean — do **not** add it to
+   `BOOLEAN_FLAGS`); set the four boolean fields in `parseArgs`'s returned
+   object via `values.has(...)`, matching the existing
+   `force`/`exact`/`dryRun` pattern, and `targetBranch:
+   values.get("target-branch")?.[0]`, matching the existing
+   `direction: values.get("direction")?.[0]` pattern exactly; and add
    `["sync", new Set(["target", "branches", "issues", "direction",
-   "prune-closed", "dry-run"])]` to `COMMAND_OPTIONS` — the exact flag set
-   from T6's CLI flag contract table, no more, no less.
+   "target-branch", "prune-closed", "dry-run"])]` to `COMMAND_OPTIONS` —
+   the exact flag set from T6's CLI flag contract table, no more, no less.
 3. In `commands.ts`, add `git?: GitAdapter` to `CommandOverrides`
    (`:24-26`), importing `GitAdapter` as a type from `../change/git.js`
    (`commands.ts` currently imports only `GhAdapter` from
@@ -443,14 +489,17 @@ Completes AC-6, AC-11.
    args.issues) ? (args.direction ?? "both") as SyncDirection : false` —
    this is exactly T6's table ("no selector flag true" implies the
    permissive default; any one true narrows to the given subset). Maps the
-   result plus `dryRun`/`pruneClosed` to `RemoteSyncOptions`, calls
+   result plus `dryRun`/`pruneClosed`/`targetBranch: args.targetBranch` to
+   `RemoteSyncOptions` (T6's resolution algorithm handles `targetBranch`
+   being `undefined` — that is precisely what triggers branch resolution
+   instead of the override), calls
    `syncRemote(workspace, { ..., ...(overrides?.git ? { git: overrides.git
    } : {}), ...(overrides?.gh ? { gh: overrides.gh } : {}) })` — threading
    the new `git` override through exactly like `gh` already threads into
    `issues.sync` — and returns
    `{ data, text: renderRemoteSyncResult(data) }`. Satisfies AC-11's wiring
    half.
-5. In `output.ts`: add a `sync [--dry-run] [--prune-closed]` help line
+5. In `output.ts`: add a `sync [--target-branch <name>] [--dry-run] [--prune-closed]` help line
    beside the existing `issues sync` line, and add `renderRemoteSyncResult`
    modeled on `renderIssueSyncResult` — one summary line plus indented
    detail lines for pushed refs, pruned branches, skipped refs, and
@@ -465,8 +514,10 @@ Completes AC-6, AC-11.
    `target: false`, `issues: false` (narrowing); (c) `sync --prune-closed`
    alone still defaults `branches` to `true` (so pruning has refs to
    consider) per the same default rule; (d) an unknown flag for `sync`
-   (e.g. `--force`) is rejected by `COMMAND_OPTIONS` validation. Satisfies
-   AC-11's CLI-test half.
+   (e.g. `--force`) is rejected by `COMMAND_OPTIONS` validation; (e)
+   `sync --target-branch release` resolves `targetBranch: "release"`
+   through to `syncRemote`, distinct from `undefined` when the flag is
+   omitted. Satisfies AC-11's CLI-test half.
 7. Run `npm run typecheck`, then `npm test`. Expected: all green.
 
 **Task result:** diff, `npm test` output, appended to `apply/journal.md`.
