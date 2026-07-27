@@ -149,3 +149,10 @@ events:
     to_stage: plan
     reason: "fix-first: revision 2 only compares lexical tracesRoot/candidate paths. A workId traversing an existing symlink inside runtime/traces to another workspace-contained directory passes resolveInside and relative(), then writes outside the traces subtree. Re-plan canonical traces-root containment or reject nested workId path segments, and add a symlink red/green fixture."
     next_action: "codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment: revise spec.md, plan.md, and evidence for canonical traces-subtree containment; add workspace-contained symlink traversal tests while preserving the traversal and slug cases."
+  - id: 51ce4835-f0c4-48e6-8220-5cd085911dd3
+    at: 2026-07-27T18:52:04.118Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
