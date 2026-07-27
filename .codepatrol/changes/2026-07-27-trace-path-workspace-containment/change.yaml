@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-27-trace-path-workspace-containment
+  title: Contain trace paths derived from CLI --id within the workspace
+  created_at: 2026-07-27T18:02:05.090Z
+  branch: codepatrol/2026-07-27-trace-path-workspace-containment
+  target_branch: main
+  base_commit: 134f46d94fdeb729092509b8646bb22b2de744c1
+events:
+  - id: 37989107-6414-4b77-bf67-f941e9f8e8fa
+    type: change-started
+    at: 2026-07-27T18:02:05.090Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
