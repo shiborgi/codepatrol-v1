@@ -99,3 +99,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 0db2140d-ebe8-417c-bf27-637ffa06ae4b
+    at: 2026-07-27T02:48:42.632Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-checkpointed
+    result: ready
+    checkpoint: e84920e9231ac7735d56acd0ca2b1570362faef7
+    tree: 45904f34cbc7813c7b15d0d7ce088a8ccbe828ac
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: eed0767628f99129e7e2d7727070dcdac743d813951d373b657829d83ff57c5c
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: b65f0b4c52723aa3cb192eb5ce4bdcdab6a2c8bd1f3a6a38eab270e23f605659
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: 5c9ba99fff13e3a991d1cea0bc42712bb885cb2d3c688de538cc382d1a930679
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
