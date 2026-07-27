@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 44c3aa3c-b1c3-440b-a32c-0fd6420f6f95
+    at: 2026-07-27T18:09:20.536Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: a800173b3554275d72eb0656b76f3f5c10776739
+    tree: 64a03a5846bb381fa7f97d1c1fe9594768dac75f
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/spec.md
+        sha256: a33e56bb398b47cb29a34f9ead7e5ecdbdec80a8cf939a1351fed739fb54d766
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/plan.md
+        sha256: 69eef31e0970213963c24f94fedd87d26e7ecbef9be1cc4f396cda068e242f4a
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/plan/evidence/investigation.md
+        sha256: 48d0e7f3c49f58b38bd94da0f04f59da38cd6fcb9c2952371ba099133f78a8ea
+        intent: create
+    next_action: codepatrol-review 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
