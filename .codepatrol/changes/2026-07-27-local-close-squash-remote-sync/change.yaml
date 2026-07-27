@@ -675,3 +675,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: f10b5e6a-54e9-432f-ad08-37a2f0c641ce
+    at: 2026-07-27T10:52:46.019Z
+    actor: openai/gpt-5.6-terra
+    stage: verify
+    attempt: 1
+    type: stage-returned
+    to_stage: apply
+    reason: "AC-10 fails: sync pruning compares short refs with refs/heads/codepatrol/, so an eligible terminal branch is never deleted. Add pruning, Change-branch target-resolution, and injected CLI sync coverage."
+    next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
