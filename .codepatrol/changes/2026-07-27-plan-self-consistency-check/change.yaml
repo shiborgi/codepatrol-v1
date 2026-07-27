@@ -176,3 +176,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 8692aa0b-109b-40b0-80cf-66aef78cf131
+    at: 2026-07-27T01:00:01.140Z
+    actor: antigravity
+    stage: apply
+    attempt: 2
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 255a27bd4ed3021fff67b66b0fd181584c96ff12
+    tree: 5500e1d4f850effb70541b93be90b6326be6271f
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-plan-self-consistency-check/apply/journal.md
+        sha256: 194e1c5892c140f17fae6c871d05b8972e7eac161b6003bfb6e3c161f3c9bdfe
+        intent: modify
+    changes: []
+    next_action: codepatrol-verify 2026-07-27-plan-self-consistency-check on codepatrol/2026-07-27-plan-self-consistency-check
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 24144
+      at: 2026-07-27T01:00:01.078Z
