@@ -601,3 +601,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 3f0c1add-987c-4a43-947c-5651b428755f
+    at: 2026-07-27T04:20:41.770Z
+    actor: minimax/MiniMax-M3
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-27T04:25:00Z
+      finished_at: 2026-07-27T04:25:02Z
+      elapsed_ms: 2000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
