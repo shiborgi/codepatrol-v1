@@ -246,3 +246,25 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 51269da7-0df0-40df-9b6a-d34853b8792f
+    at: 2026-07-27T02:01:19.753Z
+    actor: minimax/MiniMax-M3
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 36e1d28be2507d59a5beb853a490762186759669
+    tree: e98f3a820c90a379d41e0fed049f57c1200cdd03
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-checkpoint-delete-artifact-add-fix/apply/journal.md
+        sha256: c7d207a307ac4dd0daa40523790376f3bbc2b8275e0331802b5a624d29f42950
+        intent: create
+    changes:
+      - src/change/orchestrator.ts
+      - src/change/git.test.ts
+    next_action: codepatrol-verify 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 24020
+      at: 2026-07-27T02:01:19.694Z
