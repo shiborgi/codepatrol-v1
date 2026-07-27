@@ -290,3 +290,17 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 9f9164fd-4e0e-43f9-ab19-e0d8effb0eeb
+    at: 2026-07-27T19:46:58.974Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: f391c8791615d71692c35676871fc292ab4c6c7e
+    tree: 5491290b23dd2d151e16a5ea05ff18cf787e0c41
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-trace-path-workspace-containment/verify/report.md
+        sha256: fcb37a2199b8342d4cce168ea3691fb940faf148d735942697ee56217b7e4048
+        intent: create
+    next_action: codepatrol-close 2026-07-27-trace-path-workspace-containment commit|rollback on codepatrol/2026-07-27-trace-path-workspace-containment
