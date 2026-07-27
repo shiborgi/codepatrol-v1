@@ -78,3 +78,10 @@ events:
     to_stage: plan
     reason: "fix-first: T1 uses resolveInside(workspace, RUNTIME_DIR/traces/workId.jsonl), which enforces only workspace containment and accepts the Plan AC-1 input ../../escape-marker as .codepatrol/escape-marker.jsonl. Re-plan tracePath to prove containment relative to the traces root and correct plan/plan.md line 101 whitespace."
     next_action: "codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment: revise spec.md and plan.md for traces-subtree containment, retain both traversal red cases, and fix line 101 whitespace."
+  - id: f85bfd06-8e5e-4e3a-94cf-f7c182c79935
+    at: 2026-07-27T18:27:38.686Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment
