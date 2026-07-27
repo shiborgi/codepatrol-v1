@@ -289,3 +289,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: f8623e51-75da-4905-aa2f-72011118a0b3
+    at: 2026-07-27T02:05:58.852Z
+    actor: openai/gpt-5.6-terra
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: f989e6ba29e588601a8863b0b097720045a32aa7
+    tree: f4c1ec51364709d2ce6679de6212d78327f78362
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-checkpoint-delete-artifact-add-fix/verify/report.md
+        sha256: 81597997bc93722468224ec40dd0f13a6a91ae4f2c82afb583d39d3b3cd24e1e
+        intent: create
+    next_action: codepatrol-close 2026-07-27-checkpoint-delete-artifact-add-fix commit|rollback on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
