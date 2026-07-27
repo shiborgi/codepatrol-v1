@@ -1,0 +1,16 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-27-local-close-squash-remote-sync
+  title: Close squash-merges and retains the branch locally; new sync command owns every remote action
+  created_at: 2026-07-27T02:22:25.278Z
+  branch: codepatrol/2026-07-27-local-close-squash-remote-sync
+  target_branch: main
+  base_commit: 7380920aeb4dc067430afca1746af286006f793a
+events:
+  - id: f4c373ed-3388-4fed-92fc-87c7bd760aa1
+    type: change-started
+    at: 2026-07-27T02:22:25.278Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
