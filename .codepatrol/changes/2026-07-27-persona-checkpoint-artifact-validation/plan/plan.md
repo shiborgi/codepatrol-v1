@@ -18,9 +18,10 @@ of skipping the call outright for personas.
 
 ## Global constraints
 
-- `validateWorkspaceArtifacts`/`validateArtifactBindings`/`validateStageArtifacts`/`validateWithReader`
-  all gain the new parameter as `enforceCompleteness: boolean = true` (defaulted, so every existing
-  call site compiles and behaves identically without modification).
+- `validateWithReader`, `validateArtifactBindings`, and `validateStageArtifacts` (all three defined in
+  `src/change/validation.ts`) and `validateWorkspaceArtifacts` (defined separately in
+  `src/change/orchestrator.ts`) all gain the new parameter as `enforceCompleteness: boolean = true`
+  (defaulted, so every existing call site compiles and behaves identically without modification).
 - `validateStageArtifactsFromReader`/`validateArtifactBindingsFromReader` (the `FromReader` variants
   used by Verify's re-validation of already-accepted Plan/Review/Apply artifacts) are not modified at
   their call sites; they keep the default `true`.
@@ -44,7 +45,8 @@ of skipping the call outright for personas.
   allowance (DC-2, deferred), no separate persona-specific validator function.
 - Expected surface delta: modify four files (`src/change/validation.ts`, `src/change/orchestrator.ts`,
   `src/change/orchestrator-parallel.test.ts`, `src/change/change.test.ts`); one new optional, defaulted
-  parameter on two existing exported functions; no dependency, configuration, or durable schema change.
+  parameter threaded through four existing functions across the first two files; no dependency,
+  configuration, or durable schema change.
 
 ## Acceptance mapping
 
@@ -73,15 +75,15 @@ check be skipped independently of the per-binding ownership/hash checks.
 **Files:**
 
 - Modify: `src/change/validation.ts` — `validateWithReader`, `validateArtifactBindings`,
-  `validateStageArtifacts`, `validateWorkspaceArtifacts`
+  `validateStageArtifacts` (all three are defined in this file; `validateWorkspaceArtifacts` is a
+  separate, private helper defined in `orchestrator.ts` itself — its own signature change is T2's work)
 - Modify: `src/change/change.test.ts` — one direct characterization case for the new parameter
 
 **Interfaces:**
 
 - Changes: `validateWithReader(record, stage, bindings, reader, baseline?, enforceCompleteness = true)`;
   `validateArtifactBindings(workspace, record, stage, bindings, baseline?, enforceCompleteness = true)`;
-  `validateStageArtifacts(workspace, record, stage, bindings, baseline?, enforceCompleteness = true)`;
-  `validateWorkspaceArtifacts(git, workspace, record, stage, bindings, checkpoint?, signal?, enforceCompleteness = true)`
+  `validateStageArtifacts(workspace, record, stage, bindings, baseline?, enforceCompleteness = true)`
 - Preserves: `validateWithReader`'s per-binding checks (ownership prefix, hash match, baseline
   create/modify/delete consistency) run unconditionally regardless of `enforceCompleteness`;
   `validateStageArtifactsFromReader`/`validateArtifactBindingsFromReader` signatures and behavior
@@ -89,8 +91,8 @@ check be skipped independently of the per-binding ownership/hash checks.
 - Invariants/errors: `enforceCompleteness: false` skips only the "Undeclared durable artifact: ..."
   loop; every other error message and `CHANGE_DRIFT` throw shape is unchanged
 
-**Simplicity proof:** One new defaulted parameter threaded through four existing functions; the
-completeness loop is wrapped in one `if`. No new function, no new error taxonomy.
+**Simplicity proof:** One new defaulted parameter threaded through three existing functions, all in
+one file; the completeness loop is wrapped in one `if`. No new function, no new error taxonomy.
 
 **Surface delta:** Two modified files; no dependency change.
 
@@ -119,18 +121,20 @@ completeness loop is wrapped in one `if`. No new function, no new error taxonomy
    Expected red: the `enforceCompleteness: false` call fails (the function does not yet accept a sixth
    parameter, or ignores it and still reports the completeness error). A TypeScript compile error
    naming the extra argument is an acceptable form of this red signal.
-3. In `validation.ts`, add the parameter to all four functions listed under Interfaces above, wrap the
+3. In `validation.ts`, add the parameter to all three functions listed under Interfaces above, wrap the
    completeness loop (`validateWithReader`'s current final line) in `if (enforceCompleteness) { ... }`,
-   and thread the parameter through each call in the chain
-   (`validateArtifactBindings` → `validateWithReader`; `validateStageArtifacts` → `validateArtifactBindings`;
-   `validateWorkspaceArtifacts` → `validateStageArtifacts`). Leave
+   and thread the parameter through each call in the chain (`validateArtifactBindings` →
+   `validateWithReader`; `validateStageArtifacts` → `validateArtifactBindings`). Leave
    `validateArtifactBindingsFromReader`/`validateStageArtifactsFromReader` and their call to
    `validateWithReader` unchanged (they omit the new argument, so it defaults to `true`).
 4. Run `node --test --import jiti/register src/change/change.test.ts`.
    Expected green: both new assertions and all pre-existing `change.test.ts` cases pass.
 5. Run `npm run typecheck`.
-   Expected: passes; no existing caller of any of the four functions is broken by the new optional
-   parameter.
+   Expected: passes; no existing caller of any of the three functions is broken by the new optional
+   parameter. `orchestrator.ts`'s `validateWorkspaceArtifacts` still calls `validateStageArtifacts`
+   with its old two-argument-plus-baseline shape at this point — T2 updates that call site — so this
+   typecheck is expected to still pass because the new parameter is optional/defaulted, not because
+   T2's change has happened yet.
 
 **Task result:** Record the red completeness/hash-drift assertions, green output, and changed paths in
 `apply/journal.md`.
@@ -144,24 +148,30 @@ reproduced exploits are refused while the existing multi-persona workflow is una
 
 **Files:**
 
-- Modify: `src/change/orchestrator.ts` — `buildCheckpointEvent`'s validation call
+- Modify: `src/change/orchestrator.ts` — `validateWorkspaceArtifacts`'s own signature (this function is
+  defined in `orchestrator.ts`, not `validation.ts`), and `buildCheckpointEvent`'s validation call site
 - Modify: `src/change/orchestrator-parallel.test.ts` — exploit and regression cases
 
 **Interfaces:**
 
-- Consumes: `validateWorkspaceArtifacts`'s new `enforceCompleteness` parameter from T1
-- Preserves: `buildCheckpointEvent`'s signature, the `missing[]` required-artifact check, the
+- Changes: `validateWorkspaceArtifacts(git, workspace, record, stage, bindings, checkpoint?, signal?,
+  enforceCompleteness = true)`, threading the new parameter into its internal
+  `validateStageArtifacts(...)` call
+- Consumes: `validateStageArtifacts`'s new `enforceCompleteness` parameter from T1
+- Preserves: `buildCheckpointEvent`'s own signature, the `missing[]` required-artifact check, the
   "undeclared worktree paths" check, both production-delta checks, and the commit-staging logic —
   none of these change
 - Invariants/errors: a persona checkpoint declaring a path outside its stage's own directory, or a
   wrong `sha256` for any declared path, now throws `CodepatrolError` with code `CHANGE_DRIFT` before
   any commit is created for that content
 
-**Simplicity proof:** One line changed (the guarded call becomes unconditional with one new argument).
-No new branch, no new persona-detection logic beyond the existing `personaCheckpoint` boolean already
-computed on the line above.
+**Simplicity proof:** One new defaulted parameter on `validateWorkspaceArtifacts`, threaded one level
+deeper into its existing `validateStageArtifacts` call, plus the guarded call in `buildCheckpointEvent`
+becoming unconditional with one new argument. No new branch, no new persona-detection logic beyond the
+existing `personaCheckpoint` boolean already computed on the line above.
 
-**Surface delta:** One production file modified by one line; one test file extended.
+**Surface delta:** One production file modified (one new parameter plus one call-site change); one test
+file extended.
 
 **Steps:**
 
@@ -194,10 +204,14 @@ computed on the line above.
    because the promise fulfills instead of rejecting. The legitimate-artifact case and the file's
    pre-existing tests are expected to already pass (characterization of current correct behavior, not
    a red signal for this task).
-3. In `orchestrator.ts`, change line 264 from
-   `if (!personaCheckpoint) await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal);`
-   to
-   `await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal, !personaCheckpoint);`
+3. In `orchestrator.ts`:
+   - Add `enforceCompleteness: boolean = true` as a new trailing parameter to `validateWorkspaceArtifacts`
+     (`orchestrator.ts:118`), and pass it through its internal call:
+     `validateStageArtifacts(workspace, record, stage, bindings, baseline, enforceCompleteness)`.
+   - Change line 264 (`buildCheckpointEvent`) from
+     `if (!personaCheckpoint) await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal);`
+     to
+     `await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal, !personaCheckpoint);`
 4. Run `node --test --import jiti/register src/change/orchestrator-parallel.test.ts`.
    Expected green: all new cases pass, and both of the file's pre-existing tests (the two-persona
    consolidation workflow, and the divergence/return workflow) continue to pass unmodified.
