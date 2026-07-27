@@ -424,3 +424,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 3cd0b865-8239-444f-b82a-9840bc173ff6
+    at: 2026-07-27T03:32:02.853Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 6
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: target resolution must accept shared target branches and test normal main use with multiple Change records."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
