@@ -140,3 +140,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 3961832d-e3d6-41ad-8405-8f003074bc86
+    at: 2026-07-27T02:53:06.541Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 2
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: Plan both forbids and requires sync --prune-closed, and leaves the sync target/branches/issues selector flags and defaults undecided; define one executable CLI contract."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
