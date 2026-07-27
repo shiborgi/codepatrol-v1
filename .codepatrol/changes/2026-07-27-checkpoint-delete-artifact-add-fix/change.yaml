@@ -310,3 +310,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-close 2026-07-27-checkpoint-delete-artifact-add-fix commit+push on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
+  - id: ccb2da32-6494-4e78-8086-000e2f00c6a7
+    at: 2026-07-27T02:09:17.339Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-1
+      started_at: 2026-07-27T02:08:57Z
+      finished_at: 2026-07-27T02:09:09Z
+      elapsed_ms: 12000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
