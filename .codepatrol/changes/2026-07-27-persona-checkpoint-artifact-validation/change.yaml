@@ -277,3 +277,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Verify candidate a0aaad2ccdc50bd6d755870117ca94acb5c0d13f for 2026-07-27-persona-checkpoint-artifact-validation
+  - id: 454f4980-4576-4dd0-b688-2717e4a10cc2
+    at: 2026-07-27T21:23:45.185Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-opencode-1
+      started_at: 2026-07-27T21:21:51.000Z
+      finished_at: 2026-07-27T21:23:30.000Z
+      elapsed_ms: 99000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
