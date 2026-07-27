@@ -728,3 +728,10 @@ events:
       exit_code: 0
       elapsed_ms: 27027
       at: 2026-07-27T12:42:26.012Z
+  - id: 53466f35-6f11-4f49-ab4d-4e1aa01b5d56
+    at: 2026-07-27T14:23:09.328Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-verify 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
