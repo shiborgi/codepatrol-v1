@@ -140,3 +140,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 2936df1f-6772-425c-a443-f5cc96feed8a
+    at: 2026-07-27T00:02:13.743Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 2
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: T1/T2's outer ```markdown wrapper around nested same-length ```json fences self-terminates early under CommonMark (a bare closing ``` line closes the length-3 outer fence at the first inner example, not at the intended end), shipping broken/garbled Markdown in skills/_shared/CODEPATROL-CLI.md -- contradicts the real session.json precedent (no wrapper, verified by direct read of lines 23-38) and is uncaught by AC-4 (lint:skills checks catalog/frontmatter/links only) or AC-5 (field-text presence only, not render structure). Both of attempt 1's findings are confirmed genuinely fixed; design unaffected. Fix: remove the outer wrapper in T1 and T2, present prose/table/JSON examples flat at top level matching session.json's real structure; also reconcile spec.md's stale ~70 vs ~90 line-count inconsistency (minor). See review/report.md."
+    next_action: codepatrol-plan 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
