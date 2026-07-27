@@ -163,6 +163,19 @@ both independently re-verified against current source before correcting:
    `persona`/`reasons`, rather than trying to cram every optional field
    into a single misleading combined example.
 
+3. **Fence structure**: attempt 2's Plan displayed the target prose, field
+   table, and same-length JSON fences inside an outer ` ```markdown ` fence.
+   Under CommonMark, the first bare ` ``` ` intended to close a JSON example
+   closes that outer fence instead, leaving the remaining text structurally
+   broken. Review independently compared the task's literal block with the
+   real top-level `session.json` prose-plus-JSON pattern and returned it
+   `fix-first`. The corrected Plan presents target content as top-level
+   Markdown and adds a structural check that rejects ` ```markdown ` and
+   requires eight independently balanced JSON fences in the inserted section.
+4. **Line-count forecast**: attempt 2's field table and extra apply
+   checkpoint example raised the expected addition to ~90 lines, while the
+   Risks section still said ~70. The specification now uses ~90 consistently.
+
 ## Constraint
 
 `skills/_shared/CODEPATROL-CLI.md` is documentation only, not executable —

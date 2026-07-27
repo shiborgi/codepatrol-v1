@@ -132,7 +132,7 @@ current source exactly.
   `session.json`'s existing example, which has this same property today).
 - Risk: over-documenting turns a quick-reference file into a wall of text
   that harnesses stop reading. Mitigation: each example stays minimal
-  (field-complete, no narrative padding); total addition (~70 lines) roughly
+  (field-complete, no narrative padding); total addition (~90 lines) roughly
   doubles the file's length once, matching the proportional size of the
   `session.json` addition relative to this file's pre-existing length.
 
