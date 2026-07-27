@@ -8,7 +8,7 @@ const root = resolve(import.meta.dirname, "..", "skills");
 const shared = join(root, "_shared");
 const lifecycle = ["codepatrol-plan", "codepatrol-review", "codepatrol-apply", "codepatrol-verify", "codepatrol-close"];
 const primaries = [...lifecycle, "codepatrol-status"];
-const support = ["assess-change", "codebase-design", "codepatrol-git", "diagnose-bug", "domain-modeling", "execute-change", "grilling", "research-technology", "solution-simplification", "verification-strategy", "writing-plans"];
+const support = ["assess-change", "codebase-design", "codepatrol-sync", "diagnose-bug", "domain-modeling", "execute-change", "grilling", "research-technology", "solution-simplification", "verification-strategy", "writing-plans"];
 const catalog = parseYaml(readFileSync(join(root, "catalog.yaml"), "utf8"));
 function skill(name) { return readFileSync(join(root, name, "SKILL.md"), "utf8"); }
 
@@ -44,7 +44,7 @@ test("each lifecycle skill owns one stage, records metrics, checkpoints, and sto
 		assert.match(text, /STAGE-IO\.md/);
 	}
 	assert.match(skill("codepatrol-plan"), /backlog/);
-	assert.match(skill("codepatrol-close"), /commit\+push/);
+	assert.match(skill("codepatrol-close"), /`commit` or `rollback`/);
 });
 
 test("Close is authority-bound, recoverable, local-only, and clean", () => {

@@ -10,6 +10,7 @@ codepatrol change transition --id <work-id> --input transition.json --workspace 
 codepatrol change session --id <work-id> --input session.json --workspace "$PWD" --format json
 codepatrol change doctor --id <work-id> --workspace "$PWD" --format json
 codepatrol change close --id <work-id> --input close.json --workspace "$PWD" --format json
+codepatrol sync [--target-branch <name>] [--dry-run] --workspace "$PWD" --format json
 node --import jiti/register scripts/render-kanban.mjs --workspace "$PWD" --format markdown
 
 codepatrol graph sync --workspace "$PWD" --format json
@@ -92,13 +93,12 @@ individual reason string — it is not set on a single-persona return.
 `toStage` is only `plan`/`apply`.
 
 `close.json` for `change close` carries exactly `outcome`
-(`"commit"|"rollback"`), `actor`, `authority` (a free-text justification
-for the action, not a fixed enum), and optional `push` (only meaningful
-when `outcome: "commit"`; opts into `git push origin <target>` after a
-successful fast-forward):
+(`"commit"|"rollback"`), `actor`, and `authority` (a free-text justification
+for the action, not a fixed enum); Close is fully local — no `push` field,
+no remote action:
 
 ```json
-{ "outcome": "commit", "actor": "claude-sonnet-5", "authority": "User selected commit+push via AskUserQuestion for <work-id>; Verify checkpointed candidate <sha> with result commit.", "push": true }
+{ "outcome": "commit", "actor": "claude-sonnet-5", "authority": "User selected commit via AskUserQuestion for <work-id>; ran `codepatrol sync --target` afterward to push." }
 ```
 
 Lifecycle commands require an explicit work id; none select by recency. All

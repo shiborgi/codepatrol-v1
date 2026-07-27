@@ -8,7 +8,7 @@ When a lifecycle skill begins, it should use the `next` command to retrieve its 
 ```bash
 codepatrol next --stage <stage>
 ```
-Depending on the stage, the command provides specific affordances (e.g. Plan may indicate how to start a new change; Close will output `commit`, `commit+push`, `rollback`).
+Depending on the stage, the command provides specific affordances (e.g. Plan may indicate how to start a new change; Close will output `commit`, `rollback`).
 
 ## Exit
 

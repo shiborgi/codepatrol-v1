@@ -1,6 +1,7 @@
 import type { ChangeView, Stage } from "../change/types.js";
 import type { BacklogItem } from "../change/backlog.js";
 import type { IssueSyncResult } from "../change/issue-sync.js";
+import type { RemoteSyncResult } from "../change/sync.js";
 import type { GraphImpactData, GraphNeighborsData, GraphOverviewData, OutlineFile } from "../graph/service.js";
 import type { GraphNode } from "../graph/model.js";
 import { formatTable, mermaidModuleMap } from "../graph/render.js";
@@ -52,6 +53,7 @@ Change lifecycle commands:
 
 Issue sync commands:
   issues sync [--direction pull|push|both] [--dry-run]
+  sync [--target-branch <name>] [--target] [--branches] [--issues] [--prune-closed] [--dry-run] [--direction pull|push|both]
 
 Graph commands:
   graph sync [--force]
@@ -159,7 +161,7 @@ export function renderNext(stage: Stage | undefined, changes: ChangeView[], back
 		lines.push("", "To start a new change:", "codepatrol change start --input -");
 	}
 	if (stage === "close") {
-		lines.push("", "Close options: commit, commit+push, rollback");
+		lines.push("", "Close options: commit, rollback");
 	}
 	return lines.join("\n");
 }
@@ -184,6 +186,17 @@ export function renderIssueSyncResult(result: IssueSyncResult): string {
 	lines.push(`Push: ${push.created.length} created, ${push.closed.length} closed.`);
 	if (push.created.length) lines.push(`  created: ${push.created.join(", ")}`);
 	if (push.closed.length) lines.push(`  closed: ${push.closed.join(", ")}`);
+	if (result.dryRun) lines.push("(dry run)");
+	return lines.join("\n");
+}
+
+export function renderRemoteSyncResult(result: RemoteSyncResult): string {
+	const lines: string[] = [];
+	lines.push(`Pushed: ${result.pushedRefs.length} refs; pruned: ${result.prunedBranches.length}; failures: ${result.failures.length}.`);
+	if (result.pushedRefs.length) lines.push(`  pushed: ${result.pushedRefs.join(", ")}`);
+	if (result.prunedBranches.length) lines.push(`  pruned: ${result.prunedBranches.join(", ")}`);
+	if (result.failures.length) lines.push(`  failures: ${result.failures.map((f) => `${f.ref} (${f.code})`).join(", ")}`);
+	if (result.issues) lines.push(`Issues: ${result.issues.dryRun ? "(dry run) " : ""}pulled ${result.issues.pulled.created.length + result.issues.pulled.reopened.length + result.issues.pulled.dismissed.length}; pushed ${result.issues.pushed.created.length + result.issues.pushed.closed.length}.`);
 	if (result.dryRun) lines.push("(dry run)");
 	return lines.join("\n");
 }

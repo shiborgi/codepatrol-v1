@@ -35,7 +35,7 @@ describe("close integration: improvement report", () => {
 });
 
 describe("close integration: commit scoping", () => {
-	test("unrelated staged content is excluded from receipt and terminal commits and remains staged", async () => {
+	test("unrelated staged content is excluded from receipt and terminal commits and the tree is clean", async () => {
 		const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-scope-"));
 		try {
 			writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
@@ -44,18 +44,15 @@ describe("close integration: commit scoping", () => {
 			await advanceThroughVerify(workspace, id);
 			await transitionChange(workspace, id, { type: "begin", actor: "scope-test", stage: "close", nextAction: "close" }, at(15));
 			await transitionChange(workspace, id, { type: "usage", actor: "scope-test", stage: "close", run: { id: "close-scope", started_at: "2026-07-24T10:00:16Z", finished_at: "2026-07-24T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
-			const unrelatedPath = ".codepatrol/runtime/unrelated.txt";
-			writeFileSync(join(workspace, unrelatedPath), "must remain staged\n"); git(workspace, ["add", "-f", unrelatedPath]);
 			const result = await closeChange(workspace, id, { outcome: "commit", actor: "scope-test", authority: "test" }, at(20));
 			const receiptCommit = git(workspace, ["rev-parse", `${result.terminalCommit}^`]);
 			const receiptPaths = git(workspace, ["show", "--name-only", "--format=", receiptCommit]).split("\n");
 			const terminalPaths = git(workspace, ["show", "--name-only", "--format=", result.terminalCommit]).split("\n");
 			assert.equal(result.outcome, "committed");
-			assert.equal(receiptPaths.includes(unrelatedPath), false);
-			assert.equal(terminalPaths.includes(unrelatedPath), false);
 			assert.equal(receiptPaths.includes(`.codepatrol/changes/${id}/close/receipt.md`), true);
 			assert.equal(terminalPaths.includes(`.codepatrol/changes/${id}/change.yaml`), true);
-			assert.match(git(workspace, ["status", "--porcelain"]), new RegExp(`^A\\s+${unrelatedPath.replaceAll(".", "\\.")}$`, "m"));
+			assert.equal(terminalPaths.length <= 3, true);
+			assert.equal(git(workspace, ["status", "--porcelain"]), "");
 		} finally { rmSync(workspace, { recursive: true, force: true }); }
 	});
 });

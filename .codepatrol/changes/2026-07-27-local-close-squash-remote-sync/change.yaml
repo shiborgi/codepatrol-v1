@@ -1,0 +1,796 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-27-local-close-squash-remote-sync
+  title: Close squash-merges and retains the branch locally; new sync command owns every remote action
+  created_at: 2026-07-27T02:22:25.278Z
+  branch: codepatrol/2026-07-27-local-close-squash-remote-sync
+  target_branch: main
+  base_commit: 7380920aeb4dc067430afca1746af286006f793a
+events:
+  - id: f4c373ed-3388-4fed-92fc-87c7bd760aa1
+    type: change-started
+    at: 2026-07-27T02:22:25.278Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 62df6bd1-e95f-405b-bc2b-e909aaa51c29
+    at: 2026-07-27T02:29:15.479Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-1
+      started_at: 2026-07-27T02:17:27Z
+      finished_at: 2026-07-27T02:29:08Z
+      elapsed_ms: 701000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 0dfd3b4e-9902-47d6-8e1c-8e1be814c5c7
+    at: 2026-07-27T02:29:23.333Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 6875da2e2347dc065956979b680e4bd658c040b0
+    tree: 4252d59110fb395fdbff48fb9cb405d898d4af78
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: a15e2f8d6edeb7fd828290ebd1421bddc219fe47067758ae80e2895cef80df73
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: 94d74f844e3a9aac7e78e13ca61eac71dc959db16177765fe5ae40a40e123368
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: 1179342eeb8c3dd30e5f227245bdd10bfc0a033f433aa8093f7330a796f33e30
+        intent: create
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 8f3716ba-909c-4dfc-826c-fa622bda70dc
+    at: 2026-07-27T02:36:10.135Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: c352709d-41ef-4dd6-8532-da873de7322b
+    at: 2026-07-27T02:40:31.805Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-1
+      started_at: 2026-07-27T02:36:00Z
+      finished_at: 2026-07-27T02:40:21Z
+      elapsed_ms: 261000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 5fe99955-1840-4958-a502-f79815bc7c13
+    at: 2026-07-27T02:40:46.276Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: (major) T2 step 2 keeps closeWork's `else if (checkedOutHead !== terminalCommit) throw TARGET_ADVANCED` guard, which is correct for fast-forward but wrong for squash -- after a squash the target head is neither base_commit nor terminalCommit, so a recovery re-run throws TARGET_ADVANCED, the exact outcome the instruction's own rationale claims to prevent. Verified by simulation; T2 step 3 already applies the correct tree-equality fix to completeFinalization, so the plan contradicts itself. No AC covers Close re-entrancy, and the shipped test git.test.ts:266 already exercises that re-run path. (major) T3 omits three assertion updates that same test requires: FailAfterMergeGit overrides mergeFf which closeWork no longer calls, the `HEAD === terminalCommit` assertion is false under squash, and the branch-deleted equality assertion must be inverted; T3's predicted 219 count cannot hold. (minor) spec Outcome justifies branch retention as a lineage anchor while evidence section 3 states the tag alone already suffices -- Alternatives reveals the real purpose is checkout-ability, and DC-1's cost/benefit is unassessable until that is stated. Design, scope and DC-2/DC-3 are sound; corrections are mechanical and confined to T2, T3 and two spec sections. See review/report.md, whose Residual concerns also record the verified constraint for the user's newly stated local-branch-deletion requirement."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 13882ef5-4323-489b-a998-d2bf5ebef609
+    at: 2026-07-27T02:43:18.713Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: c8de43f9-3d0f-4013-b791-8a61670abdc7
+    at: 2026-07-27T02:48:31.874Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-2
+      started_at: 2026-07-27T02:42:24Z
+      finished_at: 2026-07-27T02:51:10Z
+      elapsed_ms: 526000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 0db2140d-ebe8-417c-bf27-637ffa06ae4b
+    at: 2026-07-27T02:48:42.632Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-checkpointed
+    result: ready
+    checkpoint: e84920e9231ac7735d56acd0ca2b1570362faef7
+    tree: 45904f34cbc7813c7b15d0d7ce088a8ccbe828ac
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: eed0767628f99129e7e2d7727070dcdac743d813951d373b657829d83ff57c5c
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: b65f0b4c52723aa3cb192eb5ce4bdcdab6a2c8bd1f3a6a38eab270e23f605659
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: 5c9ba99fff13e3a991d1cea0bc42712bb885cb2d3c688de538cc382d1a930679
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 070a7c6a-2f50-47d6-99b1-28a401f8a413
+    at: 2026-07-27T02:50:15.311Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 6bbca700-e0f5-46fc-b2c8-41af53d58634
+    at: 2026-07-27T02:52:44.259Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 2
+    type: run-recorded
+    run:
+      id: review-2
+      started_at: 2026-07-27T02:50:15.311Z
+      finished_at: 2026-07-27T02:52:29.000Z
+      elapsed_ms: 133689
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 3961832d-e3d6-41ad-8405-8f003074bc86
+    at: 2026-07-27T02:53:06.541Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 2
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: Plan both forbids and requires sync --prune-closed, and leaves the sync target/branches/issues selector flags and defaults undecided; define one executable CLI contract."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 9ecffe16-02ff-4537-bc50-84b0ec0685c2
+    at: 2026-07-27T02:55:04.562Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 4cd17f95-df12-4efd-934c-5565a879e5e4
+    at: 2026-07-27T02:58:43.348Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: run-recorded
+    run:
+      id: plan-3
+      started_at: 2026-07-27T02:54:55Z
+      finished_at: 2026-07-27T02:58:35Z
+      elapsed_ms: 220000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 9b1e2ba4-9835-4edf-8654-ca73b0d4162c
+    at: 2026-07-27T02:58:51.303Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 890cbbd1e12fd4398bc2f9e6d6c9e6bd2e133eda
+    tree: 0a4e284bd624568b79c3390a0a71b9d9d52f422a
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: eed0767628f99129e7e2d7727070dcdac743d813951d373b657829d83ff57c5c
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: 9b08bf2e5630b673f9486df10157f03c49726f951fe0c66a6cfc49ec8c44b875
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: e84bb41d0cd97f9e8cfdb14ef8c1f805ef2ce341476e3749120b062c71f94123
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 50aaa93b-7612-4fb4-897b-75c1f3c5a618
+    at: 2026-07-27T02:59:51.969Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 3
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: eb359d6a-71e7-41b9-ae46-6869e84afda4
+    at: 2026-07-27T03:01:45.047Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 3
+    type: run-recorded
+    run:
+      id: review-3
+      started_at: 2026-07-27T02:59:51.969Z
+      finished_at: 2026-07-27T03:01:26.000Z
+      elapsed_ms: 94031
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: ede38951-2059-464b-8290-85210a0e2aa8
+    at: 2026-07-27T03:02:04.838Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 3
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: AC-6 promises zero remote calls for sync --dry-run, but the required unchanged syncIssues delegation always performs gh availability/list reads; choose and test one compatible contract."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 7ffc8e65-e118-4f01-8e58-90d221e3bc86
+    at: 2026-07-27T03:03:57.819Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 4
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: a504b39a-7e85-4dcc-8651-31ec563a4308
+    at: 2026-07-27T03:06:30.805Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 4
+    type: run-recorded
+    run:
+      id: plan-4
+      started_at: 2026-07-27T03:03:48Z
+      finished_at: 2026-07-27T03:06:22Z
+      elapsed_ms: 154000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 566b4417-ccd4-4c2d-bf96-cd93aac01a07
+    at: 2026-07-27T03:06:43.305Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 4
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 35d3e31fbb0eb622ee6113474cb4fde48929be1e
+    tree: 8a00bf9d8c6e8908644ad512db8dd49e994f7cef
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: d05eca0fd78a9a1e6f5d75e3a0a76d5017d904374906db53e14ef5f0f5f7c8c6
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: 62cfe3b3d94198a4101122718c18d491bec8acfe25f7668788d421cf8d6ff4b8
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: 182c31d7846e3401df2fe6a3cf57a818781b18766151b511a023a770ff0aeabf
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: a9625c2f-cb39-4929-afe1-c0bec5894cf7
+    at: 2026-07-27T03:07:42.220Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 4
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: c3d67130-91ef-4f67-953e-3024e1644fe4
+    at: 2026-07-27T03:11:30.245Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 4
+    type: run-recorded
+    run:
+      id: review-4
+      started_at: 2026-07-27T03:07:42.220Z
+      finished_at: 2026-07-27T03:11:19.000Z
+      elapsed_ms: 216780
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 49b72f8d-de5e-4154-b7c4-e37d024995c0
+    at: 2026-07-27T03:11:40.442Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 4
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: remove stale commit+push Close affordances and add/wire the GitAdapter override required for deterministic sync CLI tests."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 60e5df00-106b-421d-8715-2cbb354d3fec
+    at: 2026-07-27T03:14:06.247Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 5
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 8ab67b95-5290-4546-a009-b549a384cd3a
+    at: 2026-07-27T03:18:54.966Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 5
+    type: run-recorded
+    run:
+      id: plan-5
+      started_at: 2026-07-27T03:13:52Z
+      finished_at: 2026-07-27T03:18:45Z
+      elapsed_ms: 293000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: aa0e36d6-e10a-4bf8-bbc2-0b69bc2b2d4c
+    at: 2026-07-27T03:19:05.117Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 5
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 5a2d484dde07c96e876cab4f2709d6a6e61f4e16
+    tree: d70468ae1012dce680abb71a420dae86fdf48d38
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: 769d9bf23e6d10b37c7ca922165ea1b9e2e6add46e5e9269b06fed76ae8503c5
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: d8703448421c273f680f6c5cdfdd302139239b47b98bac4c95fe64a7966d34eb
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: bc4a6dc26e7460c7b3ea66a81b152f164ca33097a6caccdeff51b577dcf28f71
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 1171e85c-7aef-4418-9b2c-d9606c46a598
+    at: 2026-07-27T03:20:02.699Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 5
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: ca0861b0-6ba7-4ddd-adb5-fb0ca2402a44
+    at: 2026-07-27T03:22:06.006Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 5
+    type: run-recorded
+    run:
+      id: review-5
+      started_at: 2026-07-27T03:20:02.699Z
+      finished_at: 2026-07-27T03:21:57.000Z
+      elapsed_ms: 114301
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 9fe60370-f64c-4e81-b43c-e07b4a5c6196
+    at: 2026-07-27T03:22:16.761Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 5
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: define deterministic target selection for sync --target and test each supported invocation context."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: e439c53a-a178-4a4b-9939-f9607e79921b
+    at: 2026-07-27T03:24:45.506Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 6
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 49eb1e87-5701-4466-be51-119a71a08ac6
+    at: 2026-07-27T03:29:12.952Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 6
+    type: run-recorded
+    run:
+      id: plan-6
+      started_at: 2026-07-27T03:24:35Z
+      finished_at: 2026-07-27T03:29:03Z
+      elapsed_ms: 268000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: c40ef48e-4991-448b-b3e9-61d0054737b1
+    at: 2026-07-27T03:29:24.623Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 6
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 10236b6926c70d2dd7cfbce3a82e81111de7b617
+    tree: 174dbd392152b45cd3bad85cdea4602040377b12
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: f825028ff2b4de0e8867fa5f9a239763cc7f26c3b7d995bb17b17f839b8bb703
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: 8278fa372162463719dc3ea537948d1230dc15a483608ca7ba240204da2aa66e
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: 1faa47c5d17be6f541bc637ebc9dda93565bbfdb12dd4f60b8d472a9d2ef8d15
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 776b7fb0-c85b-4f4e-b2c4-87a6f288246d
+    at: 2026-07-27T03:30:24.073Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 6
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 51b416a2-a147-4843-8d5a-d00465b7a413
+    at: 2026-07-27T03:32:02.478Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 6
+    type: run-recorded
+    run:
+      id: review-6
+      started_at: 2026-07-27T03:30:24.073Z
+      finished_at: 2026-07-27T03:31:46.000Z
+      elapsed_ms: 81927
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 3cd0b865-8239-444f-b82a-9840bc173ff6
+    at: 2026-07-27T03:32:02.853Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 6
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: target resolution must accept shared target branches and test normal main use with multiple Change records."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: ca1e3cff-9329-4e5f-91e9-cee58a197704
+    at: 2026-07-27T03:33:21.925Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 7
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 7ffe4f80-dd3f-41d4-a653-f0b936dac425
+    at: 2026-07-27T03:35:35.799Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 7
+    type: run-recorded
+    run:
+      id: plan-7
+      started_at: 2026-07-27T03:33:13Z
+      finished_at: 2026-07-27T03:35:27Z
+      elapsed_ms: 134000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: f346502d-ecce-4c01-8a76-2e8a1d816fca
+    at: 2026-07-27T03:35:46.132Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 7
+    type: stage-checkpointed
+    result: ready
+    checkpoint: aa5d524b5691118d2c14a83e9719f35a23d81d84
+    tree: 7e6f0fe145f0eb5b94f1bd9e09b2234b6b63b364
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: f825028ff2b4de0e8867fa5f9a239763cc7f26c3b7d995bb17b17f839b8bb703
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: 11bc65406ad71b3b6f5a84955942e7026102334e1d6335ad9850c3cf1db2f880
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: e4d4e3a0ae2dd7d54bd152d69d18ccdf957de6eb90d7228ceb53ab16898e2288
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 0902c6b5-7462-4f1d-b306-004041347102
+    at: 2026-07-27T03:36:53.513Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 7
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 06d4047e-ced0-4e18-a7ad-534dd3c22d29
+    at: 2026-07-27T03:38:20.715Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 7
+    type: run-recorded
+    run:
+      id: review-7
+      started_at: 2026-07-27T03:36:53.533Z
+      finished_at: 2026-07-27T03:38:07.000Z
+      elapsed_ms: 73467
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 13f60eda-7e49-4234-aee1-545c52b56b5e
+    at: 2026-07-27T03:38:21.127Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 7
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: validate --target-branch as a safe branch name and reject refspec/deletion syntax before git.push."
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: ed20ea9f-049c-4a8e-b635-1dba498351a8
+    at: 2026-07-27T03:39:29.673Z
+    actor: openai/gpt-5.6-terra
+    stage: plan
+    attempt: 8
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 1c0e3887-c7c2-4dec-bd2f-2138699b5a76
+    at: 2026-07-27T03:42:39.706Z
+    actor: openai/gpt-5.6-terra
+    stage: plan
+    attempt: 8
+    type: run-recorded
+    run:
+      id: plan-8
+      started_at: 2026-07-27T03:39:29.673Z
+      finished_at: 2026-07-27T03:42:14.000Z
+      elapsed_ms: 164327
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: a2466c4f-e1e1-4546-94fb-5967d365ebeb
+    at: 2026-07-27T03:49:19.050Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 8
+    type: run-recorded
+    run:
+      id: plan-8b
+      started_at: 2026-07-27T03:44:00Z
+      finished_at: 2026-07-27T03:49:05Z
+      elapsed_ms: 305000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 9d72bb74-2218-46de-a94e-086267966ada
+    at: 2026-07-27T03:49:50.703Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 8
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 2cb5c39841ac280da857ec768d6d078c896771e7
+    tree: e5e2f61313b995d06a6b35129cab953d1339d815
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/spec.md
+        sha256: 9474613fa5ae19e94954c1a674d37c42db0d5852d5cd69b763107df5366b143f
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/plan.md
+        sha256: c6c5b7ef9fa1f0eb2a6556f26cd3f918391840632aa4f13d59541219a0c4485f
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/plan/evidence/investigation.md
+        sha256: 43cf633a9279b3130d5a145bc876ea39e54ac80be3d35e73df23fc1747c7ec03
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 4e994624-c84e-46df-86f2-d53ea1e1bdbf
+    at: 2026-07-27T03:50:52.010Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 8
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 95face49-15c1-45ac-b55d-f3e9ad4a01a4
+    at: 2026-07-27T03:52:13.518Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 8
+    type: run-recorded
+    run:
+      id: review-8
+      started_at: 2026-07-27T03:50:52.010Z
+      finished_at: 2026-07-27T03:51:51.000Z
+      elapsed_ms: 58990
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 24a8d816-1e2a-41e7-b1c6-ea8f0fca2052
+    at: 2026-07-27T03:52:14.038Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 8
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 37954933af3b1c5b772e12f0b154df03fc74c9d4
+    tree: a86bd4181aad3bc0f004f801b390775148062d97
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/review/report.md
+        sha256: 03ece51078879e9105dc9066a092d5d89a00825808bbcfb9476c68b404772e61
+        intent: create
+    next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: bb42bee0-fc03-4dba-a916-29f029b27d82
+    at: 2026-07-27T03:54:33.499Z
+    actor: minimax/MiniMax-M3
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 3f0c1add-987c-4a43-947c-5651b428755f
+    at: 2026-07-27T04:20:41.770Z
+    actor: minimax/MiniMax-M3
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-27T04:25:00Z
+      finished_at: 2026-07-27T04:25:02Z
+      elapsed_ms: 2000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: cfafd945-3585-43d7-9df7-290134991a91
+    at: 2026-07-27T04:21:30.876Z
+    actor: minimax/MiniMax-M3
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: d50b1170ca3d6a5b826c7ff2b90b8245f5398e93
+    tree: e13b437a573305b058dd77c872e84879d840105c
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/apply/journal.md
+        sha256: 663e5c9a83328623c5ace5dc0009bab5249154c839e4fc2150d849e02c76631c
+        intent: create
+    changes:
+      - src/change/git.ts
+      - src/change/orchestrator.ts
+      - src/change/types.ts
+      - src/change/sync.ts
+      - src/change/git.test.ts
+      - src/change/close-push.test.ts
+      - src/change/close-integration.test.ts
+      - src/change/sync.test.ts
+      - src/cli/args.ts
+      - src/cli/commands.ts
+      - src/cli/output.ts
+      - src/cli/cli.test.ts
+      - scripts/skills-contract.test.mjs
+      - skills/codepatrol-sync/SKILL.md
+      - skills/codepatrol-close/SKILL.md
+      - skills/catalog.yaml
+      - skills/_shared/STAGE-IO.md
+      - skills/_shared/CODEPATROL-CLI.md
+      - skills/codepatrol-git/SKILL.md
+    next_action: codepatrol-verify 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 26749
+      at: 2026-07-27T04:21:30.787Z
+  - id: 630d5a4f-e05f-48fd-898a-ce6bfaa70daa
+    at: 2026-07-27T10:50:04.545Z
+    actor: openai/gpt-5.6-terra
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-verify 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: f3b51b19-1a22-4093-85a0-c2e3cbb37e78
+    at: 2026-07-27T10:52:45.440Z
+    actor: openai/gpt-5.6-terra
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-1
+      started_at: 2026-07-27T10:50:04.000Z
+      finished_at: 2026-07-27T10:52:29.000Z
+      elapsed_ms: 145000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: f10b5e6a-54e9-432f-ad08-37a2f0c641ce
+    at: 2026-07-27T10:52:46.019Z
+    actor: openai/gpt-5.6-terra
+    stage: verify
+    attempt: 1
+    type: stage-returned
+    to_stage: apply
+    reason: "AC-10 fails: sync pruning compares short refs with refs/heads/codepatrol/, so an eligible terminal branch is never deleted. Add pruning, Change-branch target-resolution, and injected CLI sync coverage."
+    next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 10f25e70-c27f-49f4-95dc-351be38f5ab4
+    at: 2026-07-27T12:20:08.395Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: d6dc63ec-e979-4f63-b104-51517e1659d4
+    at: 2026-07-27T12:40:34.225Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 2
+    type: run-recorded
+    run:
+      id: apply-2
+      started_at: 2026-07-27T12:20:07Z
+      finished_at: 2026-07-27T12:40:19Z
+      elapsed_ms: 1212000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 327dfc64-c488-4c5f-b556-075fe2684799
+    at: 2026-07-27T12:42:26.076Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 2
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: 7f0c47d4ec196f2240919d0fe0e9a9c8addc937a
+    tree: ca58e5be9c0e949b4d14af8b82fa7c0b0f1109e3
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/apply/journal.md
+        sha256: 2f00e18d7db114d4ad9d1087662df10c848e58386c9424dd3838311e227cdb51
+        intent: modify
+    changes:
+      - src/change/sync.test.ts
+      - src/change/sync.ts
+      - src/cli/cli.test.ts
+    next_action: codepatrol-verify 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 27027
+      at: 2026-07-27T12:42:26.012Z
+  - id: 53466f35-6f11-4f49-ab4d-4e1aa01b5d56
+    at: 2026-07-27T14:23:09.328Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-verify 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: e007ae67-bc38-44e8-bd12-ab3868ab222f
+    at: 2026-07-27T14:27:49.875Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 2
+    type: run-recorded
+    run:
+      id: verify-2
+      started_at: 2026-07-27T14:22:59Z
+      finished_at: 2026-07-27T14:27:39Z
+      elapsed_ms: 280000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 70e474ad-f2bc-4f1c-8b82-19cec8e1a50b
+    at: 2026-07-27T14:28:16.895Z
+    actor: claude-sonnet-5
+    stage: verify
+    attempt: 2
+    type: stage-checkpointed
+    result: commit
+    checkpoint: 496568a45a323537a241e668849d408a4e9841d3
+    tree: 1f2b0b689fdcf44320f65250cfc073b7fce12a41
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-local-close-squash-remote-sync/verify/report.md
+        sha256: a03e31fe1a5c262aecbe3b54bae3e95d7cac085136ab74d7511c44ac1b994971
+        intent: create
+    next_action: codepatrol-close 2026-07-27-local-close-squash-remote-sync commit|rollback on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 5e2a5e9c-7875-47f9-bb59-0af8cafbfe72
+    at: 2026-07-27T14:55:23.472Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-27-local-close-squash-remote-sync commit on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 46e54d56-adba-4b1f-9214-7b4cab7a61c3
+    at: 2026-07-27T14:55:35.112Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-1
+      started_at: 2026-07-27T14:55:14Z
+      finished_at: 2026-07-27T14:55:26Z
+      elapsed_ms: 12000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 4e52b9e1-15d5-4796-a1bc-79b496626ead
+    at: 2026-07-27T14:55:45.793Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: e6440705a168277c181f95228a4c04f8111aeb76
+    tag: codepatrol/committed/2026-07-27-local-close-squash-remote-sync
+    receipt: close/receipt.md

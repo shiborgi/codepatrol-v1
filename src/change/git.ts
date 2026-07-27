@@ -19,6 +19,7 @@ export interface GitAdapter {
 	tag(name: string, ref: string, signal?: AbortSignal): Promise<void>;
 	deleteBranch(name: string, expected: string, signal?: AbortSignal): Promise<void>;
 	mergeFf(ref: string, signal?: AbortSignal): Promise<void>;
+	mergeSquash(ref: string, signal?: AbortSignal): Promise<void>;
 	refs(prefix: string, signal?: AbortSignal): Promise<string[]>;
 	show(ref: string, path: string, signal?: AbortSignal): Promise<string | undefined>;
 	pathExists(ref: string, path: string, signal?: AbortSignal): Promise<boolean>;
@@ -81,6 +82,7 @@ export class NodeGitAdapter implements GitAdapter {
 	async tag(name: string, ref: string, signal?: AbortSignal): Promise<void> { await this.run(["tag", name, ref], signal); }
 	async deleteBranch(name: string, expected: string, signal?: AbortSignal): Promise<void> { await this.run(["update-ref", "-d", `refs/heads/${name}`, expected], signal); }
 	async mergeFf(ref: string, signal?: AbortSignal): Promise<void> { await this.run(["merge", "--ff-only", ref], signal); }
+	async mergeSquash(ref: string, signal?: AbortSignal): Promise<void> { await this.run(["merge", "--squash", ref], signal); }
 	async refs(prefix: string, signal?: AbortSignal): Promise<string[]> {
 		const output = await this.run(["for-each-ref", "--format=%(refname:short)", prefix], signal);
 		return output ? output.split("\n").filter(Boolean).sort() : [];

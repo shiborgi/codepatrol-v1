@@ -74,7 +74,7 @@ function assertTransitionIntent(intent: TransitionIntent): void {
 	}
 }
 function assertCloseInput(input: CloseInput): void {
-	const value = requireObject(input, "Close"); exactInput(value, ["outcome", "actor", "authority", "push"], "Close");
+	const value = requireObject(input, "Close"); exactInput(value, ["outcome", "actor", "authority"], "Close");
 	if (value.outcome !== "commit" && value.outcome !== "rollback") throw new CodepatrolError("INVALID_ARGUMENT", "Close outcome must be commit or rollback.", 2);
 	textInput(value.actor, "actor"); textInput(value.authority, "authority");
 }
@@ -334,6 +334,12 @@ export async function inspectChanges(workspace: string, query: ChangeQuery = {},
 		if (existing && JSON.stringify(existing.record) !== JSON.stringify(record)) throw new CodepatrolError("CHANGE_CONFLICT", `Conflicting Change copies for ${id}: ${existing.source} and ${source}.`, 4);
 		if (!existing) records.set(id, { record, source });
 	};
+	const validatedHeads = new Set<string>();
+	const validateHead = async (record: ChangeRecordV2, head: string): Promise<void> => {
+		if (validatedHeads.has(head)) return;
+		await validateCheckpointLineage(git, record, head, options.signal); await validateAcceptedRefArtifacts(git, record, head, options.signal);
+		validatedHeads.add(head);
+	};
 	for (const id of listWorkingTreeChangeIds(workspace)) {
 		const record = readChangeRecord(workspace, id); const view = foldChange(record);
 		for (const stage of ["plan", "review", "apply", "verify"] as const) {
@@ -344,7 +350,7 @@ export async function inspectChanges(workspace: string, query: ChangeQuery = {},
 	for (const ref of await git.refs("refs/heads/codepatrol", options.signal)) {
 		const id = ref.slice("codepatrol/".length); const head = await git.head(ref, options.signal); const raw = await git.show(head, relativeRecord(id), options.signal);
 		if (!raw) throw new CodepatrolError("CHANGE_DRIFT", `Active branch ${ref} is missing ${relativeRecord(id)}.`, 4);
-			const record = recordFromYaml(raw); foldChange(record); await validateCheckpointLineage(git, record, head, options.signal); await validateAcceptedRefArtifacts(git, record, head, options.signal);
+			const record = recordFromYaml(raw); foldChange(record); await validateHead(record, head);
 		if (await git.head(ref, options.signal) !== head) throw new CodepatrolError("CHANGE_CONFLICT", `Active branch moved during inspection: ${ref}.`, 4);
 		addRecord(id, record, ref);
 	}
@@ -353,7 +359,7 @@ export async function inspectChanges(workspace: string, query: ChangeQuery = {},
 		if (terminalHeads.has(id) && terminalHeads.get(id) !== head) throw new CodepatrolError("CHANGE_CONFLICT", `Conflicting terminal refs for Change ${id}.`, 4);
 		terminalHeads.set(id, head); const raw = await git.show(head, relativeRecord(id), options.signal);
 		if (!raw) throw new CodepatrolError("CHANGE_DRIFT", `Terminal tag ${ref} is missing ${relativeRecord(id)}.`, 4);
-			const record = recordFromYaml(raw); foldChange(record); await validateCheckpointLineage(git, record, head, options.signal); await validateAcceptedRefArtifacts(git, record, head, options.signal);
+			const record = recordFromYaml(raw); foldChange(record); await validateHead(record, head);
 		if (await git.head(ref, options.signal) !== head) throw new CodepatrolError("CHANGE_CONFLICT", `Terminal tag moved during inspection: ${ref}.`, 4);
 		addRecord(id, record, ref);
 	}
@@ -447,24 +453,22 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	view = foldChange({ ...record, events: [...record.events, event] });
 	try { trace.close(workspace, workId); } catch { /* trace cleanup is best-effort */ }
 	await completeFinalization(git, view, input.outcome, tag, terminalCommit, options.signal);
-	let pushError: { code: string; message: string } | undefined;
-	if (input.push && outcome === "committed") {
-		try { await git.push("origin", view.identity.target_branch, options.signal); }
-		catch (cause) { const error = cause as CodepatrolError; pushError = { code: error.code, message: error.message }; }
-	}
-	const pushSuggestion = outcome === "committed" && !input.push ? `git push origin ${view.identity.target_branch}` : undefined;
-	return { outcome, workId, targetBranch: view.identity.target_branch, terminalCommit, tag, ...(pushError ? { pushError } : {}), ...(pushSuggestion ? { pushSuggestion } : {}) };
+	return { outcome, workId, targetBranch: view.identity.target_branch, terminalCommit, tag };
 }
 
 async function completeFinalization(git: GitAdapter, view: ChangeView, outcome: CloseInput["outcome"], tag: string, terminalCommit: string, signal?: AbortSignal): Promise<void> {
 	const targetHead = await git.head(view.identity.target_branch, signal);
 	if (outcome === "rollback" && targetHead !== view.identity.base_commit) throw new CodepatrolError("TARGET_ADVANCED", `Rollback target advanced from ${view.identity.base_commit} to ${targetHead}.`, 4);
-	if (outcome === "commit" && targetHead !== view.identity.base_commit && targetHead !== terminalCommit) throw new CodepatrolError("TARGET_ADVANCED", `Commit target is neither the recorded base nor terminal commit: ${targetHead}.`, 4);
+	if (outcome === "commit" && targetHead !== view.identity.base_commit) {
+		const targetTree = await git.tree(view.identity.target_branch, signal);
+		const tagTree = await git.tree(tag, signal);
+		if (targetTree !== tagTree) throw new CodepatrolError("TARGET_ADVANCED", `Commit target is neither the recorded base nor terminal tree: ${targetHead}.`, 4);
+	}
 	const current = await git.currentBranch(signal);
 	if (current !== view.identity.branch && current !== view.identity.target_branch) throw new CodepatrolError("CHANGE_CONFLICT", `Close recovery found unrelated branch ${current}.`, 4);
 	if (current !== view.identity.target_branch) await git.checkout(view.identity.target_branch, signal);
 	if (outcome === "commit") {
-		await closeWork(git, view, tag, terminalCommit, signal);
+		await closeWork(git, view, tag, signal);
 	} else if (outcome === "rollback") {
 		const checkedOutHead = await git.head("HEAD", signal);
 		if (checkedOutHead !== view.identity.base_commit) throw new CodepatrolError("TARGET_ADVANCED", "Target changed during rollback.", 4);
@@ -473,9 +477,17 @@ async function completeFinalization(git: GitAdapter, view: ChangeView, outcome: 
 	if (parseStatusPaths(await git.status(signal)).length) throw new CodepatrolError("CHANGE_CONFLICT", "Close postcondition requires a clean worktree.", 4);
 }
 
-async function closeWork(git: GitAdapter, view: ChangeView, tag: string, terminalCommit: string, signal?: AbortSignal): Promise<void> {
+async function closeWork(git: GitAdapter, view: ChangeView, tag: string, signal?: AbortSignal): Promise<void> {
 	const checkedOutHead = await git.head("HEAD", signal);
-	if (checkedOutHead === view.identity.base_commit) await git.mergeFf(tag, signal);
-	else if (checkedOutHead !== terminalCommit) throw new CodepatrolError("TARGET_ADVANCED", "Target changed during Close.", 4);
-	if (await git.branchExists(view.identity.branch, signal)) await git.deleteBranch(view.identity.branch, terminalCommit, signal);
+	if (checkedOutHead === view.identity.base_commit) {
+		await git.mergeSquash(tag, signal);
+		await git.commit(`chore(codepatrol): committed ${view.identity.work_id}`, false, signal);
+		const targetTree = await git.tree("HEAD", signal);
+		const tagTree = await git.tree(tag, signal);
+		if (targetTree !== tagTree) throw new CodepatrolError("CHANGE_DRIFT", "Squashed target tree does not match the terminal tree.", 4);
+		return;
+	}
+	const targetTree = await git.tree("HEAD", signal);
+	const tagTree = await git.tree(tag, signal);
+	if (targetTree !== tagTree) throw new CodepatrolError("TARGET_ADVANCED", "Target changed during Close.", 4);
 }
