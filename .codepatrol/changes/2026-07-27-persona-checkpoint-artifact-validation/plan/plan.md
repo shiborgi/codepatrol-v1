@@ -2,7 +2,7 @@
 
 - Work id: `2026-07-27-persona-checkpoint-artifact-validation`
 - Governing spec: `spec.md`
-- Target baseline: `main` at `5698a92330832ecf0b991892dd5c9a82c897bff4`
+- Target baseline: `main` at `08a43e5e85f5c617ba4d4b0d7abc89e6f7f03d85` (the Change's recorded immutable `base_commit`)
 
 ## Goal and approach
 
@@ -42,9 +42,9 @@ of skipping the call outright for personas.
 - Forbidden speculative surface: no new exported error code, no new persisted schema field, no change
   to `model.ts`'s persona fold (DC-1, deferred), no narrowing of the "undeclared worktree paths"
   allowance (DC-2, deferred), no separate persona-specific validator function.
-- Expected surface delta: modify three files (`src/change/validation.ts`, `src/change/orchestrator.ts`,
-  `src/change/orchestrator-parallel.test.ts`); one new optional, defaulted parameter on two existing
-  exported functions; no dependency, configuration, or durable schema change.
+- Expected surface delta: modify four files (`src/change/validation.ts`, `src/change/orchestrator.ts`,
+  `src/change/orchestrator-parallel.test.ts`, `src/change/change.test.ts`); one new optional, defaulted
+  parameter on two existing exported functions; no dependency, configuration, or durable schema change.
 
 ## Acceptance mapping
 
@@ -233,7 +233,7 @@ green.
 2. Run `npm run verify`.
    Expected: typecheck, all Node tests (including the new cases), build, compiled CLI smoke, and skill
    lint pass with 0 failures.
-3. Run `git diff --name-status 5698a92330832ecf0b991892dd5c9a82c897bff4...HEAD -- . ':!.codepatrol'`.
+3. Run `git diff --name-status 08a43e5e85f5c617ba4d4b0d7abc89e6f7f03d85...HEAD -- . ':!.codepatrol'`.
    Expected: exactly `src/change/validation.ts`, `src/change/orchestrator.ts`,
    `src/change/orchestrator-parallel.test.ts`, and `src/change/change.test.ts` — no other production
    path differs.

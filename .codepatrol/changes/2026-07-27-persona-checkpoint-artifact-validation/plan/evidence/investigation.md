@@ -3,7 +3,7 @@
 ## Baseline and method
 
 - Change: `2026-07-27-persona-checkpoint-artifact-validation`
-- Target: `main` at `5698a92330832ecf0b991892dd5c9a82c897bff4`
+- Target: `main` at `08a43e5e85f5c617ba4d4b0d7abc89e6f7f03d85` (the Change's recorded immutable `base_commit`)
 - Source: GitHub issue #18 / backlog id
   `persona-review-and-verify-checkpoints-skip-artifact-ownership-and-sha-validation-before-committing-submitted-paths`,
   filed as a `plan-followup` from `2026-07-27-src-architecture-audit`,
