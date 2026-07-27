@@ -69,3 +69,12 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: cf30e2cb-28ea-43ff-b693-cfcbbf5d482b
+    at: 2026-07-27T01:24:01.115Z
+    actor: openai/gpt-5.6-terra
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: plan/plan.md T2 does not test AC-3 plain-rm checkpoint behavior and its red proof asks Apply to revert/reapply T1; add both deletion-mode scenarios and run the git-rm case before T1."
+    next_action: codepatrol-plan 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
