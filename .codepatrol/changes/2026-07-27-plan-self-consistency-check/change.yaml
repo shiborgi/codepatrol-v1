@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-27-plan-self-consistency-check on codepatrol/2026-07-27-plan-self-consistency-check
+  - id: 6b5c2c19-565f-4742-ab48-4c766c60fee2
+    at: 2026-07-27T00:45:37.342Z
+    actor: antigravity
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-27T00:43:00Z
+      finished_at: 2026-07-27T00:46:00Z
+      elapsed_ms: 180000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
