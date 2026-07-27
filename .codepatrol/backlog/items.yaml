@@ -31,9 +31,9 @@ items:
       number: 3
       url: https://github.com/shiborgi/codepatrol/issues/3
     workId: null
-    count: 8
+    count: 9
     firstSeenAt: 2026-07-25T10:12:35.564Z
-    lastSeenAt: 2026-07-27T19:54:07.579Z
+    lastSeenAt: 2026-07-27T21:33:23.305Z
   - id: unsafe-duplicate-yaml-reader-in-improvement-report-ts-bypasses-migraterecord-normalization
     title: Unsafe duplicate YAML reader in improvement-report.ts bypasses migrateRecord normalization
     priority: p1
@@ -348,9 +348,9 @@ items:
       kind: close-trace
       workId: 2026-07-26-document-transition-close-payloads
     workId: 2026-07-27-plan-self-consistency-check
-    count: 4
+    count: 5
     firstSeenAt: 2026-07-27T00:30:07.613Z
-    lastSeenAt: 2026-07-27T19:54:07.554Z
+    lastSeenAt: 2026-07-27T21:33:23.289Z
   - id: session-item-s-claimed-but-never-closed-review-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
     title: "Session item(s) claimed but never closed: review/2/report. A harness stopped mid-stage; re-prime the session to resume."
     priority: p3
@@ -591,6 +591,6 @@ items:
       number: 26
       url: https://github.com/shiborgi/codepatrol/issues/26
     workId: null
-    count: 1
+    count: 2
     firstSeenAt: 2026-07-27T19:54:07.590Z
-    lastSeenAt: 2026-07-27T19:54:07.590Z
+    lastSeenAt: 2026-07-27T21:33:23.318Z

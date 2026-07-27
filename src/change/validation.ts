@@ -20,7 +20,7 @@ function filesBelow(root: string): string[] {
 	return result;
 }
 
-function validateWithReader(record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], reader: ArtifactReader, baseline?: BaselineReader): ValidationResult {
+function validateWithReader(record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], reader: ArtifactReader, baseline?: BaselineReader, enforceCompleteness: boolean = true): ValidationResult {
 	const errors: string[] = [];
 	const prefix = changeStageRelativePrefix(record.identity.work_id, stage);
 	const declared = new Set<string>();
@@ -36,17 +36,19 @@ function validateWithReader(record: ChangeRecordV2, stage: Stage, bindings: Arti
 		if (baseline && binding.intent === "modify" && !baseline.exists(binding.path)) errors.push(`Modify path was absent at the recorded baseline: ${binding.path}`);
 		if (baseline && binding.intent === "delete" && !baseline.exists(binding.path)) errors.push(`Delete path was absent at the recorded baseline: ${binding.path}`);
 	}
-	for (const path of reader.files(prefix)) if (!declared.has(path)) errors.push(`Undeclared durable artifact: ${path}`);
+	if (enforceCompleteness) {
+		for (const path of reader.files(prefix)) if (!declared.has(path)) errors.push(`Undeclared durable artifact: ${path}`);
+	}
 	return { valid: errors.length === 0, errors };
 }
 
-export function validateArtifactBindings(workspace: string, record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], baseline?: BaselineReader): ValidationResult {
+export function validateArtifactBindings(workspace: string, record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], baseline?: BaselineReader, enforceCompleteness: boolean = true): ValidationResult {
 	const prefix = changeStageRelativePrefix(record.identity.work_id, stage);
 	const reader: ArtifactReader = {
 		read: (path) => { const absolute = resolveInside(workspace, path); if (!existsSync(absolute)) return undefined; if (!lstatSync(absolute).isFile()) return null; return readFileSync(absolute); },
 		files: () => { const stageRoot = resolveInside(workspace, prefix.slice(0, -1)); return filesBelow(stageRoot).map((absolute) => relative(realpathSync(workspace), absolute).split("\\").join("/")); },
 	};
-	return validateWithReader(record, stage, bindings, reader, baseline);
+	return validateWithReader(record, stage, bindings, reader, baseline, enforceCompleteness);
 }
 
 export function validateArtifactBindingsFromReader(record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], reader: ArtifactReader, baseline: BaselineReader): ValidationResult { return validateWithReader(record, stage, bindings, reader, baseline); }
@@ -57,8 +59,8 @@ export function validateStageArtifactsFromReader(record: ChangeRecordV2, stage: 
 	return result;
 }
 
-export function validateStageArtifacts(workspace: string, record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], baseline?: BaselineReader): ValidationResult {
-	const result = validateArtifactBindings(workspace, record, stage, bindings, baseline);
+export function validateStageArtifacts(workspace: string, record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], baseline?: BaselineReader, enforceCompleteness: boolean = true): ValidationResult {
+	const result = validateArtifactBindings(workspace, record, stage, bindings, baseline, enforceCompleteness);
 	if (!result.valid) throw new CodepatrolError("CHANGE_DRIFT", result.errors.join("\n"), 4, false, result);
 	return result;
 }

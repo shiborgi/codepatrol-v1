@@ -122,6 +122,24 @@ test("delete artifact intent requires the path to exist at the immutable baselin
 	assert.equal(result.valid, false); assert.match(result.errors.join("\n"), /Delete path was absent at the recorded baseline/);
 });
 
+test("enforceCompleteness skips only the undeclared-file loop, never the per-binding checks", () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-enforce-completeness-"));
+	const record = recordAtStage("review");
+	writeStageArtifact(workspace, record, "review/a.md", "a\n");
+	writeStageArtifact(workspace, record, "review/b.md", "b\n");
+
+	const strict = validateArtifactBindings(workspace, record, "review", [artifactBinding(record, "review/a.md", "a\n")]);
+	assert.equal(strict.valid, false);
+	assert.ok(strict.errors.some((error) => error.includes("Undeclared durable artifact") && error.includes("review/b.md")));
+
+	const tolerant = validateArtifactBindings(workspace, record, "review", [artifactBinding(record, "review/a.md", "a\n")], undefined, false);
+	assert.equal(tolerant.valid, true);
+
+	const drifted = validateArtifactBindings(workspace, record, "review", [artifactBinding(record, "review/a.md", "wrong-content")], undefined, false);
+	assert.equal(drifted.valid, false);
+	assert.ok(drifted.errors.some((error) => error.includes("Artifact hash drift") && error.includes("review/a.md")));
+});
+
 test("invalid event order fails closed", () => {
 	const record = fixture("active-change.yaml");
 	record.events.push({ id: "evt-2", type: "stage-began", at: "2026-07-22T10:01:00.000Z", actor: "x", stage: "verify", attempt: 1, next_action: "invalid" });

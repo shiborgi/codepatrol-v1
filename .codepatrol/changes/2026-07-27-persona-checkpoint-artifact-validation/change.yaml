@@ -1,0 +1,338 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-27-persona-checkpoint-artifact-validation
+  title: Validate artifact ownership and hash for persona Review/Verify checkpoints
+  created_at: 2026-07-27T20:01:51.139Z
+  branch: codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  target_branch: main
+  base_commit: 08a43e5e85f5c617ba4d4b0d7abc89e6f7f03d85
+events:
+  - id: 85e16e6e-303f-403d-b1bc-ccf057426439
+    type: change-started
+    at: 2026-07-27T20:01:51.139Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: b36c58b3-23e3-4623-9fbb-6d5d79714011
+    at: 2026-07-27T20:10:58.319Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-1
+      started_at: 2026-07-27T20:20:00.000Z
+      finished_at: 2026-07-27T21:05:00.000Z
+      elapsed_ms: 2700000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 7f1837c6-3142-40b2-a2cf-e90750012d99
+    at: 2026-07-27T20:11:06.562Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: a2c5f474c796610ef947c6f2afec231ea67e99bd
+    tree: f73c1bdf09739d517e7efbf5b432a2918a43b75d
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/spec.md
+        sha256: e9898b0156fde0596d238ffa73fe8dc80453b9dc934c4cf0ea93d14e2e44dba4
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/plan.md
+        sha256: 6928160b08916dc65be629fdf66a548ba93eb5960c4bb4b337dd3d147044a011
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/evidence/investigation.md
+        sha256: c25bce063a694c36bf16796f8a6f9214610e5d6fc2bb25a01caafb287e37b2c3
+        intent: create
+    next_action: codepatrol-review 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: 8a6f73fa-424c-4ace-b5d3-ae63ed253fea
+    at: 2026-07-27T20:17:24.190Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: Review Plan revision 1 for 2026-07-27-persona-checkpoint-artifact-validation
+  - id: a3016ec1-ec27-4353-9d0f-11d0c39ee59e
+    at: 2026-07-27T20:19:51.500Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-opencode-1
+      started_at: 2026-07-27T20:17:03.000Z
+      finished_at: 2026-07-27T20:19:00.000Z
+      elapsed_ms: 117000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 55ffb908-a69d-4775-86d1-27c6f8d77885
+    at: 2026-07-27T20:20:03.420Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: replace Plan baseline 5698a92330832ecf0b991892dd5c9a82c897bff4 with immutable Change base 08a43e5e85f5c617ba4d4b0d7abc89e6f7f03d85; reconcile spec/plan expected surface and T3 diff assertion to consistently declare src/change/change.test.ts alongside validation.ts, orchestrator.ts, and orchestrator-parallel.test.ts."
+    next_action: codepatrol-plan 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: 3c41bc6a-443d-421b-849d-36e7f95791fd
+    at: 2026-07-27T20:39:52.580Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: f67c6ca2-4846-435b-900f-6c2fa79c8da8
+    at: 2026-07-27T20:39:58.774Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-2
+      started_at: 2026-07-27T21:15:00.000Z
+      finished_at: 2026-07-27T21:25:00.000Z
+      elapsed_ms: 600000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 7dc37730-f7e7-41ea-a4a2-9d9528bc43d6
+    at: 2026-07-27T20:40:08.974Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 77ea66faa19adb660e604fc92988892e872cc5a1
+    tree: 9a098942329d733234cda488af24430c07e88487
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/spec.md
+        sha256: 6d66b5127e0f14844a3c2e05340435893af5eb5446a7fad4696c24126e724a5d
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/plan.md
+        sha256: 1b51ee218127e42bb1b8113691b11b39f461b5cc6d63acf95e719690316ea53a
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/evidence/investigation.md
+        sha256: 0bc32b4bc8250272846a41fc3b2aa3992fc3a5f5db1b9ecc1851b4ad23c94222
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: a0c0e5a6-5d75-4132-84ce-ad3cd5c50536
+    at: 2026-07-27T20:46:45.606Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-began
+    next_action: Review Plan revision 2 for 2026-07-27-persona-checkpoint-artifact-validation
+  - id: c4be0c47-0e97-4354-9d9e-f18472284071
+    at: 2026-07-27T20:48:06.148Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: run-recorded
+    run:
+      id: review-opencode-2
+      started_at: 2026-07-27T20:46:50.000Z
+      finished_at: 2026-07-27T20:47:41.000Z
+      elapsed_ms: 51000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 8168653b-2130-42f0-a5ec-0d1f025181a6
+    at: 2026-07-27T20:48:14.427Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: move validateWorkspaceArtifacts signature/threading from validation.ts instructions to its actual owner src/change/orchestrator.ts; revise T1/T2 file ownership and dependency order while retaining validation.ts changes only for shared validator functions."
+    next_action: codepatrol-plan 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: e7ce89d3-fa31-48be-82fd-a75c6dc2970b
+    at: 2026-07-27T20:52:23.342Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: 167d111c-e7ee-4721-ae89-7b0174df55b8
+    at: 2026-07-27T20:52:30.342Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: run-recorded
+    run:
+      id: plan-3
+      started_at: 2026-07-27T21:30:00.000Z
+      finished_at: 2026-07-27T21:45:00.000Z
+      elapsed_ms: 900000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 38e2d80b-c8d9-4599-a8fd-567dd14f28c8
+    at: 2026-07-27T20:52:39.087Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 6cd03d2f47f9ed4dd5542c5e8e5b5baa102d2d7b
+    tree: e7184a074d4895f46bae568a33447889ad15cb21
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/spec.md
+        sha256: ec706a1b7fd8eea640bdbe22a73490b26fb54beb92c0f30c6d7bb58d1c07e759
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/plan.md
+        sha256: ec12c2a0d14ac609cb108421e89972e0f48ed0749d25aa22e4af112169dc5bf8
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/plan/evidence/investigation.md
+        sha256: 0bc32b4bc8250272846a41fc3b2aa3992fc3a5f5db1b9ecc1851b4ad23c94222
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: 48278e56-15b4-44f0-b59f-1036df0675d4
+    at: 2026-07-27T21:00:08.558Z
+    actor: opencode
+    stage: review
+    attempt: 3
+    type: stage-began
+    next_action: Review Plan revision 3 for 2026-07-27-persona-checkpoint-artifact-validation
+  - id: 2bcac16c-8e01-44f5-acf8-7659cad03110
+    at: 2026-07-27T21:01:07.548Z
+    actor: opencode
+    stage: review
+    attempt: 3
+    type: run-recorded
+    run:
+      id: review-opencode-3
+      started_at: 2026-07-27T21:00:18.000Z
+      finished_at: 2026-07-27T21:00:57.000Z
+      elapsed_ms: 39000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: f5ac409b-23e9-40ad-946b-ba8ceb79ce74
+    at: 2026-07-27T21:01:15.206Z
+    actor: opencode
+    stage: review
+    attempt: 3
+    type: stage-checkpointed
+    result: approve
+    checkpoint: b62dec8c54ec9724af9b93589e09385b49a88685
+    tree: 60b86ceb3e2cf551c38723d420b3cf3055233767
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/review/report.md
+        sha256: 79afb5b7a08fd5642c6149454c5c0cc8fc3141910f5de22fb7c04107a9a39a05
+        intent: create
+    next_action: codepatrol-apply 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: 3c71508d-271e-4986-8d57-ffe9a80d659a
+    at: 2026-07-27T21:06:04.466Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: 5b9ecd4a-2063-41fa-9b8d-5460adf5a553
+    at: 2026-07-27T21:12:05.490Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-1
+      started_at: 2026-07-27T21:06:03Z
+      finished_at: 2026-07-27T21:11:52Z
+      elapsed_ms: 349000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 4da78083-b900-410b-9c46-a0d03c1e3bbe
+    at: 2026-07-27T21:12:33.650Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: a0aaad2ccdc50bd6d755870117ca94acb5c0d13f
+    tree: 9497fb1fbf368656af9a8beeca70174a43c20cd8
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/apply/journal.md
+        sha256: 1a9302df5c70f0b65eaa49a7f9ccb80bd99de02557c3851a8a97c9c6b0ea133a
+        intent: create
+    changes:
+      - src/change/change.test.ts
+      - src/change/orchestrator-parallel.test.ts
+      - src/change/orchestrator.ts
+      - src/change/validation.ts
+    next_action: codepatrol-verify 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 27475
+      at: 2026-07-27T21:12:33.581Z
+  - id: 7bb5a987-3f38-4fd1-89cb-5ce0873b855b
+    at: 2026-07-27T21:22:11.257Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: Verify candidate a0aaad2ccdc50bd6d755870117ca94acb5c0d13f for 2026-07-27-persona-checkpoint-artifact-validation
+  - id: 454f4980-4576-4dd0-b688-2717e4a10cc2
+    at: 2026-07-27T21:23:45.185Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-opencode-1
+      started_at: 2026-07-27T21:21:51.000Z
+      finished_at: 2026-07-27T21:23:30.000Z
+      elapsed_ms: 99000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 8b8dcc77-4f2e-4270-816f-e19033ccbbd2
+    at: 2026-07-27T21:23:51.833Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: 90d264d09ff2c13bb6ee6b5d0e0317cac4073360
+    tree: 0ff5755c53cd74a1ac156492c4db55055dd6e6ba
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-persona-checkpoint-artifact-validation/verify/report.md
+        sha256: 8d6c4749dbc82133659471ae7deb39e23c804bd399838443c1929f7681c4f299
+        intent: create
+    next_action: codepatrol-close 2026-07-27-persona-checkpoint-artifact-validation commit|rollback on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: 8f5f2671-e5d3-4b92-b51d-d9fcc5627a04
+    at: 2026-07-27T21:33:07.645Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-close 2026-07-27-persona-checkpoint-artifact-validation commit on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: e79f9637-626a-40f7-b20b-bc64f74ef6af
+    at: 2026-07-27T21:33:13.988Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-1
+      started_at: 2026-07-27T22:00:00.000Z
+      finished_at: 2026-07-27T22:02:00.000Z
+      elapsed_ms: 120000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 365b8cd3-aa80-478f-a6ac-a1ed521c354e
+    at: 2026-07-27T21:33:23.232Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 23cf2b0ec6739f4a576648eded88117375284730
+    tag: codepatrol/committed/2026-07-27-persona-checkpoint-artifact-validation
+    receipt: close/receipt.md

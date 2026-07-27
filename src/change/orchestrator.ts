@@ -115,8 +115,8 @@ async function materializeBaseline(git: GitAdapter, ref: string, bindings: Artif
 	const existing = new Map(entries); return { exists: (path) => existing.get(path) ?? false };
 }
 
-async function validateWorkspaceArtifacts(git: GitAdapter, workspace: string, record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], checkpoint?: string, signal?: AbortSignal): Promise<void> {
-	const baseline = await materializeBaseline(git, baselineRef(record, checkpoint), bindings, signal); validateStageArtifacts(workspace, record, stage, bindings, baseline);
+async function validateWorkspaceArtifacts(git: GitAdapter, workspace: string, record: ChangeRecordV2, stage: Stage, bindings: ArtifactBinding[], checkpoint?: string, signal?: AbortSignal, enforceCompleteness: boolean = true): Promise<void> {
+	const baseline = await materializeBaseline(git, baselineRef(record, checkpoint), bindings, signal); validateStageArtifacts(workspace, record, stage, bindings, baseline, enforceCompleteness);
 }
 
 async function validateRefArtifacts(git: GitAdapter, record: ChangeRecordV2, stage: Stage, attempt: StageAttempt, ref: string, signal?: AbortSignal): Promise<void> {
@@ -261,7 +261,7 @@ async function buildCheckpointEvent(git: GitAdapter, workspace: string, workId: 
 	const personaCheckpoint = persona && (intent.stage === "review" || intent.stage === "verify");
 	const missing = personaCheckpoint ? [] : required[intent.stage].filter((path) => !intent.artifacts.some((item) => item.path === path && item.intent !== "delete"));
 	if (missing.length) throw new CodepatrolError("CHANGE_INVALID", `Checkpoint is missing required ${intent.stage} artifacts: ${missing.join(", ")}.`, 4);
-	if (!personaCheckpoint) await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal);
+	await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal, !personaCheckpoint);
 	const paths = [...intent.artifacts.filter((item) => item.intent !== "delete").map((item) => item.path), ...(intent.changes ?? [])]; paths.forEach(ensurePath);
 	const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId), backlogRelativePath()]);
 	const prior = baselineRef(record); const dirty = parseStatusPaths(await git.status(options.signal)); const committed = await git.changedPaths(prior, "HEAD", options.signal); const candidate = [...new Set([...committed, ...dirty])];
