@@ -31,9 +31,9 @@ items:
       number: 3
       url: https://github.com/shiborgi/codepatrol/issues/3
     workId: null
-    count: 7
+    count: 8
     firstSeenAt: 2026-07-25T10:12:35.564Z
-    lastSeenAt: 2026-07-26T13:25:01.668Z
+    lastSeenAt: 2026-07-27T19:54:07.579Z
   - id: unsafe-duplicate-yaml-reader-in-improvement-report-ts-bypasses-migraterecord-normalization
     title: Unsafe duplicate YAML reader in improvement-report.ts bypasses migrateRecord normalization
     priority: p1
@@ -220,9 +220,9 @@ items:
       number: 10
       url: https://github.com/shiborgi/codepatrol/issues/10
     workId: null
-    count: 3
+    count: 4
     firstSeenAt: 2026-07-26T14:28:30.028Z
-    lastSeenAt: 2026-07-27T00:30:07.625Z
+    lastSeenAt: 2026-07-27T19:54:07.567Z
   - id: path-layout-knowledge-for-codepatrol-has-no-owning-module-hardcoded-literals-across-files-with-change-yaml-built-in-places-and-the-stage-artifact-prefix-in-despite-shared-state-ts-existing-to-own-path-construction
     title: "Path-layout knowledge for .codepatrol/ has no owning module: ~28 hardcoded literals across 8 files, with change.yaml built in 2 places and the stage-artifact prefix in 3, despite shared/state.ts existing to own path construction"
     priority: p2
@@ -348,9 +348,9 @@ items:
       kind: close-trace
       workId: 2026-07-26-document-transition-close-payloads
     workId: 2026-07-27-plan-self-consistency-check
-    count: 3
+    count: 4
     firstSeenAt: 2026-07-27T00:30:07.613Z
-    lastSeenAt: 2026-07-27T14:55:45.857Z
+    lastSeenAt: 2026-07-27T19:54:07.554Z
   - id: session-item-s-claimed-but-never-closed-review-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
     title: "Session item(s) claimed but never closed: review/2/report. A harness stopped mid-stage; re-prime the session to resume."
     priority: p3
@@ -577,3 +577,16 @@ items:
     count: 1
     firstSeenAt: 2026-07-27T17:53:16.670Z
     lastSeenAt: 2026-07-27T17:53:16.670Z
+  - id: session-item-s-claimed-but-never-closed-plan-evidence-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
+    title: "Session item(s) claimed but never closed: plan/1/evidence. A harness stopped mid-stage; re-prime the session to resume."
+    priority: p3
+    area: workflow
+    status: candidate
+    evidence: []
+    source:
+      kind: close-trace
+      workId: 2026-07-27-trace-path-workspace-containment
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T19:54:07.590Z
+    lastSeenAt: 2026-07-27T19:54:07.590Z
