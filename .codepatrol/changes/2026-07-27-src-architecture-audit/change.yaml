@@ -173,3 +173,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Close 2026-07-27-src-architecture-audit with authorized local commit; never push, rebase, force, or resolve conflicts
+  - id: 3f14ae96-1c69-4ee4-a2c4-84827f50e949
+    at: 2026-07-27T17:52:59.528Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-opencode-1
+      started_at: 2026-07-27T17:51:57.000Z
+      finished_at: 2026-07-27T17:52:39.000Z
+      elapsed_ms: 42000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
