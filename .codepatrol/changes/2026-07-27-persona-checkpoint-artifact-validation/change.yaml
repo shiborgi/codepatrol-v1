@@ -85,3 +85,17 @@ events:
     attempt: 2
     type: stage-began
     next_action: codepatrol-plan 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: f67c6ca2-4846-435b-900f-6c2fa79c8da8
+    at: 2026-07-27T20:39:58.774Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: run-recorded
+    run:
+      id: plan-2
+      started_at: 2026-07-27T21:15:00.000Z
+      finished_at: 2026-07-27T21:25:00.000Z
+      elapsed_ms: 600000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
