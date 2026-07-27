@@ -360,7 +360,68 @@ remote/durable *mutations* `sync` can trigger; `gh.assertAvailable` and
 `gh.listIssues` are read-only preconditions already exempt from dry-run in
 the component being reused.
 
-## 14. Rollback is deliberately left alone
+## 15. Returned-review correction: stale `commit+push` affordance and missing `GitAdapter` test seam
+
+Attempt 4 was returned `fix-first` on two findings, both independently
+re-verified before correcting.
+
+**Finding A — `commit+push` survives in six places, not the one T5/T8
+already covered.** `grep -rln "commit+push" skills/ src/ scripts/` finds:
+
+```
+skills/codepatrol-close/SKILL.md:13   "choose commit, commit+push, or rollback" (x2 in one sentence)
+skills/_shared/STAGE-IO.md:11         "Close will output commit, commit+push, rollback"
+skills/_shared/CODEPATROL-CLI.md:101  close.json example's authority text: "...via AskUserQuestion..."
+src/cli/commands.ts:84                closeOptions: ["commit", "commit+push", "rollback"]
+src/cli/output.ts:162                 "Close options: commit, commit+push, rollback"
+src/cli/cli.test.ts:195               assert.deepEqual(close.closeOptions, [...,"commit+push",...])
+```
+
+T5 (which strips `push` from `CloseInput`/`CloseResult`) never touched any
+of these — it only edited `types.ts`, `orchestrator.ts`'s push block, and
+`commands.ts`'s "Consider: …" suggestion line, none of which overlap these
+six sites. T8 step 1 only cited `codepatrol-close/SKILL.md:36` (the
+mechanism sentence, "An opt-in `git push origin <target>` is allowed
+when… `push: true`…") — it never cited line 13, the sentence that names
+`commit+push` as one of exactly three user-facing Close **actions**. Once
+`CloseInput.push` is rejected, `commit+push` is not just undocumented, it
+is a listed action that unconditionally fails.
+
+**Root design decision, not just a text fix**: since Close is now local-only
+and cannot push under any input, `commit+push` cannot be redefined as a
+single Close action at all — it must be **removed as a Close action**,
+leaving exactly two (`commit`, `rollback`), with pushing performed as a
+separate, explicit `sync --target` call afterward. This is consistent with
+the Change's own single-remote-owner premise: Close offering a compound
+"commit and also push" action would resurrect exactly the two-owners
+problem `spec.md`'s Alternatives already rejected ("Keep Close's push and
+simply add `sync` alongside it").
+
+**Finding B — no `GitAdapter` injection seam for CLI tests.** `T7` step 5
+promises `sync` CLI tests "with injected adapter overrides," but
+`src/cli/commands.ts:24-26`'s `CommandOverrides` interface has only:
+
+```typescript
+export interface CommandOverrides {
+	gh?: GhAdapter;
+}
+```
+
+Confirmed by direct read: no `git` field exists, and the only place
+`overrides` is consumed is line 209's `issues.sync` case
+(`...(overrides?.gh ? { gh: overrides.gh } : {})`), which has nothing to do
+with `sync`. Without a `git` override, a `cli.test.ts` case for `sync`
+would need a real `origin` remote to avoid a genuine network push — exactly
+what T7's own step 5 claims to avoid ("without network access"). The fix is
+mechanical and follows the file's own existing pattern exactly: add
+`git?: GitAdapter` to `CommandOverrides` (importing `GitAdapter` from
+`../change/git.js`, not yet imported in this file — confirmed by
+`grep -n "^import" src/cli/commands.ts`, which currently imports only
+`GhAdapter` from `../change/issue-sync.js`), and thread it into the new
+`case "sync":`'s call to `syncRemote` the same way `overrides?.gh` already
+threads into `syncIssues`.
+
+## 16. Rollback is deliberately left alone
 
 The request names only the commit path ("apenas o commit final e merge na
 branch main ... mantendo a branch da change"). Rollback's current behavior

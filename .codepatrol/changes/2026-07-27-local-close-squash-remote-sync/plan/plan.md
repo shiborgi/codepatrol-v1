@@ -56,6 +56,7 @@ existing `codepatrol-git` skill to match.
 | AC-8 | T9 | `npm run verify` |
 | AC-9 | T2, T3 | `git.test.ts:266`'s re-run after an injected post-squash failure returns `outcome === "committed"` |
 | AC-10 | T6, T7 | `sync.test.ts` cases (f)-(i): prune only after successful push, blocked by failed push, never for non-terminal, never a tag |
+| AC-11 | T7 | `CommandOverrides.git` field exists; `cli.test.ts` `sync` cases inject a `GitAdapter` double and touch no real network |
 
 ## Dependency order
 
@@ -244,9 +245,10 @@ otherwise add. Satisfies AC-4.
 
 **Task result:** diff, `npm test` output, appended to `apply/journal.md`.
 
-### T5 — Remove push from Close
+### T5 — Remove push from Close and remove `commit+push` as a named action
 
-**Purpose:** Make Close fully local. Satisfies AC-5.
+**Purpose:** Make Close fully local, and stop advertising an action it can
+no longer perform. Satisfies AC-5.
 
 **Depends on:** T4
 
@@ -255,6 +257,8 @@ otherwise add. Satisfies AC-4.
 - Modify: `src/change/types.ts`
 - Modify: `src/change/orchestrator.ts`
 - Modify: `src/cli/commands.ts`
+- Modify: `src/cli/output.ts`
+- Modify: `src/cli/cli.test.ts`
 - Modify: `src/change/close-push.test.ts`
 
 **Steps:**
@@ -266,15 +270,23 @@ otherwise add. Satisfies AC-4.
    computation (`:450-456`), returning the result without those fields.
 3. In `commands.ts:166-171`, delete the `pushSuggestion` branch so the text
    is just the base `${outcome} ${terminalCommit} (${tag})`.
-4. Repurpose `src/change/close-push.test.ts`: its `describe("close push
+4. In `commands.ts:84`, change
+   `closeOptions: ["commit", "commit+push", "rollback"]` to
+   `closeOptions: ["commit", "rollback"]`.
+5. In `output.ts:162`, change
+   `"Close options: commit, commit+push, rollback"` to
+   `"Close options: commit, rollback"`.
+6. In `cli.test.ts:195`, change the assertion to
+   `assert.deepEqual(close.closeOptions, ["commit","rollback"]);`.
+7. Repurpose `src/change/close-push.test.ts`: its `describe("close push
    integration")` block (`:15`) now asserts the *absence* of push — replace
    its cases with (a) `closeChange` with `push: true` in the input rejects
    with `CodepatrolError` code `INVALID_ARGUMENT` and a message naming
    `push`; (b) a `GitAdapter` double whose `push` throws if called completes
    a normal `commit` Close without ever invoking it. Rename the file's
    describe block to reflect "close performs no remote action".
-5. Run `npm run typecheck`. Expected: 0 errors.
-6. Run `npm test`. Expected: all green; count reflects the repurposed file's
+8. Run `npm run typecheck`. Expected: 0 errors.
+9. Run `npm test`. Expected: all green; count reflects the repurposed file's
    case count.
 
 **Task result:** diff, `npm test` output, appended to `apply/journal.md`.
@@ -384,7 +396,8 @@ prunes nothing — a safe no-op, not an error.
 
 ### T7 — Wire `sync` into the CLI
 
-**Purpose:** Expose the command. Completes AC-6.
+**Purpose:** Expose the command with a testable, network-free adapter seam.
+Completes AC-6, AC-11.
 
 **Depends on:** T6
 
@@ -398,10 +411,12 @@ prunes nothing — a safe no-op, not an error.
 **Steps:**
 
 1. Re-read `args.ts:31-63` (`BOOLEAN_FLAGS`, `KNOWN`, `COMMAND_OPTIONS`,
-   `KNOWN_COMMANDS`), `commands.ts:206-211` (the `issues.sync` case), and
-   `output.ts:48-54` (help lines) plus `:176-187`
-   (`renderIssueSyncResult`) — the three parallel registries the CLI keeps
-   in sync by hand.
+   `KNOWN_COMMANDS`), `commands.ts:24-26` (`CommandOverrides`, currently
+   `{ gh?: GhAdapter }` with no `git` field), `commands.ts:206-211` (the
+   `issues.sync` case, showing exactly how `overrides?.gh` threads into a
+   composed function's options), and `output.ts:48-54` (help lines) plus
+   `:176-187` (`renderIssueSyncResult`) — the three parallel registries the
+   CLI keeps in sync by hand.
 2. In `args.ts`: add `target: boolean; branches: boolean; issues: boolean;
    pruneClosed: boolean;` to the `ParsedArgs` interface (immediately after
    `dryRun?: boolean;` at `:30`); add `target`, `branches`, `issues`,
@@ -412,7 +427,12 @@ prunes nothing — a safe no-op, not an error.
    `["sync", new Set(["target", "branches", "issues", "direction",
    "prune-closed", "dry-run"])]` to `COMMAND_OPTIONS` — the exact flag set
    from T6's CLI flag contract table, no more, no less.
-3. Boolean flags in `parseArgs` resolve via `values.has(name)`, so
+3. In `commands.ts`, add `git?: GitAdapter` to `CommandOverrides`
+   (`:24-26`), importing `GitAdapter` as a type from `../change/git.js`
+   (`commands.ts` currently imports only `GhAdapter` from
+   `../change/issue-sync.js`, confirmed by its import list — this is a new
+   import, not a rename). Satisfies AC-11's interface half.
+4. Boolean flags in `parseArgs` resolve via `values.has(name)`, so
    `args.target`/`args.branches`/`args.issues` are always `true`/`false`,
    never `undefined` — there is no way to distinguish "flag omitted" from
    "flag explicitly false" at that layer, so the default resolves on
@@ -424,30 +444,37 @@ prunes nothing — a safe no-op, not an error.
    this is exactly T6's table ("no selector flag true" implies the
    permissive default; any one true narrows to the given subset). Maps the
    result plus `dryRun`/`pruneClosed` to `RemoteSyncOptions`, calls
-   `syncRemote`, and returns `{ data, text: renderRemoteSyncResult(data) }`,
-   following the `issues.sync` case's shape including the `overrides` hook
-   for injected adapters used by tests.
-4. In `output.ts`: add a `sync [--dry-run] [--prune-closed]` help line
+   `syncRemote(workspace, { ..., ...(overrides?.git ? { git: overrides.git
+   } : {}), ...(overrides?.gh ? { gh: overrides.gh } : {}) })` — threading
+   the new `git` override through exactly like `gh` already threads into
+   `issues.sync` — and returns
+   `{ data, text: renderRemoteSyncResult(data) }`. Satisfies AC-11's wiring
+   half.
+5. In `output.ts`: add a `sync [--dry-run] [--prune-closed]` help line
    beside the existing `issues sync` line, and add `renderRemoteSyncResult`
    modeled on `renderIssueSyncResult` — one summary line plus indented
    detail lines for pushed refs, pruned branches, skipped refs, and
    failures.
-5. In `cli.test.ts`: add cases asserting, through the real arg parser with
-   injected adapter overrides: (a) `sync` with no selector flags resolves
-   `target`/`branches`/`issues` all `true` (the default row of T6's table);
-   (b) `sync --branches` resolves only `branches: true`, `target: false`,
-   `issues: false` (narrowing); (c) `sync --prune-closed` alone still
-   defaults `branches` to `true` (so pruning has refs to consider) per the
-   same default rule; (d) an unknown flag for `sync` (e.g. `--force`) is
-   rejected by `COMMAND_OPTIONS` validation.
-6. Run `npm run typecheck`, then `npm test`. Expected: all green.
+6. In `cli.test.ts`: add cases asserting, through the real arg parser with
+   an **injected `GitAdapter` double passed as `overrides.git`** (and a
+   `GhAdapter` double as `overrides.gh` for the issues-selected cases) —
+   never a real `origin` remote: (a) `sync` with no selector flags resolves
+   `target`/`branches`/`issues` all `true` (the default row of T6's table)
+   and the double records the expected push calls with **zero** real
+   network access; (b) `sync --branches` resolves only `branches: true`,
+   `target: false`, `issues: false` (narrowing); (c) `sync --prune-closed`
+   alone still defaults `branches` to `true` (so pruning has refs to
+   consider) per the same default rule; (d) an unknown flag for `sync`
+   (e.g. `--force`) is rejected by `COMMAND_OPTIONS` validation. Satisfies
+   AC-11's CLI-test half.
+7. Run `npm run typecheck`, then `npm test`. Expected: all green.
 
 **Task result:** diff, `npm test` output, appended to `apply/journal.md`.
 
-### T8 — Rename the skill and correct every document that shows `push`
+### T8 — Rename the skill and correct every document that shows `push` or `commit+push`
 
-**Purpose:** Documentation must not contradict the shipped validator.
-Satisfies AC-7.
+**Purpose:** Documentation must not contradict the shipped validator or
+advertise an action Close can no longer perform. Satisfies AC-7.
 
 **Depends on:** T7
 
@@ -457,15 +484,21 @@ Satisfies AC-7.
 - Delete: `skills/codepatrol-git/SKILL.md`
 - Modify: `skills/catalog.yaml`
 - Modify: `skills/codepatrol-close/SKILL.md`
+- Modify: `skills/_shared/STAGE-IO.md`
 - Modify: `skills/_shared/CODEPATROL-CLI.md`
 
 **Steps:**
 
 1. Re-read `skills/codepatrol-git/SKILL.md` in full,
    `skills/catalog.yaml`'s `codepatrol-git` entry (`:95-101`),
-   `skills/codepatrol-close/SKILL.md:36` (the opt-in push sentence), and
+   `skills/codepatrol-close/SKILL.md:13` (the action-naming sentence, "choose
+   `commit`, `commit+push`, or `rollback`" — two occurrences in one
+   sentence) and `:36` (the opt-in push-mechanism sentence — a **separate**
+   site from `:13`), `skills/_shared/STAGE-IO.md:11` (its own Close
+   affordance example, "`commit`, `commit+push`, `rollback`"), and
    `skills/_shared/CODEPATROL-CLI.md:94-102` (the `close.json` prose and
-   example, which currently shows `"push": true`).
+   example, which currently shows `"push": true` and the phrase "via
+   AskUserQuestion" in a `commit+push`-flavored authority string).
 2. Create `skills/codepatrol-sync/SKILL.md` carrying over the existing
    issue-sync direction semantics and preconditions verbatim where still
    accurate, and adding the ref-pushing scope (target branch, retained
@@ -477,15 +510,25 @@ Satisfies AC-7.
    `skills/catalog.yaml` key to `codepatrol-sync`, updating `consumes`/
    `produces` to include pushed refs. Grep for any remaining
    `codepatrol-git` reference and fix each.
-4. In `skills/codepatrol-close/SKILL.md`, replace the opt-in push sentence
-   with a statement that Close performs no remote action and that
-   `codepatrol sync` owns pushing; also state that Close squashes to one
-   commit and retains the Change branch.
-5. In `skills/_shared/CODEPATROL-CLI.md`, remove `push` from the `close.json`
-   prose and example (leaving `outcome`, `actor`, `authority`), and add a
-   `sync` line to the command list.
-6. Run `npm run lint:skills`. Expected: passes. Run
-   `grep -rn "codepatrol-git" skills/ src/ scripts/`. Expected: no hits.
+4. In `skills/codepatrol-close/SKILL.md`: at line 13, change "choose
+   `commit`, `commit+push`, or `rollback`. Require the user to state the
+   work id and exactly one action: `commit`, `commit+push`, or `rollback`."
+   to name only `commit`/`rollback` (both occurrences in the sentence); at
+   line 36, replace the opt-in push sentence with a statement that Close
+   performs no remote action and that `codepatrol sync` owns pushing; also
+   state that Close squashes to one commit and retains the Change branch.
+5. In `skills/_shared/STAGE-IO.md:11`, change "Close will output `commit`,
+   `commit+push`, `rollback`" to name only `commit`/`rollback`.
+6. In `skills/_shared/CODEPATROL-CLI.md`, remove `push` from the `close.json`
+   prose and example (leaving `outcome`, `actor`, `authority`), rewrite the
+   example's authority text so it no longer describes a `commit+push`
+   flow (e.g. "User selected commit via AskUserQuestion for <work-id>; ran
+   `codepatrol sync --target` afterward to push."), and add a `sync` line to
+   the command list.
+7. Run `npm run lint:skills`. Expected: passes. Run
+   `grep -rln "commit+push" skills/ src/ scripts/` and
+   `grep -rn "codepatrol-git" skills/ src/ scripts/`. Expected: **zero**
+   hits for both.
 
 **Task result:** diff, lint output, grep output, appended to
 `apply/journal.md`.
@@ -504,16 +547,20 @@ Satisfies AC-8.
 1. Run `npm run verify`. Expected: all green, test count strictly greater
    than the 217 baseline, 0 failures (AC-8).
 2. Re-run the AC-5 greps: `grep -rn "pushSuggestion\|pushError" src/` returns
-   nothing, and `grep -n "push" src/change/orchestrator.ts` shows no
-   `git.push` call under `closeChange`.
+   nothing, `grep -n "push" src/change/orchestrator.ts` shows no
+   `git.push` call under `closeChange`, and
+   `grep -rln "commit+push" skills/ src/ scripts/` returns **zero** hits
+   (AC-5, AC-7).
 3. Run `git diff --stat main -- . ':!.codepatrol'` and reconcile against the
    spec's forecast: `src/change/{orchestrator,git,types,sync}.ts`,
    `src/cli/{args,commands,output}.ts`,
    `skills/codepatrol-sync/SKILL.md` (added),
    `skills/codepatrol-git/SKILL.md` (deleted), `skills/catalog.yaml`,
-   `skills/codepatrol-close/SKILL.md`, `skills/_shared/CODEPATROL-CLI.md`,
-   and the four test files. Any file outside that set is undeclared surface
-   and must be explained in the journal.
+   `skills/codepatrol-close/SKILL.md`, `skills/_shared/STAGE-IO.md`,
+   `skills/_shared/CODEPATROL-CLI.md`, and the four test files
+   (`src/change/git.test.ts`, `src/change/close-push.test.ts`,
+   `src/change/sync.test.ts`, `src/cli/cli.test.ts`). Any file outside that
+   set is undeclared surface and must be explained in the journal.
 4. Confirm no DC trigger fired: pruning stays behind `--prune-closed` and
    is never automatic (DC-1); no fetch/rebase/force/PR was added (DC-2); no
    issue annotation was added (DC-3); the remote branch list is never
