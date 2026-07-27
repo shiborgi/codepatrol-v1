@@ -170,3 +170,23 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 30c380a0-4e6b-4abd-a468-da5fcd20d28e
+    at: 2026-07-27T01:50:17.021Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 577beed10d0240508ccf5fc6dc97f99c8b728408
+    tree: 39ebbf360ad0130b84bf7346402943778a13adb9
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-checkpoint-delete-artifact-add-fix/plan/spec.md
+        sha256: e38b03123a0658c9e6b42583d84e95c52ea499ba9ea910697281f06f9413bf0c
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-checkpoint-delete-artifact-add-fix/plan/plan.md
+        sha256: 126b4525c0c1a77b15f3a2b93fa70770289a7d27eb2260413d88ce11f0653663
+        intent: modify
+      - path: .codepatrol/changes/2026-07-27-checkpoint-delete-artifact-add-fix/plan/evidence/investigation.md
+        sha256: 7e370a73e60dff763ff57e10c3e8b40e1efb7901601aa69aecbf2a58385181a6
+        intent: modify
+    next_action: codepatrol-review 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
