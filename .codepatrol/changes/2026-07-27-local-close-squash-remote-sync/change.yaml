@@ -78,3 +78,10 @@ events:
     to_stage: plan
     reason: "fix-first: (major) T2 step 2 keeps closeWork's `else if (checkedOutHead !== terminalCommit) throw TARGET_ADVANCED` guard, which is correct for fast-forward but wrong for squash -- after a squash the target head is neither base_commit nor terminalCommit, so a recovery re-run throws TARGET_ADVANCED, the exact outcome the instruction's own rationale claims to prevent. Verified by simulation; T2 step 3 already applies the correct tree-equality fix to completeFinalization, so the plan contradicts itself. No AC covers Close re-entrancy, and the shipped test git.test.ts:266 already exercises that re-run path. (major) T3 omits three assertion updates that same test requires: FailAfterMergeGit overrides mergeFf which closeWork no longer calls, the `HEAD === terminalCommit` assertion is false under squash, and the branch-deleted equality assertion must be inverted; T3's predicted 219 count cannot hold. (minor) spec Outcome justifies branch retention as a lineage anchor while evidence section 3 states the tag alone already suffices -- Alternatives reveals the real purpose is checkout-ability, and DC-1's cost/benefit is unassessable until that is stated. Design, scope and DC-2/DC-3 are sound; corrections are mechanical and confined to T2, T3 and two spec sections. See review/report.md, whose Residual concerns also record the verified constraint for the user's newly stated local-branch-deletion requirement."
     next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 13882ef5-4323-489b-a998-d2bf5ebef609
+    at: 2026-07-27T02:43:18.713Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
