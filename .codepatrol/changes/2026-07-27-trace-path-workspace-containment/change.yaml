@@ -276,3 +276,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Verify candidate cba71ca14badcf8644a5a0bd294c17779a9f9bc8 for 2026-07-27-trace-path-workspace-containment
+  - id: 8285fbe4-ad96-45bc-ba06-fe46e8d26116
+    at: 2026-07-27T19:46:45.687Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-opencode-1
+      started_at: 2026-07-27T19:43:44.000Z
+      finished_at: 2026-07-27T19:46:21.000Z
+      elapsed_ms: 157000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
