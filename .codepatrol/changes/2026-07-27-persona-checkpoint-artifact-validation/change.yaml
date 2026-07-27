@@ -119,3 +119,10 @@ events:
         sha256: 0bc32b4bc8250272846a41fc3b2aa3992fc3a5f5db1b9ecc1851b4ad23c94222
         intent: modify
     next_action: codepatrol-review 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
+  - id: a0c0e5a6-5d75-4132-84ce-ad3cd5c50536
+    at: 2026-07-27T20:46:45.606Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-began
+    next_action: Review Plan revision 2 for 2026-07-27-persona-checkpoint-artifact-validation
