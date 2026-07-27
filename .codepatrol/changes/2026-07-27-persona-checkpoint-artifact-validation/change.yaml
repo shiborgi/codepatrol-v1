@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Review Plan revision 1 for 2026-07-27-persona-checkpoint-artifact-validation
+  - id: a3016ec1-ec27-4353-9d0f-11d0c39ee59e
+    at: 2026-07-27T20:19:51.500Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-opencode-1
+      started_at: 2026-07-27T20:17:03.000Z
+      finished_at: 2026-07-27T20:19:00.000Z
+      elapsed_ms: 117000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
