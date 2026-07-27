@@ -326,3 +326,13 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 365b8cd3-aa80-478f-a6ac-a1ed521c354e
+    at: 2026-07-27T21:33:23.232Z
+    actor: claude-sonnet-5
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 23cf2b0ec6739f4a576648eded88117375284730
+    tag: codepatrol/committed/2026-07-27-persona-checkpoint-artifact-validation
+    receipt: close/receipt.md
