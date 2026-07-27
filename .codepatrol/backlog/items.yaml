@@ -392,7 +392,7 @@ items:
     title: Trace paths accept unchecked CLI --id values and can escape .codepatrol/runtime or the workspace through parent traversal
     priority: p1
     area: architecture
-    status: candidate
+    status: done
     evidence:
       - src/cli/main.ts:19-28 traceableWorkId accepts any non-empty args.id and forwards it before dispatch
       - src/change/trace.ts:13-18 builds the trace path with unchecked join instead of resolveInside/state path helpers
@@ -408,7 +408,7 @@ items:
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T16:48:29.584Z
-    lastSeenAt: 2026-07-27T16:48:29.584Z
+    lastSeenAt: 2026-07-27T20:00:42.519Z
   - id: persona-review-and-verify-checkpoints-skip-artifact-ownership-and-sha-validation-before-committing-submitted-paths
     title: Persona Review and Verify checkpoints skip artifact ownership and SHA validation before committing submitted paths
     priority: p1
