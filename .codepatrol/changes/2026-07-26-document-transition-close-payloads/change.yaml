@@ -156,3 +156,17 @@ events:
     attempt: 3
     type: stage-began
     next_action: Correct Plan artifacts for Review findings on 2026-07-26-document-transition-close-payloads
+  - id: 3af62675-cfe4-4936-a9e7-d656a37af10d
+    at: 2026-07-27T00:06:14.228Z
+    actor: opencode
+    stage: plan
+    attempt: 3
+    type: run-recorded
+    run:
+      id: plan-3
+      started_at: 2026-07-27T00:02:00Z
+      finished_at: 2026-07-27T00:05:15Z
+      elapsed_ms: 195000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
