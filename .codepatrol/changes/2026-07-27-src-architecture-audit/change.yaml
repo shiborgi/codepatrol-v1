@@ -28,3 +28,23 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 616a2e18-76c6-4de7-841b-e49402521c42
+    at: 2026-07-27T16:56:05.470Z
+    actor: opencode
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 1a64ea2e7e5f5e9cd1048d070c8519653092a232
+    tree: 0a64551bfd5ac9adc4396a4b3ad3ac9080ae6bfd
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-src-architecture-audit/plan/spec.md
+        sha256: 6fe63f7b257622f1af82d8357941e1b4dc67cb06128a49f622e8c2dbdb5cf49b
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-src-architecture-audit/plan/plan.md
+        sha256: f63ebda0690d75474e9fd3e05c1cc13360d80166efa65d581082eabde635c4d2
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-src-architecture-audit/plan/evidence/investigation.md
+        sha256: 3eca470ed5a26acc56e8533421d83282449eee3332a47f8df2efe6681f1a7d38
+        intent: create
+    next_action: codepatrol-review 2026-07-27-src-architecture-audit on codepatrol/2026-07-27-src-architecture-audit
