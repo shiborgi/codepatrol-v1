@@ -269,3 +269,10 @@ events:
       exit_code: 0
       elapsed_ms: 27271
       at: 2026-07-27T19:32:55.274Z
+  - id: f3edae5a-4e6a-43f3-bbe3-85fc5fe0bf9a
+    at: 2026-07-27T19:44:05.754Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: Verify candidate cba71ca14badcf8644a5a0bd294c17779a9f9bc8 for 2026-07-27-trace-path-workspace-containment
