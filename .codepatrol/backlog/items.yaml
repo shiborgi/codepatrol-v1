@@ -388,3 +388,143 @@ items:
     count: 1
     firstSeenAt: 2026-07-27T02:23:27.870Z
     lastSeenAt: 2026-07-27T02:23:27.870Z
+  - id: trace-paths-accept-unchecked-cli-id-values-and-can-escape-codepatrol-runtime-or-the-workspace-through-parent-traversal
+    title: Trace paths accept unchecked CLI --id values and can escape .codepatrol/runtime or the workspace through parent traversal
+    priority: p1
+    area: architecture
+    status: candidate
+    evidence:
+      - src/cli/main.ts:19-28 traceableWorkId accepts any non-empty args.id and forwards it before dispatch
+      - src/change/trace.ts:13-18 builds the trace path with unchecked join instead of resolveInside/state path helpers
+      - src/change/trace.ts:54-67 creates parent directories and appends at the unchecked path
+      - src/change/trace.test.ts covers only a safe work id
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T16:48:29.584Z
+    lastSeenAt: 2026-07-27T16:48:29.584Z
+  - id: persona-review-and-verify-checkpoints-skip-artifact-ownership-and-sha-validation-before-committing-submitted-paths
+    title: Persona Review and Verify checkpoints skip artifact ownership and SHA validation before committing submitted paths
+    priority: p1
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/orchestrator.ts:261-264 waives required reports and then skips validateWorkspaceCheckpoint entirely for persona checkpoints
+      - src/change/orchestrator.ts:290-295 stages declared paths after the skipped validation
+      - src/change/model.ts:122-126 returns early for persona events so bindings are not retained on the accepted attempt
+      - src/change/orchestrator-parallel.test.ts has no negative ownership or hash case
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T16:48:35.584Z
+    lastSeenAt: 2026-07-27T16:48:35.584Z
+  - id: checkpoint-and-close-git-yaml-transactions-lack-complete-recovery-for-failures-between-content-commits-events-enrichment-commits-and-tags
+    title: Checkpoint and Close Git/YAML transactions lack complete recovery for failures between content commits events enrichment commits and tags
+    priority: p1
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/orchestrator.ts:290-298 commits checkpoint content before persisting its event at lines 312-324
+      - src/change/orchestrator.ts:220-229 recovery recognizes only an already-persisted matching event
+      - src/change/orchestrator.ts:423-456 performs receipt event report backlog terminal commit and tag as multiple partial phases
+      - src/change/git.test.ts covers event-persisted metadata-commit recovery and post-tag failures but not the inverse checkpoint failure or pre-tag Close phases
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T16:48:42.036Z
+    lastSeenAt: 2026-07-27T16:48:42.036Z
+  - id: backlog-read-modify-write-operations-are-atomic-per-file-but-unlocked-across-concurrent-cli-lifecycle-and-issue-sync-writers
+    title: Backlog read-modify-write operations are atomic per file but unlocked across concurrent CLI lifecycle and issue-sync writers
+    priority: p1
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/backlog.ts:140-185 mutators independently read modify and atomically replace without a shared lock
+      - src/cli/commands.ts:181-205 exposes concurrent add and resolve writers
+      - src/change/orchestrator.ts:175-191,428-447 and src/change/issue-sync.ts:106-138 add independent writer paths
+      - src/change/backlog.test.ts and src/change/issue-sync.test.ts exercise only sequential mutation
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T16:48:49.350Z
+    lastSeenAt: 2026-07-27T16:48:49.350Z
+  - id: stage-session-prime-and-rebuild-can-overwrite-concurrent-claimed-or-closed-progress-because-they-bypass-the-per-session-mutation-lock
+    title: Stage Session prime and rebuild can overwrite concurrent claimed or closed progress because they bypass the per-session mutation lock
+    priority: p1
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/session.ts:181-210 locks claim and close mutations
+      - src/change/session.ts:173-176,213-216 creates or overwrites the same session without that lock
+      - src/cli/commands.ts:145-167 exposes prime rebuild and doctor paths concurrently
+      - src/change/change.test.ts covers sequential rebuild behavior but no rebuild-versus-claim race
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T16:48:55.650Z
+    lastSeenAt: 2026-07-27T16:48:55.650Z
+  - id: close-implementation-and-governing-contracts-disagree-on-squash-versus-fast-forward-integration-and-committed-branch-retention-versus-deletion
+    title: Close implementation and governing contracts disagree on squash versus fast-forward integration and committed branch retention versus deletion
+    priority: p1
+    area: architecture
+    status: candidate
+    evidence:
+      - README.md:109-122 requires fast-forward integration and feature-branch deletion
+      - skills/_shared/CHANGE.md:51-55 repeats fast-forward and branch deletion
+      - src/change/orchestrator.ts:459-493 performs squash integration and retains the committed branch
+      - src/change/git.test.ts:290-318 explicitly tests squash plus branch retention
+      - skills/codepatrol-close/SKILL.md:30-35 follows the implementation rather than README precedence
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T16:49:00.970Z
+    lastSeenAt: 2026-07-27T16:49:00.970Z
+  - id: test-infrastructure-leaks-temporary-git-workspaces-duplicates-lifecycle-fixtures-and-emits-git-test-helper-ts-in-the-production-build
+    title: Test infrastructure leaks temporary Git workspaces duplicates lifecycle fixtures and emits git.test-helper.ts in the production build
+    priority: p2
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/change.test.ts has 17 mkdtempSync calls and no workspace-root cleanup
+      - src/change/git.test.ts has 19 mkdtempSync calls and no workspace-root cleanup
+      - src/change/git.test-helper.ts duplicates advanceThroughVerify and matches neither **/*.test.ts nor tsconfig.build.json exclusion **/*.helper.ts
+      - tsconfig.build.json:10 therefore includes git.test-helper.ts in dist
+      - large mixed-responsibility suites include src/cli/cli.test.ts, src/change/change.test.ts and src/change/git.test.ts
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T16:49:06.772Z
+    lastSeenAt: 2026-07-27T16:49:06.772Z
+  - id: orchestrator-ts-remains-a-line-high-fan-out-facade-mixing-lifecycle-policy-inspection-checkpoint-validation-close-finalization-and-auxiliary-reporting
+    title: orchestrator.ts remains a 493-line high-fan-out facade mixing lifecycle policy inspection checkpoint validation Close finalization and auxiliary reporting
+    priority: p2
+    area: architecture
+    status: candidate
+    evidence:
+      - src/change/orchestrator.ts:27-95 owns payload schemas and persona aggregation
+      - src/change/orchestrator.ts:101-162 owns artifact and checkpoint lineage validation
+      - src/change/orchestrator.ts:164-369 owns start transition and multi-ref inspection
+      - src/change/orchestrator.ts:371-493 owns Close reporting backlog tagging integration and recovery
+      - codepatrol graph overview reports 180 symbols fan-out 15 and fan-in 12 for the module
+      - the completed transitionChange decomposition item covered only one function and did not isolate inspection or Close services
+    source:
+      kind: plan-followup
+      workId: 2026-07-27-src-architecture-audit
+    workId: null
+    count: 1
+    firstSeenAt: 2026-07-27T16:49:15.533Z
+    lastSeenAt: 2026-07-27T16:49:15.533Z
