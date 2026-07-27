@@ -83,3 +83,10 @@ events:
         sha256: 91f6a2cefe0a0ca9e870511c349e48835d42f9b650295f22b6dcc97844888339
         intent: create
     next_action: codepatrol-apply 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: 1f54e71b-4a56-426b-822c-8ce219fea98f
+    at: 2026-07-27T23:34:11.510Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
