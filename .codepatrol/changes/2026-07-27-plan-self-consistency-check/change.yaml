@@ -69,3 +69,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: e45af41a-ac3e-4052-a794-5b6deb1377e1
+    at: 2026-07-27T00:40:28.755Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: 1ee256d59979eca5b09fdb43932bb7e01e1d819b
+    tree: 9fe903609143ded6748b63f11e8be56f34753418
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-plan-self-consistency-check/review/report.md
+        sha256: 008b231c738b9d802a462354396e277b6af26e21c668827a768189d3041a017e
+        intent: create
+    next_action: codepatrol-apply 2026-07-27-plan-self-consistency-check on codepatrol/2026-07-27-plan-self-consistency-check
