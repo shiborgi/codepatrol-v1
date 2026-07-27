@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-review 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: c352709d-41ef-4dd6-8532-da873de7322b
+    at: 2026-07-27T02:40:31.805Z
+    actor: claude-sonnet-5
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-1
+      started_at: 2026-07-27T02:36:00Z
+      finished_at: 2026-07-27T02:40:21Z
+      elapsed_ms: 261000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
