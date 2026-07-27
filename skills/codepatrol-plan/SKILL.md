@@ -51,6 +51,16 @@ expected results. Another harness must need no conversation history.
 
 ## Seal and stop
 
+Before hashing or checkpointing, re-read `spec.md` and `plan.md`
+end-to-end once as a single self-check: confirm no section states a
+fact (scope, placement, a required field, a line count) that another
+section contradicts, and confirm every task that instructs inserting
+literal multi-block content (multiple fenced code blocks, tables, or
+other structured content) into a target file is structurally valid as
+written — in particular, that no fence is nested inside another fence
+of the same or shorter delimiter length. This is a lightweight
+author-side pass, not a substitute for Review's independent judgment.
+
 Record one finished Plan run with actual provider/harness tokens or explicit
 `unavailable`, start/finish timestamps and elapsed milliseconds. Hash and
 declare every Plan artifact, then submit a `checkpoint` transition with stage
