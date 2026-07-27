@@ -78,3 +78,10 @@ events:
     to_stage: plan
     reason: "fix-first: plan/plan.md T2 does not test AC-3 plain-rm checkpoint behavior and its red proof asks Apply to revert/reapply T1; add both deletion-mode scenarios and run the git-rm case before T1."
     next_action: codepatrol-plan 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
+  - id: 73ff154b-7b4f-432c-84e1-fb3c0bf4a682
+    at: 2026-07-27T01:26:43.924Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 2
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-checkpoint-delete-artifact-add-fix on codepatrol/2026-07-27-checkpoint-delete-artifact-add-fix
