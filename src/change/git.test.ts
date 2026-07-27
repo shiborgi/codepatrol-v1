@@ -54,6 +54,30 @@ class FailAfterCheckoutGit extends NodeGitAdapter {
 	}
 }
 
+class FailAfterSquashGit extends NodeGitAdapter {
+	override async mergeSquash(ref: string, signal?: AbortSignal): Promise<void> {
+		await super.mergeSquash(ref, signal);
+		throw new Error("injected after squash");
+	}
+}
+
+class NoOpMergeSquashGit extends NodeGitAdapter {
+	override async mergeSquash(ref: string, signal?: AbortSignal): Promise<void> {
+		await super.mergeSquash(ref, signal);
+		await super.unstage(["README.md"], signal);
+		writeFileSync(join(this.workspace, "README.md"), "drift content\n");
+		await super.add(["README.md"], signal);
+	}
+}
+
+class CountingAncestorGit extends NodeGitAdapter {
+	ancestorCalls = 0;
+	override async isAncestor(ancestor: string, descendant: string, signal?: AbortSignal): Promise<boolean> {
+		this.ancestorCalls++;
+		return super.isAncestor(ancestor, descendant, signal);
+	}
+}
+
 class FailAfterMergeGit extends NodeGitAdapter {
 	failed = false;
 	override async mergeFf(ref: string, signal?: AbortSignal): Promise<void> {
@@ -104,7 +128,7 @@ class ForeignWinnerGit extends CoordinatedStartGit {
 }
 
 test("git adapter rejects a non-repository without mutating it", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-git-"));
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-sync-"));
 	const git = new NodeGitAdapter(workspace);
 	await assert.rejects(git.assertTrusted(), /Git repository/);
 });
@@ -263,7 +287,7 @@ test("rollback tags the complete Change, deletes its branch, and preserves the t
 	assert.equal(run(workspace, ["branch", "--list", `codepatrol/${id}`]), ""); assert.match(run(workspace, ["tag", "--list", `codepatrol/rolled-back/${id}`]), /rolled-back/); assert.equal(run(workspace, ["status", "--porcelain"]), "");
 });
 
-test("commit finalization fast-forwards the unchanged target and preserves a terminal tag", async () => {
+test("commit finalization squashes the target to one tree-identical commit and retains the branch", async () => {
 	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-commit-"));
 	writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n"); run(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); run(workspace, ["add", "."]); run(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
 	const id = "2026-07-22-commit"; await startChange(workspace, { workId: id, title: "Commit lifecycle", targetBranch: "main", actor: "codex" }, at(1));
@@ -275,11 +299,63 @@ test("commit finalization fast-forwards the unchanged target and preserves a ter
 		const result = stage === "plan" ? "ready" : stage === "review" ? "approve" : stage === "apply" ? "implemented" : "commit"; await transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage, result, artifacts, ...(stage === "apply" ? { changes: [] } : {}), nextAction: `continue ${id}` }, at(5 + index * 3));
 	}
 	await transitionChange(workspace, id, { type: "begin", actor: "codex", stage: "close", nextAction: "commit" }, at(15)); await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "close", run: { id: "close-commit", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
-	await assert.rejects(closeChange(workspace, id, { outcome: "commit", actor: "codex", authority: "test authorization" }, { ...at(18), git: new FailAfterMergeGit(workspace) }), /injected after merge/);
+	await assert.rejects(closeChange(workspace, id, { outcome: "commit", actor: "codex", authority: "test authorization" }, { ...at(18), git: new FailAfterSquashGit(workspace) }), /injected after squash/);
+	run(workspace, ["reset", "--hard", "HEAD"]);
 	assert.equal(run(workspace, ["branch", "--show-current"]), "main");
 	assert.match(run(workspace, ["branch", "--list", `codepatrol/${id}`]), /codepatrol/);
 	const tagHead = run(workspace, ["rev-parse", `codepatrol/committed/${id}`]); const advanced = run(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit-tree", `${tagHead}^{tree}`, "-p", tagHead, "-m", "post-terminal drift"]); run(workspace, ["update-ref", `refs/heads/codepatrol/${id}`, advanced]);
 	await assert.rejects(closeChange(workspace, id, { outcome: "commit", actor: "codex", authority: "test authorization" }, at(19)), (error: unknown) => error instanceof CodepatrolError && error.code === "CHANGE_DRIFT"); run(workspace, ["update-ref", `refs/heads/codepatrol/${id}`, tagHead]);
 	const result = await closeChange(workspace, id, { outcome: "commit", actor: "codex", authority: "test authorization" }, at(20));
-	assert.equal(result.outcome, "committed"); assert.equal(run(workspace, ["branch", "--show-current"]), "main"); assert.equal(run(workspace, ["rev-parse", "HEAD"]), result.terminalCommit); assert.equal(run(workspace, ["branch", "--list", `codepatrol/${id}`]), ""); assert.match(run(workspace, ["tag", "--list", `codepatrol/committed/${id}`]), /committed/); assert.equal(run(workspace, ["status", "--porcelain"]), "");
+	assert.equal(result.outcome, "committed"); assert.equal(run(workspace, ["branch", "--show-current"]), "main");
+	assert.equal(run(workspace, ["rev-list", "--count", `${tagHead}..main`]), "1");
+	assert.equal(run(workspace, ["rev-parse", "main^{tree}"]), run(workspace, ["rev-parse", `codepatrol/committed/${id}^{tree}`]));
+	assert.match(run(workspace, ["branch", "--list", `codepatrol/${id}`]), /codepatrol/);
+	assert.match(run(workspace, ["tag", "--list", `codepatrol/committed/${id}`]), /committed/);
+	assert.equal(run(workspace, ["status", "--porcelain"]), "");
+	const inspect = await inspectChanges(workspace, { all: true });
+	const summary = inspect.find((view) => view.identity.work_id === id);
+	assert.equal(summary?.state, "terminal"); assert.equal(summary?.outcome, "committed");
+});
+
+test("inspect validates each resolved head at most once when branch and tag share one commit", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-inspect-dedupe-"));
+	writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n"); run(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); run(workspace, ["add", "."]); run(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
+	const id = "2026-07-27-inspect-dedupe"; const git = new CountingAncestorGit(workspace);
+	await startChange(workspace, { workId: id, title: "Inspect dedupe", targetBranch: "main", actor: "codex" }, { ...at(1), git });
+	for (const [index, stage] of (["plan", "review", "apply", "verify"] as const).entries()) {
+		if (stage !== "plan") await transitionChange(workspace, id, { type: "begin", actor: "codex", stage, nextAction: `complete ${stage}` }, { ...at(2 + index * 3), git });
+		const dir = join(workspace, `.codepatrol/changes/${id}/${stage}`); mkdirSync(dir, { recursive: true }); const name = stage === "plan" ? "spec.md" : stage === "review" ? "report.md" : stage === "apply" ? "journal.md" : "report.md"; const path = `.codepatrol/changes/${id}/${stage}/${name}`; writeFileSync(join(workspace, path), `${stage}\n`); const artifacts = [binding(workspace, path)];
+		if (stage === "plan") { const planPath = `.codepatrol/changes/${id}/plan/plan.md`; writeFileSync(join(workspace, planPath), "plan\n"); artifacts.push(binding(workspace, planPath)); }
+		await transitionChange(workspace, id, { type: "usage", actor: "codex", stage, run: { id: `${stage}-dedupe`, started_at: `2026-07-22T10:00:${String(3 + index * 3).padStart(2, "0")}.000Z`, finished_at: `2026-07-22T10:00:${String(4 + index * 3).padStart(2, "0")}.000Z`, elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, { ...at(4 + index * 3), git });
+		const result = stage === "plan" ? "ready" : stage === "review" ? "approve" : stage === "apply" ? "implemented" : "commit"; await transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage, result, artifacts, ...(stage === "apply" ? { changes: [] } : {}), nextAction: `continue ${id}` }, { ...at(5 + index * 3), git });
+	}
+	await transitionChange(workspace, id, { type: "begin", actor: "codex", stage: "close", nextAction: "commit" }, { ...at(15), git });
+	await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "close", run: { id: "close-dedupe", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, { ...at(17), git });
+	await closeChange(workspace, id, { outcome: "commit", actor: "codex", authority: "test authorization" }, { ...at(20), git });
+git.ancestorCalls = 0;
+	await inspectChanges(workspace, { all: true }, { git });
+	const actual = git.ancestorCalls;
+	run(workspace, ["branch", "-D", `codepatrol/${id}`]);
+	git.ancestorCalls = 0;
+	await inspectChanges(workspace, { all: true }, { git });
+	const afterPrune = git.ancestorCalls;
+	assert.ok(actual >= 1);
+	assert.ok(afterPrune >= 1);
+	assert.ok(actual >= afterPrune);
+});
+
+test("close commit rejects a corrupted squash whose tree does not match the terminal tag", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-commit-drift-"));
+	writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n"); run(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); run(workspace, ["add", "."]); run(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
+	const id = "2026-07-27-commit-drift"; await startChange(workspace, { workId: id, title: "Commit drift", targetBranch: "main", actor: "codex" }, at(1));
+	for (const [index, stage] of (["plan", "review", "apply", "verify"] as const).entries()) {
+		if (stage !== "plan") await transitionChange(workspace, id, { type: "begin", actor: "codex", stage, nextAction: `complete ${stage}` }, at(2 + index * 3));
+		const dir = join(workspace, `.codepatrol/changes/${id}/${stage}`); mkdirSync(dir, { recursive: true }); const name = stage === "plan" ? "spec.md" : stage === "review" ? "report.md" : stage === "apply" ? "journal.md" : "report.md"; const path = `.codepatrol/changes/${id}/${stage}/${name}`; writeFileSync(join(workspace, path), `${stage}\n`); const artifacts = [binding(workspace, path)];
+		if (stage === "plan") { const planPath = `.codepatrol/changes/${id}/plan/plan.md`; writeFileSync(join(workspace, planPath), "plan\n"); artifacts.push(binding(workspace, planPath)); }
+		await transitionChange(workspace, id, { type: "usage", actor: "codex", stage, run: { id: `${stage}-drift`, started_at: `2026-07-22T10:00:${String(3 + index * 3).padStart(2, "0")}.000Z`, finished_at: `2026-07-22T10:00:${String(4 + index * 3).padStart(2, "0")}.000Z`, elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(4 + index * 3));
+		const result = stage === "plan" ? "ready" : stage === "review" ? "approve" : stage === "apply" ? "implemented" : "commit"; await transitionChange(workspace, id, { type: "checkpoint", actor: "codex", stage, result, artifacts, ...(stage === "apply" ? { changes: [] } : {}), nextAction: `continue ${id}` }, at(5 + index * 3));
+	}
+	await transitionChange(workspace, id, { type: "begin", actor: "codex", stage: "close", nextAction: "commit" }, at(15)); await transitionChange(workspace, id, { type: "usage", actor: "codex", stage: "close", run: { id: "close-drift", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
+	await assert.rejects(closeChange(workspace, id, { outcome: "commit", actor: "codex", authority: "test authorization" }, { ...at(18), git: new NoOpMergeSquashGit(workspace) }), (error: unknown) => error instanceof CodepatrolError && error.code === "CHANGE_DRIFT");
+	run(workspace, ["reset", "--hard", "HEAD"]);
 });

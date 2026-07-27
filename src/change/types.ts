@@ -51,6 +51,6 @@ export type TransitionIntent =
 	| { type: "resume"; actor: string; stage: Stage; nextAction: string };
 export interface StartChangeInput { workId: string; title: string; targetBranch: string; actor: string; nextAction?: string; backlogItemId?: string }
 export interface ChangeQuery { workId?: string; all?: boolean }
-export interface CloseInput { outcome: "commit" | "rollback"; actor: string; authority: string; push?: boolean }
-export interface CloseResult { outcome: TerminalOutcome; workId: string; targetBranch: string; terminalCommit: string; tag: string; pushError?: { code: string; message: string }; pushSuggestion?: string }
+export interface CloseInput { outcome: "commit" | "rollback"; actor: string; authority: string }
+export interface CloseResult { outcome: TerminalOutcome; workId: string; targetBranch: string; terminalCommit: string; tag: string }
 export interface OperationOptions { signal?: AbortSignal; now?: Date; git?: import("./git.js").GitAdapter; gate?: GateRunner }

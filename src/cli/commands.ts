@@ -5,14 +5,16 @@ import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
 import type { ParsedArgs } from "./args.js";
 import { requireValue, KNOWN_COMMANDS } from "./args.js";
-import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary, renderBacklogList, renderIssueSyncResult } from "./output.js";
+import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary, renderBacklogList, renderIssueSyncResult, renderRemoteSyncResult } from "./output.js";
 import { closeChange, inspectChanges, startChange, transitionChange } from "../change/orchestrator.js";
 import { projectKanban, renderKanbanMarkdown } from "../change/board.js";
 import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStageSession, readStageSession, sessionStatus } from "../change/session.js";
 import { listBacklog, upsertBacklogItem, readBacklog, resolveBacklogItem, type BacklogArea, type BacklogPriority, type BacklogSource, type BacklogStatus } from "../change/backlog.js";
 import { syncIssues, type GhAdapter, type SyncDirection } from "../change/issue-sync.js";
+import { syncRemote } from "../change/sync.js";
 import type { CloseInput, Stage, StartChangeInput, TransitionIntent } from "../change/types.js";
 import { STAGES } from "../change/types.js";
+import type { GitAdapter } from "../change/git.js";
 
 export interface CommandResult {
 	data: unknown;
@@ -23,6 +25,7 @@ export interface CommandResult {
 
 export interface CommandOverrides {
 	gh?: GhAdapter;
+	git?: GitAdapter;
 }
 
 function relativePath(workspace: string, path: string): string {
@@ -81,7 +84,7 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 				stage: args.stage,
 				changes: changes.map((v) => ({ workId: v.identity.work_id, state: v.state, nextAction: v.nextAction })),
 				startNew: args.stage === "plan" || !args.stage,
-				...(args.stage === "close" ? { closeOptions: ["commit", "commit+push", "rollback"] } : {})
+				...(args.stage === "close" ? { closeOptions: ["commit", "rollback"] } : {})
 			};
 			if (showBacklog) data.backlog = backlog.map((entry) => ({ id: entry.id, title: entry.title, priority: entry.priority, area: entry.area, status: entry.status, count: entry.count, workId: entry.workId }));
 			return { data, text: renderNext(args.stage as Stage | undefined, changes, showBacklog ? backlog : undefined) };
@@ -165,9 +168,7 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 		}
 		case "change.close": {
 			const data = await closeChange(workspace, requireValue(args.id, "id"), readJsonInput(workspace, requireValue(args.input, "input"), "Close") as CloseInput, { signal });
-			const baseText = `${data.outcome} ${data.terminalCommit} (${data.tag})`;
-			const text = data.pushSuggestion ? `${baseText}\nConsider: ${data.pushSuggestion}` : baseText;
-			return { data, text };
+			return { data, text: `${data.outcome} ${data.terminalCommit} (${data.tag})` };
 		}
 		default: {
 			const suffix = args.command.startsWith("change.") ? args.command.slice(7) : "";
@@ -208,6 +209,24 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 			if (!["pull", "push", "both"].includes(direction)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: issues sync --direction must be one of pull|push|both, got ${direction}.`, 2);
 			const result = await syncIssues(workspace, direction, { signal, dryRun: args.dryRun, ...(overrides?.gh ? { gh: overrides.gh } : {}) });
 			return { data: result, text: renderIssueSyncResult(result) };
+		}
+		case "sync": {
+			const noSelector = !args.target && !args.branches && !args.issues;
+			const target = noSelector || args.target;
+			const branches = noSelector || args.branches;
+			const issues: SyncDirection | false = noSelector || args.issues ? ((args.direction ?? "both") as SyncDirection) : false;
+			const data = await syncRemote(workspace, {
+				signal,
+				dryRun: args.dryRun,
+				target,
+				targetBranch: args.targetBranch,
+				branches,
+				issues,
+				pruneClosed: args.pruneClosed,
+				...(overrides?.git ? { git: overrides.git } : {}),
+				...(overrides?.gh ? { gh: overrides.gh } : {}),
+			});
+			return { data, text: renderRemoteSyncResult(data) };
 		}
 	}
 }

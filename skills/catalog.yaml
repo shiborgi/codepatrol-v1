@@ -92,12 +92,12 @@ skills:
     consumes: [requirements, code evidence, domain language]
     produces: [module and interface design]
     mutation: never
-  codepatrol-git:
+  codepatrol-sync:
     role: support
     invokedBy: []
     mayInvoke: []
-    consumes: [backlog items, GitHub issues on origin]
-    produces: [reconciled backlog items, reconciled GitHub issues]
+    consumes: [backlog items, closed Change refs, GitHub issues on origin]
+    produces: [pushed target/refs, pruned local branches, reconciled backlog items, reconciled GitHub issues]
     mutation: artifacts
   diagnose-bug:
     role: support

@@ -192,7 +192,7 @@ test("codepatrol next lists Changes by stage with affordances", () => {
     assert.equal(pd.changes[0].workId, id);
     assert.equal(pd.startNew, true);
     const close = JSON.parse(run(["next","--stage","close","--workspace",root,"--format=json"]).stdout).data;
-    assert.deepEqual(close.closeOptions, ["commit","commit+push","rollback"]);
+    assert.deepEqual(close.closeOptions, ["commit","rollback"]);
     const bad = run(["next","--stage","bogus","--workspace",root,"--format=json"]);
     assert.equal(bad.status, 2); assert.equal(JSON.parse(bad.stdout).error.code, "INVALID_ARGUMENT");
   } finally { rmSync(root, { recursive: true, force: true }); }

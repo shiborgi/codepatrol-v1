@@ -28,14 +28,19 @@ export interface ParsedArgs {
 	status?: string;
 	direction?: string;
 	dryRun?: boolean;
+	target?: boolean;
+	branches?: boolean;
+	issues?: boolean;
+	pruneClosed?: boolean;
+	targetBranch?: string;
 }
 
-const BOOLEAN_FLAGS = new Set(["help", "version", "force", "exact", "include-ambiguous", "all", "dry-run"]);
+const BOOLEAN_FLAGS = new Set(["help", "version", "force", "exact", "include-ambiguous", "all", "dry-run", "target", "branches", "issues", "prune-closed"]);
 const REPEATABLE = new Set(["file", "symbol", "relation"]);
 const KNOWN = new Set([
 	"workspace", "format", "help", "version", "force", "path", "query", "exact", "symbol", "file",
 	"relation", "since-ref", "include-ambiguous", "input", "id", "all", "as-of", "stage", "status",
-	"direction", "dry-run",
+	"direction", "dry-run", "target", "branches", "issues", "prune-closed", "target-branch",
 ]);
 const GLOBAL = new Set(["workspace", "format", "help", "version"]);
 const COMMAND_OPTIONS = new Map<string, Set<string>>([
@@ -58,6 +63,7 @@ const COMMAND_OPTIONS = new Map<string, Set<string>>([
 	["backlog.list", new Set(["status"])],
 	["backlog.resolve", new Set(["id", "status"])],
 	["issues.sync", new Set(["direction", "dry-run"])],
+	["sync", new Set(["target", "branches", "issues", "direction", "target-branch", "prune-closed", "dry-run"])],
 ]);
 
 export const KNOWN_COMMANDS: string[] = [...COMMAND_OPTIONS.keys()];
@@ -134,6 +140,11 @@ export function parseArgs(argv: string[]): ParsedArgs {
 		status: values.get("status")?.[0],
 		direction: values.get("direction")?.[0],
 		dryRun: values.has("dry-run"),
+		target: values.has("target"),
+		branches: values.has("branches"),
+		issues: values.has("issues"),
+		pruneClosed: values.has("prune-closed"),
+		targetBranch: values.get("target-branch")?.[0],
 	};
 }
 
