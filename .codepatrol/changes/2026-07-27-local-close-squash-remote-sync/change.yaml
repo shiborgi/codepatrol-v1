@@ -149,3 +149,10 @@ events:
     to_stage: plan
     reason: "fix-first: Plan both forbids and requires sync --prune-closed, and leaves the sync target/branches/issues selector flags and defaults undecided; define one executable CLI contract."
     next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: 9ecffe16-02ff-4537-bc50-84b0ec0685c2
+    at: 2026-07-27T02:55:04.562Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 3
+    type: stage-began
+    next_action: codepatrol-plan 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
