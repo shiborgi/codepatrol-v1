@@ -69,3 +69,12 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 9fec6958-a09c-4f03-9481-6aa430dd06c5
+    at: 2026-07-27T18:21:16.333Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: T1 uses resolveInside(workspace, RUNTIME_DIR/traces/workId.jsonl), which enforces only workspace containment and accepts the Plan AC-1 input ../../escape-marker as .codepatrol/escape-marker.jsonl. Re-plan tracePath to prove containment relative to the traces root and correct plan/plan.md line 101 whitespace."
+    next_action: "codepatrol-plan 2026-07-27-trace-path-workspace-containment on codepatrol/2026-07-27-trace-path-workspace-containment: revise spec.md and plan.md for traces-subtree containment, retain both traversal red cases, and fix line 101 whitespace."
