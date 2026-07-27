@@ -140,3 +140,12 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: 8168653b-2130-42f0-a5ec-0d1f025181a6
+    at: 2026-07-27T20:48:14.427Z
+    actor: opencode
+    stage: review
+    attempt: 2
+    type: stage-returned
+    to_stage: plan
+    reason: "fix-first: move validateWorkspaceArtifacts signature/threading from validation.ts instructions to its actual owner src/change/orchestrator.ts; revise T1/T2 file ownership and dependency order while retaining validation.ts changes only for shared validator functions."
+    next_action: codepatrol-plan 2026-07-27-persona-checkpoint-artifact-validation on codepatrol/2026-07-27-persona-checkpoint-artifact-validation
