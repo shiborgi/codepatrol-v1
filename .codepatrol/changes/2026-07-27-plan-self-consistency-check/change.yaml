@@ -55,3 +55,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Review Plan revision 1 for 2026-07-27-plan-self-consistency-check
+  - id: bb4cbe6a-436e-4cbd-a9fa-9fac01df0867
+    at: 2026-07-27T00:40:20.406Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-1
+      started_at: 2026-07-27T00:37:54Z
+      finished_at: 2026-07-27T00:39:54Z
+      elapsed_ms: 120000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
