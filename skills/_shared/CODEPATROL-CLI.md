@@ -37,6 +37,70 @@ inspect` projection, never assumed or hardcoded:
 }
 ```
 
+`transition.json` for `change transition` has six `type` variants, each
+with its own exact field set (no variant accepts a field outside its own
+list):
+
+| Variant | Required fields | Optional fields |
+|---|---|---|
+| `begin` | `type`, `actor`, `stage`, `nextAction` | — |
+| `usage` | `type`, `actor`, `stage`, `run` | — |
+| `checkpoint` | `type`, `actor`, `stage`, `result`, `artifacts`, `nextAction` | `changes` (required when `stage: "apply"`, forbidden otherwise), `persona` |
+| `return` | `type`, `actor`, `stage`, `toStage`, `reason`, `nextAction` | `persona`, `reasons` |
+| `block` | `type`, `actor`, `stage`, `reason`, `nextAction` | — |
+| `resume` | `type`, `actor`, `stage`, `nextAction` | — |
+
+`persona` (checkpoint/return) marks a per-persona sub-checkpoint or
+sub-return within a parallel Review/Verify (e.g. `review-security`,
+`review-architecture`). `reasons` (return only) is populated on a later
+*consolidating* (non-persona) return that aggregates each sub-persona's
+individual reason string — it is not set on a single-persona return.
+
+```json
+{ "type": "begin", "actor": "claude-sonnet-5", "stage": "plan", "nextAction": "codepatrol-review <work-id> on codepatrol/<work-id>" }
+```
+
+```json
+{ "type": "usage", "actor": "claude-sonnet-5", "stage": "plan", "run": { "id": "plan-1", "started_at": "2026-01-01T00:00:00Z", "finished_at": "2026-01-01T00:05:00Z", "elapsed_ms": 300000, "characters": { "status": "unavailable", "reason": "harness exposes no authoritative per-run token/character usage hook" } } }
+```
+
+```json
+{ "type": "checkpoint", "actor": "claude-sonnet-5", "stage": "plan", "result": "ready", "artifacts": [ { "path": ".codepatrol/changes/<work-id>/plan/spec.md", "sha256": "<64-hex>", "intent": "create" } ], "nextAction": "codepatrol-review <work-id> on codepatrol/<work-id>" }
+```
+
+```json
+{ "type": "checkpoint", "actor": "claude-sonnet-5", "stage": "apply", "result": "implemented", "artifacts": [ { "path": ".codepatrol/changes/<work-id>/apply/journal.md", "sha256": "<64-hex>", "intent": "create" } ], "changes": ["src/example.ts"], "nextAction": "codepatrol-verify <work-id> on codepatrol/<work-id>" }
+```
+
+```json
+{ "type": "return", "actor": "claude-sonnet-5", "stage": "review", "toStage": "plan", "reason": "fix-first: <concrete reason>", "nextAction": "codepatrol-plan <work-id> on codepatrol/<work-id>" }
+```
+
+```json
+{ "type": "block", "actor": "claude-sonnet-5", "stage": "apply", "reason": "<external blocker>", "nextAction": "<corrective action>" }
+```
+
+```json
+{ "type": "resume", "actor": "claude-sonnet-5", "stage": "apply", "nextAction": "codepatrol-apply <work-id> on codepatrol/<work-id>" }
+```
+
+`checkpoint`'s `result` is stage-locked: `plan`→`"ready"`,
+`review`→`"approve"`, `apply`→`"implemented"`, `verify`→`"commit"`
+(`close` never checkpoints via `transition`). Each `artifacts[]` entry's
+`intent` is `"create"`, `"modify"`, or `"delete"` — no default, no
+`"update"`. `return`'s `stage` is only `review`/`apply`/`verify`; its
+`toStage` is only `plan`/`apply`.
+
+`close.json` for `change close` carries exactly `outcome`
+(`"commit"|"rollback"`), `actor`, `authority` (a free-text justification
+for the action, not a fixed enum), and optional `push` (only meaningful
+when `outcome: "commit"`; opts into `git push origin <target>` after a
+successful fast-forward):
+
+```json
+{ "outcome": "commit", "actor": "claude-sonnet-5", "authority": "User selected commit+push via AskUserQuestion for <work-id>; Verify checkpointed candidate <sha> with result commit.", "push": true }
+```
+
 Lifecycle commands require an explicit work id; none select by recency. All
 durable lifecycle mutations pass through the four-function Change seam. Status
 and the Kanban script share one pure projector. Stage Sessions are rebuildable;
