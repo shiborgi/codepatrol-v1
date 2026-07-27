@@ -661,3 +661,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-verify 2026-07-27-local-close-squash-remote-sync on codepatrol/2026-07-27-local-close-squash-remote-sync
+  - id: f3b51b19-1a22-4093-85a0-c2e3cbb37e78
+    at: 2026-07-27T10:52:45.440Z
+    actor: openai/gpt-5.6-terra
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-1
+      started_at: 2026-07-27T10:50:04.000Z
+      finished_at: 2026-07-27T10:52:29.000Z
+      elapsed_ms: 145000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
