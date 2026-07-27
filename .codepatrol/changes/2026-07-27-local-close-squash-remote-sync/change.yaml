@@ -525,3 +525,17 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: a2466c4f-e1e1-4546-94fb-5967d365ebeb
+    at: 2026-07-27T03:49:19.050Z
+    actor: claude-sonnet-5
+    stage: plan
+    attempt: 8
+    type: run-recorded
+    run:
+      id: plan-8b
+      started_at: 2026-07-27T03:44:00Z
+      finished_at: 2026-07-27T03:49:05Z
+      elapsed_ms: 305000
+      characters:
+        status: unavailable
+        reason: harness exposes no authoritative per-run token/character usage hook
