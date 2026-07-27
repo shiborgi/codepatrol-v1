@@ -135,9 +135,9 @@ items:
       kind: close-trace
       workId: 2026-07-25-commit-scoping
     workId: 2026-07-25-session-input-validation
-    count: 4
+    count: 5
     firstSeenAt: 2026-07-25T16:19:10.317Z
-    lastSeenAt: 2026-07-26T13:27:18.773Z
+    lastSeenAt: 2026-07-27T01:05:51.860Z
   - id: command-change-session-was-invoked-times-consider-caching-or-batching-repeated-invocations
     title: Command "change.session" was invoked 36 times — consider caching or batching repeated invocations.
     priority: p3
@@ -152,9 +152,9 @@ items:
       number: 8
       url: https://github.com/shiborgi/codepatrol/issues/8
     workId: null
-    count: 9
+    count: 10
     firstSeenAt: 2026-07-25T21:28:20.522Z
-    lastSeenAt: 2026-07-27T00:30:07.634Z
+    lastSeenAt: 2026-07-27T01:05:51.869Z
   - id: close-does-not-auto-resolve-the-backlog-item-it-was-started-against-a-change-linked-via-backlogitemid-stays-scheduled-forever-after-a-successful-commit-close
     title: Close does not auto-resolve the backlog item it was started against — a Change linked via --backlogItemId stays scheduled forever after a successful commit close
     priority: p2
@@ -322,7 +322,7 @@ items:
     title: Review stage returned 2+ times — surface the top review defects to the next Plan and consider a pre-Review `assess-change` precondition.
     priority: p2
     area: workflow
-    status: scheduled
+    status: done
     evidence: []
     source:
       kind: close-trace
@@ -330,7 +330,7 @@ items:
     workId: 2026-07-27-plan-self-consistency-check
     count: 1
     firstSeenAt: 2026-07-27T00:30:07.613Z
-    lastSeenAt: 2026-07-27T00:34:42.138Z
+    lastSeenAt: 2026-07-27T01:05:51.880Z
   - id: session-item-s-claimed-but-never-closed-review-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
     title: "Session item(s) claimed but never closed: review/2/report. A harness stopped mid-stage; re-prime the session to resume."
     priority: p3
