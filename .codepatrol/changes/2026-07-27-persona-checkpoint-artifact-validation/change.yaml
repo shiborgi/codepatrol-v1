@@ -270,3 +270,10 @@ events:
       exit_code: 0
       elapsed_ms: 27475
       at: 2026-07-27T21:12:33.581Z
+  - id: 7bb5a987-3f38-4fd1-89cb-5ce0873b855b
+    at: 2026-07-27T21:22:11.257Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: Verify candidate a0aaad2ccdc50bd6d755870117ca94acb5c0d13f for 2026-07-27-persona-checkpoint-artifact-validation
