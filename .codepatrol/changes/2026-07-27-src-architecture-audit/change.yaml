@@ -104,3 +104,30 @@ events:
       characters:
         status: unavailable
         reason: harness exposes no authoritative per-run token/character usage hook
+  - id: 807b43b1-393c-4864-a321-2b3acc53416c
+    at: 2026-07-27T17:34:21.536Z
+    actor: kimi/k3
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: e3876878665a4bf09a853861ceb097bcfb02547e
+    tree: 05bf071aa76bface91840d4d082ced53d93a5333
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-src-architecture-audit/apply/journal.md
+        sha256: 67fecd25a7dc7a1841c93d8a565404039d176583720a873c661d82f3809cf84b
+        intent: create
+    changes:
+      - src/graph/extract.test.ts
+      - src/graph/extract.ts
+      - src/graph/link.test.ts
+      - src/graph/link.ts
+      - src/graph/model.ts
+      - src/graph/store.test.ts
+      - src/graph/store.ts
+    next_action: codepatrol-verify 2026-07-27-src-architecture-audit on codepatrol/2026-07-27-src-architecture-audit
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 27000
+      at: 2026-07-27T17:34:21.470Z
