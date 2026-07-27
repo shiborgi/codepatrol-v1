@@ -149,3 +149,10 @@ events:
     to_stage: plan
     reason: "fix-first: T1/T2's outer ```markdown wrapper around nested same-length ```json fences self-terminates early under CommonMark (a bare closing ``` line closes the length-3 outer fence at the first inner example, not at the intended end), shipping broken/garbled Markdown in skills/_shared/CODEPATROL-CLI.md -- contradicts the real session.json precedent (no wrapper, verified by direct read of lines 23-38) and is uncaught by AC-4 (lint:skills checks catalog/frontmatter/links only) or AC-5 (field-text presence only, not render structure). Both of attempt 1's findings are confirmed genuinely fixed; design unaffected. Fix: remove the outer wrapper in T1 and T2, present prose/table/JSON examples flat at top level matching session.json's real structure; also reconcile spec.md's stale ~70 vs ~90 line-count inconsistency (minor). See review/report.md."
     next_action: codepatrol-plan 2026-07-26-document-transition-close-payloads on codepatrol/2026-07-26-document-transition-close-payloads
+  - id: b8b59709-71f0-4465-ba86-56771e9aae17
+    at: 2026-07-27T00:04:30.373Z
+    actor: opencode
+    stage: plan
+    attempt: 3
+    type: stage-began
+    next_action: Correct Plan artifacts for Review findings on 2026-07-26-document-transition-close-payloads
