@@ -181,6 +181,117 @@ findings directly before correcting:
    already green — i.e. a true characterization test, not a vacuous one),
    *then* apply the orchestrator.ts fix, then confirm both cases pass.
 
+## Attempt 2 correction: the real historical incident used `changes[]`, not `artifacts[intent=delete]`
+
+Attempt 2 was returned `fix-first` on a Plan-executability finding (the
+proposed test fixture couldn't satisfy `intent:"delete"` artifact
+validation). Investigating that finding surfaced a deeper, more important
+correction: **the fix itself was targeting the wrong field.**
+
+`src/change/validation.ts:24` (`validateWithReader`) requires every
+`intent.artifacts[]` binding's `path` to start with the checkpointing
+stage's own directory prefix (`.codepatrol/changes/<work-id>/<stage>/`),
+via `changeStageRelativePrefix`. Re-checked the real historical incident's
+actual declared checkpoint payload directly from `change.yaml`:
+
+```
+$ python3 -c "import yaml; d=yaml.safe_load(open('.codepatrol/changes/2026-07-25-docs-consolidation/change.yaml')); [print('artifacts:',e.get('artifacts'),'\nchanges:',e.get('changes')) for e in d['events'] if e.get('type')=='stage-checkpointed' and e.get('stage')=='apply']"
+artifacts: [{'path': '.../apply/journal.md', 'sha256': '...', 'intent': 'create'}]
+changes: ['.gitignore', 'AGENTS.md', 'docs/codepatrol/assessments/2026-07-24-architecture-v2.md', 'docs/codepatrol/assessments/2026-07-24-architecture-workflow.md', ...]
+```
+
+`docs/codepatrol/assessments/2026-07-24-architecture-v2.md` — the exact
+path from the historical `OPERATION_FAILED` sample — is in **`changes[]`**,
+not `artifacts[]`. It could never have been declared as an `artifacts[]`
+binding in the first place (it doesn't start with
+`.codepatrol/changes/2026-07-25-docs-consolidation/apply/`, so
+`validateWithReader` would reject it as "Artifact is not owned by apply").
+`changes[]` is the separate, Apply-only field representing the *complete
+production delta* as a flat array of path strings — with **no `intent`
+field at all**, since it must include every create, modify, and delete in
+one list (enforced by the `actualProduction === declaredProduction`
+reconciliation, not by `validateWithReader`).
+
+Re-reading `buildCheckpointEvent`'s original code with this correction:
+
+```typescript
+const paths = [...intent.artifacts.filter((item) => item.intent !== "delete").map((item) => item.path), ...(intent.changes ?? [])];
+...
+const committedPaths = [...new Set([...paths, ...intent.artifacts.map((item) => item.path)])];
+await git.add(committedPaths, options.signal);
+```
+
+`intent.changes` (every `changes[]` entry, including deleted files) flows
+into `paths` unconditionally. Attempt 2's fix only split out
+`intent.artifacts.filter(intent === "delete")` — it left `paths` (and
+therefore every `changes[]` entry, deleted or not) going through the exact
+same unconditional `git.add(paths, ...)` call. **The fix as specified in
+attempt 2 would not have fixed the actual historical incident at all** —
+it fixed a structurally-identical but never-actually-triggered code path
+(`artifacts[intent="delete"]`), while leaving the evidenced, real one
+(`changes[]`) exactly as broken as before.
+
+### Corrected design: route by on-disk existence, not by declared intent
+
+Since `changes[]` entries carry no intent marker, the fix cannot key off
+`item.intent` at all for the `changes[]` portion. The uniform, correct
+signal is **whether the path currently exists in the workspace**: a
+create/modify path always exists at staging time (enforced for `artifacts`
+by `validateWithReader`; implied for `changes` entries that aren't
+deletions); a deletion (`artifacts[intent="delete"]`, or a `changes[]`
+entry the caller has already removed by whatever method) never does.
+Reproduced the corrected approach directly in a scratch repo, mixing a
+`git rm`'d deletion, an untracked new file, and a modified existing file in
+one combined staging pass:
+
+```
+$ git rm -q old.md            # simulate prior git rm
+$ echo new > new.md            # untracked create
+$ echo more >> base.md         # tracked modify
+$ python3 -c "
+import subprocess, os
+paths = ['old.md', 'new.md', 'base.md']
+toAdd = [p for p in paths if os.path.exists(p)]
+toUnstage = [p for p in paths if not os.path.exists(p)]
+if toAdd: subprocess.run(['git','add','--']+toAdd, check=True)
+if toUnstage: subprocess.run(['git','rm','--cached','--ignore-unmatch','--']+toUnstage, check=True)
+"
+$ git status --porcelain
+M  base.md
+A  new.md
+D  old.md
+```
+
+All three staged correctly in one pass, no error. `existsSync` and
+`resolveInside` (the same workspace-relative, symlink-safe resolver
+`validateArtifactBindings`'s own reader already uses) are already imported
+in `src/change/orchestrator.ts` — no new imports needed.
+
+### Test design simplification this correction enables
+
+Because `changes[]` entries are **not** subject to `validateWithReader`'s
+baseline-existence rule (that rule only applies to `artifacts[]` bindings),
+a regression test for the real, evidenced bug needs no multi-attempt/
+return lifecycle to construct a valid baseline — it only needs a file that
+already exists on the branch before the Apply checkpoint runs (the same
+pattern the existing `"checkpoint rejects a production path committed
+outside its declaration"` test already uses via its `EARLY.txt` setup:
+commit a scratch file directly via raw `git` calls before any stage
+transition, then reference it in a later checkpoint's declared paths).
+This avoids
+entirely the baseline-fixture complexity attempt 2's return correctly
+flagged for the `artifacts[intent="delete"]` case — because this Change's
+regression tests now target `changes[]`, that complexity doesn't apply.
+
+A dedicated test for `artifacts[intent="delete"]` routing through the same
+corrected staging code is not added in this Change: no historical incident
+evidences it as broken (the existing `git.test.ts:157-163` test only
+exercises the unrelated *rejection* of required-artifact deletions, before
+any staging code runs), and the corrected fix's existence-based routing
+handles it via the identical mechanism already proven for `changes[]` —
+adding a second, more complex fixture to test the same code path a second
+way is disproportionate to the actual evidence. See DC-2.
+
 ## Precedent for scope discipline
 
 This Change follows the same discipline as the two immediately preceding
