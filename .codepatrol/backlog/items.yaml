@@ -112,7 +112,7 @@ items:
     title: "Top error code: OPERATION_FAILED (6). Investigate the first occurrence's args and stage context."
     priority: p1
     area: workflow
-    status: candidate
+    status: scheduled
     evidence: []
     source:
       kind: close-trace
@@ -121,10 +121,10 @@ items:
       provider: github
       number: 7
       url: https://github.com/shiborgi/codepatrol/issues/7
-    workId: null
+    workId: 2026-07-27-checkpoint-delete-artifact-add-fix
     count: 1
     firstSeenAt: 2026-07-25T15:13:00.612Z
-    lastSeenAt: 2026-07-25T15:13:00.612Z
+    lastSeenAt: 2026-07-27T01:13:19.768Z
   - id: top-error-code-change-conflict-investigate-the-first-occurrence-s-args-and-stage-context
     title: "Top error code: CHANGE_CONFLICT (3). Investigate the first occurrence's args and stage context."
     priority: p1
