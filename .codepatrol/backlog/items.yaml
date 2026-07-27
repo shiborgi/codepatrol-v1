@@ -215,6 +215,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-26-decompose-transition-change
+    externalRef:
+      provider: github
+      number: 10
+      url: https://github.com/shiborgi/codepatrol/issues/10
     workId: null
     count: 3
     firstSeenAt: 2026-07-26T14:28:30.028Z
@@ -270,6 +274,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-26-src-structure-revalidation
+    externalRef:
+      provider: github
+      number: 11
+      url: https://github.com/shiborgi/codepatrol/issues/11
     workId: null
     count: 1
     firstSeenAt: 2026-07-26T14:47:00.361Z
@@ -288,6 +296,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-26-src-structure-revalidation
+    externalRef:
+      provider: github
+      number: 12
+      url: https://github.com/shiborgi/codepatrol/issues/12
     workId: null
     count: 1
     firstSeenAt: 2026-07-26T14:47:06.622Z
@@ -301,6 +313,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-26-centralize-codepatrol-paths
+    externalRef:
+      provider: github
+      number: 13
+      url: https://github.com/shiborgi/codepatrol/issues/13
     workId: null
     count: 2
     firstSeenAt: 2026-07-26T15:44:25.825Z
@@ -314,6 +330,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-26-dedupe-exact-keys-guard
+    externalRef:
+      provider: github
+      number: 14
+      url: https://github.com/shiborgi/codepatrol/issues/14
     workId: null
     count: 1
     firstSeenAt: 2026-07-26T23:23:06.390Z
@@ -340,6 +360,10 @@ items:
     source:
       kind: close-trace
       workId: 2026-07-26-document-transition-close-payloads
+    externalRef:
+      provider: github
+      number: 15
+      url: https://github.com/shiborgi/codepatrol/issues/15
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T00:30:07.643Z
@@ -356,6 +380,10 @@ items:
     source:
       kind: plan-followup
       workId: 2026-07-27-local-close-squash-remote-sync
+    externalRef:
+      provider: github
+      number: 16
+      url: https://github.com/shiborgi/codepatrol/issues/16
     workId: null
     count: 1
     firstSeenAt: 2026-07-27T02:23:27.870Z
