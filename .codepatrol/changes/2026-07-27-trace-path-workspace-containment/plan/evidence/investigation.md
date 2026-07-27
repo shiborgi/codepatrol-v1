@@ -104,6 +104,58 @@ outside the sandboxed workspace directory, at a location the caller never
 authorized. Both reproduction directories were deleted immediately after
 confirming and recording these results.
 
+**Symlink pivot: a lexical relative-path check accepts a candidate that
+physically resolves outside the traces subtree.** This was independently
+reproduced against the exact design Plan attempt 2 proposed (`tracesRoot`
+and `candidate` both resolved through `resolveInside`, then compared via
+`relative(tracesRoot, candidate)`), in a fresh isolated sandbox:
+
+1. Created `<workspace>/.codepatrol/runtime/traces/link` as a symlink to
+   `<workspace>/elsewhere` (a sibling directory, still inside the
+   workspace).
+2. Called the proposed `tracePath` logic with `workId = "link/trace"`:
+   ```
+   tracesRoot:            <workspace>/.codepatrol/runtime/traces
+   candidate (lexical):   <workspace>/.codepatrol/runtime/traces/link/trace.jsonl
+   relative check rejected? false
+   ```
+   `resolveInside` accepts the candidate because its canonical ancestor
+   (`link`, which exists) resolves to `<workspace>/elsewhere` — still inside
+   the *workspace* — and `relative(tracesRoot, candidate)` is the lexical
+   string `link/trace.jsonl`, which does not start with `..`. Both checks
+   pass.
+3. Performed the equivalent of `trace.append`'s write at that lexical
+   candidate path and confirmed where it physically landed:
+   ```
+   $ find <workspace>/elsewhere -type f
+   <workspace>/elsewhere/trace.jsonl
+   $ find <workspace>/.codepatrol/runtime/traces -maxdepth 1
+   <workspace>/.codepatrol/runtime/traces
+   <workspace>/.codepatrol/runtime/traces/link
+   ```
+   The file physically landed at `<workspace>/elsewhere/trace.jsonl` — the
+   OS followed the `link` symlink at write time — not anywhere under
+   `.codepatrol/runtime/traces/`. `resolveInside` alone (with or without an
+   added lexical `relative()` comparison) proves only *workspace*
+   containment; it cannot distinguish a lexical path string that merely
+   looks like it is under the traces subtree from one that, once an
+   existing symlink ancestor is followed, physically is not. The sandbox
+   was deleted immediately after confirming and recording this result.
+
+This is the specific defect Review attempt 2 (`opencode`) identified: a
+lexical `relative()` comparison against a `resolveInside`-resolved path is
+insufficient to prove containment within a nested directory (as opposed to
+the workspace root, which `resolveInside` already proves correctly). The
+corrected design (see `spec.md`'s revised Proposed design) closes this by
+rejecting any `workId` containing a path separator before any path is
+constructed at all — since every legitimate work id (the collision-safe
+`YYYY-MM-DD-slug` shape) is always a single flat path segment, this also
+subsumes and simplifies the original `..`-segment and full-workspace-escape
+checks: with no separator permitted in `workId`, `${workId}.jsonl` can
+never contain a meaningful `..` traversal or descend through any
+intermediate (potentially symlinked) path component, closing all three
+escape classes with one check.
+
 This is a real, unauthenticated arbitrary-file-write primitive (bounded to
 JSONL trace-entry content, path chosen by whoever controls `--id`) reachable
 by any invocation of a `--id`-accepting command, before that id is ever

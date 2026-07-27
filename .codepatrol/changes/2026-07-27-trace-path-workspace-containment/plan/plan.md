@@ -78,13 +78,14 @@ every sibling work-id builder.
 
 **Interfaces:**
 
-- Produces: `export function tracePath(workspace: string, workId: string): string`. `resolveInside` alone proves only workspace-root containment: `resolveInside(workspace, ".codepatrol/runtime/traces/../../escape-marker.jsonl")` returns `<workspace>/.codepatrol/escape-marker.jsonl` without throwing, because that path never leaves the workspace even though it leaves the traces subtree. `tracePath` therefore resolves the traces root and the candidate both through `resolveInside`, then additionally rejects a candidate whose path relative to the traces root is absolute or starts with `..`.
+- Produces: `export function tracePath(workspace: string, workId: string): string`. Two independent gaps rule out both a bare `resolveInside` call and a lexical traces-root comparison on top of it: `resolveInside` alone only proves *workspace* containment (`resolveInside(workspace, ".codepatrol/runtime/traces/../../escape-marker.jsonl")` returns `<workspace>/.codepatrol/escape-marker.jsonl` without throwing), and even a `relative(tracesRoot, candidate)` comparison against two `resolveInside`-resolved paths is insufficient, because `resolveInside` returns the *lexical* candidate string, not a canonical/realpath — a pre-existing symlink inside the traces directory can make a lexically-contained candidate physically resolve outside it (directly confirmed in `plan/evidence/investigation.md`). Every legitimate work id is always a single flat path segment with no `/` or `\`. `tracePath` therefore rejects any `workId` containing `/` or `\` outright, before constructing any path, then calls `resolveInside(workspace, `${RUNTIME_DIR}/traces/${workId}.jsonl`)`. With no separator possible, the result can never contain a meaningful `..` traversal or descend through any intermediate (potentially symlinked) path component.
 - Preserves: `RUNTIME_DIR`, every existing export, `resolveInside`'s own contract
-- Invariants/errors: throws `CodepatrolError("INVALID_WORKSPACE", ...)` for a `workId` whose derived path escapes either the workspace or the traces subtree; returns the identical string `trace.ts`'s current `join()` expression would return for any work id that escapes neither
+- Invariants/errors: throws `CodepatrolError("INVALID_WORKSPACE", ...)` for a `workId` containing `/` or `\` (covering the `..`-segment, full-workspace-escape, and symlink-pivot cases alike) or whose derived path otherwise escapes the workspace; returns the identical string `trace.ts`'s current `join()` expression would return for any work id that escapes neither
 
 **Simplicity proof:** One function in the same file as `stageSessionPath`,
-reusing `resolveInside` twice plus one `relative()` comparison; no new
-pattern, no new primitive beyond Node's own `path` module.
+one separator check plus one `resolveInside` call; no new pattern, no new
+primitive beyond Node's own `path` module, no `relative()`/canonicalization
+dance — the separator check makes that unnecessary.
 
 **Surface delta:** One modified file; one new exported function; no
 dependency change.
@@ -96,22 +97,18 @@ dependency change.
    indirectly through `trace.path`. Proceed directly to implementation;
    T2's red tests (step 2 below, in the next task) are the red/green
    signal for this task too — do not add a separate scratch test here.
-2. In `state.ts`, `state.ts` currently imports only `resolveInside` from
-   `"./workspace.js"` and nothing from `"node:path"`. Add two import lines:
-   `import { CodepatrolError } from "./errors.js";` and
-   `import { isAbsolute, relative } from "node:path";`. Then add directly
+2. `state.ts` currently imports only `resolveInside` from
+   `"./workspace.js"`. Add one import line:
+   `import { CodepatrolError } from "./errors.js";`. Then add directly
    below `stageSessionPath` (spaces shown below for markdown rendering
    only; write real tabs in the actual file, matching every other function
    in `state.ts`):
    ```typescript
    export function tracePath(workspace: string, workId: string): string {
-     const tracesRoot = resolveInside(workspace, `${RUNTIME_DIR}/traces`);
-     const candidate = resolveInside(workspace, `${RUNTIME_DIR}/traces/${workId}.jsonl`);
-     const rel = relative(tracesRoot, candidate);
-     if (rel.startsWith("..") || isAbsolute(rel)) {
-       throw new CodepatrolError("INVALID_WORKSPACE", `Path escapes the traces directory: ${workId}`, 3);
+     if (workId.includes("/") || workId.includes("\\")) {
+       throw new CodepatrolError("INVALID_WORKSPACE", `Work id must not contain a path separator: ${workId}`, 3);
      }
-     return candidate;
+     return resolveInside(workspace, `${RUNTIME_DIR}/traces/${workId}.jsonl`);
    }
    ```
 3. Run `npm run typecheck`.
@@ -154,22 +151,27 @@ abstraction, no new file beyond the existing test file.
 
 **Steps:**
 
-1. Add these cases to `trace.test.ts` before any production change (append
-   to the existing `describe("trace", ...)` block):
+1. `trace.test.ts` currently imports `{ existsSync, mkdtempSync,
+   readFileSync, rmSync }` from `"node:fs"`. Add `mkdirSync` and
+   `symlinkSync` to that import for the symlink fixture below. Add these
+   cases to the existing `describe("trace", ...)` block:
    - `"path rejects a work id that escapes the traces directory but stays inside the workspace"`: call `trace.path(workspace, "../../escape-marker")` inside `assert.throws(...)`; assert the thrown error's `code` (via `CodepatrolError`) is `"INVALID_WORKSPACE"`; assert no file exists anywhere under the sandbox `workspace` root outside the expected `traces/` path afterward.
    - `"path rejects a work id that escapes the workspace entirely"`: same shape with `"../../../../full-escape-marker"`.
+   - `"path rejects a work id that pivots through a symlink inside the traces directory"`: `mkdirSync` an `elsewhere` sibling directory inside the sandbox workspace; `mkdirSync(join(workspace, ".codepatrol/runtime/traces"), { recursive: true })`; `symlinkSync(join(workspace, "elsewhere"), join(workspace, ".codepatrol/runtime/traces/link"))`; call `trace.path(workspace, "link/trace")` inside `assert.throws(...)` asserting `code === "INVALID_WORKSPACE"`; assert no file was created under `elsewhere/` afterward. Reproduces the exact scenario in `plan/evidence/investigation.md`.
    - `"append is silent and writes nothing for a containment-violating work id"`: call `trace.append(workspace, "../../escape-marker", { kind: "command", at: "...", command: "x", args: {} })` directly (no `assert.throws` — it must not throw); assert `trace.read(workspace, "../../escape-marker")` (see next case) confirms nothing was recorded, and directly walk the sandbox directory tree to confirm no unexpected file was created anywhere under it.
    - `"read returns an empty array for a containment-violating work id"`: `assert.deepEqual(trace.read(workspace, "../../escape-marker"), [])`.
    - `"legitimate slug-shaped work ids are unaffected"`: run the existing `"w1"`-style append/read/close round trip using a realistic `YYYY-MM-DD-slug` id (e.g. `"2026-07-27-example-change"`) and assert identical behavior to the current `"w1"` cases (same path shape under `.codepatrol/runtime/traces/`, round-trips through append/read/close).
 2. Run `node --test --import jiti/register src/change/trace.test.ts`.
-   Expected red: the two escape cases fail because `trace.path` currently
-   returns the escaped path instead of throwing (the assertion inside
-   `assert.throws` fails, or the escaped file is found to exist); the
-   containment-violation `append`/`read` cases fail because the file was
-   actually written outside the intended location. The legitimate-id case
-   is expected to already pass (it is a characterization of current
-   correct behavior, not a red signal) — its presence guards against a
-   regression introduced by the next step, not a bug being fixed now.
+   Expected red: the three escape cases (`..`-segment, full-workspace,
+   symlink-pivot) fail because `trace.path` currently returns the escaped
+   path instead of throwing (the assertion inside `assert.throws` fails,
+   the escaped file is found to exist, or — for the symlink case — the
+   file is found under `elsewhere/`); the containment-violation
+   `append`/`read` cases fail because the file was actually written outside
+   the intended location. The legitimate-id case is expected to already
+   pass (it is a characterization of current correct behavior, not a red
+   signal) — its presence guards against a regression introduced by the
+   next step, not a bug being fixed now.
 3. In `trace.ts`:
    - Add `import { tracePath } from "../shared/state.js";` and
      `import { CodepatrolError } from "../shared/errors.js";` (the exact
@@ -229,10 +231,14 @@ helper is added.
 4. Confirm DC-1 did not fire: no requirement emerged during implementation
    to add CLI-level `--id` format validation to satisfy any acceptance
    criterion.
-5. Rollback check: confirm reverting the implementation commit restores the
+5. Confirm DC-2's accepted ceiling still holds: `tracePath` rejects
+   separators and relies on `resolveInside`'s existing ancestor-realpath
+   check for the traces directory itself, with no requirement discovered
+   during implementation to additionally canonicalize the traces root.
+6. Rollback check: confirm reverting the implementation commit restores the
    prior (unguarded) `join()`-based behavior with no durable-data migration;
    `.codepatrol/runtime/traces/` remains disposable runtime state.
 
 **Task result:** Record focused/full command outcomes, the final path list,
-AC mapping, DC-1 status, rollback confirmation, and residual risks in
-`apply/journal.md`.
+AC mapping, DC-1 and DC-2 status, rollback confirmation, and residual risks
+in `apply/journal.md`.
