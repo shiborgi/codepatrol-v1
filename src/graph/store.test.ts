@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { syncGraph, openSnapshot, graphPath } from "./store.js";
 import { graphSync } from "./service.js";
+import { GRAPH_EXTRACTION_REVISION } from "./model.js";
 
 function fixtureRepo(): string {
 	const root = mkdtempSync(join(tmpdir(), "pi-arch-store-"));
@@ -201,6 +202,33 @@ test("cancelled sync leaves the previous graph unchanged", async () => {
 			(error: unknown) => error instanceof Error && error.name === "AbortError",
 		);
 		assert.equal(readFileSync(graphPath(root), "utf8"), before);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test("stale or missing extraction revision is refused and rebuilt by a normal sync", async () => {
+	const root = fixtureRepo();
+	try {
+		const { report } = await syncGraph(root);
+		assert.equal(report.extracted, 6);
+		const fresh = JSON.parse(readFileSync(graphPath(root), "utf8"));
+		assert.equal(fresh.extractionRevision, GRAPH_EXTRACTION_REVISION);
+
+		for (const invalidate of (["missing", "stale"] as const)) {
+			const document = JSON.parse(readFileSync(graphPath(root), "utf8"));
+			if (invalidate === "missing") delete document.extractionRevision;
+			else document.extractionRevision = GRAPH_EXTRACTION_REVISION + 1;
+			writeFileSync(graphPath(root), JSON.stringify(document));
+			assert.equal(await openSnapshot(root), undefined, `${invalidate} revision must not be served`);
+			const rebuilt = await syncGraph(root);
+			assert.equal(rebuilt.report.extracted, 6, `${invalidate} revision must force a full rebuild`);
+			const rewritten = JSON.parse(readFileSync(graphPath(root), "utf8"));
+			assert.equal(rewritten.extractionRevision, GRAPH_EXTRACTION_REVISION);
+			const repeat = await syncGraph(root);
+			assert.equal(repeat.report.extracted, 0);
+			assert.equal(repeat.report.unchanged, 6);
+		}
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

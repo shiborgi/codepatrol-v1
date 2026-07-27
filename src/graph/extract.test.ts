@@ -47,6 +47,40 @@ test("typescript: symbols with kind, line span, and exported flag", async () => 
 	assert.equal(out.lineCount, TS_FIXTURE.split("\n").length);
 });
 
+const REACHABILITY_FIXTURE = `export function outer() {
+	function innerLocal() {}
+	const innerConst = 1;
+	return innerLocal() + innerConst;
+}
+
+export class Exported {
+	run() {
+		const methodLocal = 2;
+		return methodLocal;
+	}
+}
+
+class Internal {
+	hide() {}
+}
+
+export const arrow = () => 1;
+`;
+
+test("typescript: export reachability marks only direct exports and exported-class methods", async () => {
+	const out = await extractSource(REACHABILITY_FIXTURE, "typescript");
+	const flag = (name: string) => out.symbols.find((s) => s.name === name)?.exported;
+	assert.equal(flag("outer"), true);
+	assert.equal(flag("innerLocal"), false, "nested function inside an exported function stays internal");
+	assert.equal(flag("innerConst"), false, "nested const inside an exported function stays internal");
+	assert.equal(flag("Exported"), true);
+	assert.equal(flag("run"), true, "method of a directly exported class is exported");
+	assert.equal(flag("methodLocal"), false, "local inside an exported-class method stays internal");
+	assert.equal(flag("Internal"), false);
+	assert.equal(flag("hide"), false, "method of an internal class stays internal");
+	assert.equal(flag("arrow"), true);
+});
+
 test("typescript: imports keep their raw specifiers", async () => {
 	const out = await extractSource(TS_FIXTURE, "typescript");
 	const specs = out.imports.map((i) => i.specifier).sort();

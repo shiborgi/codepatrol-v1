@@ -46,14 +46,18 @@ export interface FileRecord extends FileExtract {
 	language: LanguageId;
 }
 
+/** Semantic revision of the extraction contract; bump when extraction/linking semantics change so stale caches rebuild. */
+export const GRAPH_EXTRACTION_REVISION = 1 as const;
+
 export interface GraphDocument {
 	version: 1;
+	extractionRevision: typeof GRAPH_EXTRACTION_REVISION;
 	builtAt: string;
 	files: Record<string, FileRecord>;
 }
 
 export function emptyDocument(): GraphDocument {
-	return { version: 1, builtAt: new Date().toISOString(), files: {} };
+	return { version: 1, extractionRevision: GRAPH_EXTRACTION_REVISION, builtAt: new Date().toISOString(), files: {} };
 }
 
 export function fileId(path: string): string {
