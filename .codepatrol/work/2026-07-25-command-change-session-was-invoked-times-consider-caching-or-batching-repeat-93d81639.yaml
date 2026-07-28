@@ -1,0 +1,20 @@
+schema_version: 1
+work_id: 2026-07-25-command-change-session-was-invoked-times-consider-caching-or-batching-repeat-93d81639
+priority: p3
+description: |-
+  Command "change.session" was invoked 36 times — consider caching or batching repeated invocations.
+
+  - Area: workflow
+  - Source: close-trace (2026-07-25-remove-duplicate-reader)
+  - Occurrences: 13
+  - Legacy id: command-change-session-was-invoked-times-consider-caching-or-batching-repeated-invocations
+
+  ## Evidence
+
+  - (none)
+status: open
+issue:
+  number: 8
+  url: https://github.com/shiborgi/codepatrol/issues/8
+created_at: 2026-07-25T21:28:20.522Z
+updated_at: 2026-07-27T17:53:16.659Z

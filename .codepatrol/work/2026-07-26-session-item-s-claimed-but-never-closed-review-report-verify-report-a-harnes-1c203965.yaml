@@ -1,0 +1,20 @@
+schema_version: 1
+work_id: 2026-07-26-session-item-s-claimed-but-never-closed-review-report-verify-report-a-harnes-1c203965
+priority: p3
+description: |-
+  Session item(s) claimed but never closed: review/1/report, verify/1/report. A harness stopped mid-stage; re-prime the session to resume.
+
+  - Area: workflow
+  - Source: close-trace (2026-07-26-centralize-codepatrol-paths)
+  - Occurrences: 2
+  - Legacy id: session-item-s-claimed-but-never-closed-review-report-verify-report-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
+
+  ## Evidence
+
+  - (none)
+status: open
+issue:
+  number: 13
+  url: https://github.com/shiborgi/codepatrol/issues/13
+created_at: 2026-07-26T15:44:25.825Z
+updated_at: 2026-07-27T14:55:45.892Z

@@ -8,9 +8,9 @@ import { NodeGitAdapter, type GitAdapter } from "./git.js";
 import { foldChange, migrateRecord } from "./model.js";
 import { changeRecordPath, listWorkingTreeChangeIds, readChangeRecord, writeChangeRecord, appendChangeEvent } from "./store.js";
 import * as trace from "./trace.js";
-import { writeImprovementReport, mirrorImprovementReport, generateImprovementReport } from "./improvement-report.js";
-import { upsertBacklogItem, findBacklogItem, linkBacklogItem, backlogPath, readBacklog, resolveBacklogItem } from "./backlog.js";
-import { changeDirectoryRelativePath, changeRecordRelativePath, changeStageRelativePrefix, backlogRelativePath, backlogRelativePrefix, runtimeRelativePrefix } from "../shared/state.js";
+import { writeImprovementReport, mirrorImprovementReport } from "./improvement-report.js";
+import { readWork, writeWork, workPath } from "./backlog.js";
+import { changeDirectoryRelativePath, changeRecordRelativePath, changeStageRelativePrefix, workRelativePath, runtimeRelativePrefix } from "../shared/state.js";
 import { loadConfig } from "../shared/config.js";
 import { defaultGateRunner, gateOutputTail } from "./apply-gate.js";
 import type { GateResult } from "./types.js";
@@ -39,12 +39,12 @@ function textInput(value: unknown, field: string): string {
 	return value;
 }
 function assertStartInput(input: StartChangeInput): void {
-	const value = requireObject(input, "Change start"); exactInput(value, ["workId", "title", "targetBranch", "actor", "nextAction", "backlogItemId"], "Change start");
+	const value = requireObject(input, "Change start"); exactInput(value, ["workId", "title", "targetBranch", "actor", "nextAction", "priority"], "Change start");
 	textInput(value.workId, "workId"); textInput(value.title, "title"); textInput(value.actor, "actor");
 	const target = textInput(value.targetBranch, "targetBranch");
 	if (!/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(target) || target.includes("..") || target.includes("//") || target.endsWith("/") || target.includes("@{")) throw new CodepatrolError("INVALID_ARGUMENT", "targetBranch is not a safe Git branch name.", 2);
 	if (value.nextAction !== undefined) textInput(value.nextAction, "nextAction");
-	if (value.backlogItemId !== undefined && (typeof value.backlogItemId !== "string" || !value.backlogItemId.trim())) throw new CodepatrolError("INVALID_ARGUMENT", "backlogItemId must be a non-empty string.", 2);
+	if (value.priority !== undefined && (typeof value.priority !== "string" || !["p0", "p1", "p2", "p3"].includes(value.priority))) throw new CodepatrolError("INVALID_ARGUMENT", `priority must be one of p0|p1|p2|p3, got ${JSON.stringify(value.priority)}.`, 2);
 }
 function assertTransitionIntent(intent: TransitionIntent): void {
 	const value = requireObject(intent, "Transition"); const type = textInput(value.type, "type");
@@ -172,28 +172,31 @@ async function startChangeLocked(workspace: string, input: StartChangeInput, opt
 	const current = await git.currentBranch(options.signal); if (current !== input.targetBranch) throw new CodepatrolError("CHANGE_CONFLICT", `Expected target branch ${input.targetBranch}, found ${current}.`, 4);
 	const branch = `codepatrol/${input.workId}`; const terminal = (await git.refs("refs/tags/codepatrol", options.signal)).some((ref) => ref.endsWith(`/${input.workId}`));
 	if (await git.branchExists(branch, options.signal) || existsSync(changeRecordPath(workspace, input.workId)) || terminal) throw new CodepatrolError("CHANGE_CONFLICT", `Change already exists: ${input.workId}.`, 4);
-	if (input.backlogItemId) {
-		const existing = findBacklogItem(workspace, input.backlogItemId);
-		if (!existing) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: Backlog item not found: ${input.backlogItemId}.`, 2);
-		if (existing.status === "done" || existing.status === "dismissed") throw new CodepatrolError("CHANGE_CONFLICT", `CHANGE_CONFLICT: Backlog item ${input.backlogItemId} cannot be linked from status ${existing.status}.`, 4);
-	}
+	const existingWork = readWork(workspace, input.workId);
+	if (existingWork && existingWork.status !== "open") throw new CodepatrolError("CHANGE_CONFLICT", `CHANGE_CONFLICT: Work ${input.workId} cannot start a Change from status ${existingWork.status}.`, 4);
 	const base = await git.head("HEAD", options.signal); const at = now(options).toISOString();
-	const record: ChangeRecordV2 = { schema_version: 2, identity: { work_id: input.workId, title: input.title, created_at: at, branch, target_branch: input.targetBranch, base_commit: base }, events: [{ id: randomUUID(), type: "change-started", at, actor: input.actor, stage: "plan", attempt: 1, next_action: input.nextAction ?? `codepatrol-plan ${input.workId} on ${branch}` }] };
+	const title = existingWork ? (existingWork.description.split("\n").find((line) => line.trim()) ?? input.title).trim() : input.title;
+	const record: ChangeRecordV2 = { schema_version: 2, identity: { work_id: input.workId, title, created_at: at, branch, target_branch: input.targetBranch, base_commit: base }, events: [{ id: randomUUID(), type: "change-started", at, actor: input.actor, stage: "plan", attempt: 1, next_action: input.nextAction ?? `codepatrol-plan ${input.workId} on ${branch}` }] };
 	foldChange(record);
-	let branchCreated = false; let recordOwned = false;
+	let branchCreated = false; let recordOwned = false; let workOwned = false;
 	try {
+		if (!existingWork) {
+			writeWork(workspace, { workId: input.workId, priority: input.priority ?? "p2", description: input.title, status: "open", createdAt: at, updatedAt: at });
+			workOwned = true;
+		}
 		await git.createBranch(branch, base, options.signal);
 		branchCreated = true; recordOwned = true;
 		writeChangeRecord(workspace, record); try { trace.append(workspace, input.workId, { kind: "event", at: now(options).toISOString(), stage: "plan", attempt: 1, type: "change-started" }); } catch { /* trace is fire-and-forget */ }
-		if (input.backlogItemId) linkBacklogItem(workspace, input.backlogItemId, input.workId, now(options));
-		const backlogFile = backlogPath(workspace);
-		const extraPaths = input.backlogItemId && existsSync(backlogFile) ? [backlogFile] : [];
+		const extraPaths = workOwned ? [workRelativePath(input.workId)] : [];
 		await commitMetadata(git, input.workId, `chore(codepatrol): start ${input.workId}`, options.signal, extraPaths);
 		return foldChange(record);
 	} catch (cause) {
 		if (recordOwned) {
-			try { await git.unstage([relativeRecord(input.workId)]); } catch { /* Preserve the original start failure. */ }
+			try { await git.unstage([relativeRecord(input.workId), workRelativePath(input.workId)]); } catch { /* Preserve the original start failure. */ }
 			rmSync(changeDirectoryForCleanup(workspace, input.workId), { recursive: true, force: true });
+		}
+		if (workOwned) {
+			try { rmSync(workPath(workspace, input.workId), { force: true }); } catch { /* Preserve the original start failure. */ }
 		}
 		if (branchCreated) {
 			try { if (await git.currentBranch() === branch) await git.checkout(input.targetBranch); } catch { /* Preserve the original start failure. */ }
@@ -263,11 +266,11 @@ async function buildCheckpointEvent(git: GitAdapter, workspace: string, workId: 
 	if (missing.length) throw new CodepatrolError("CHANGE_INVALID", `Checkpoint is missing required ${intent.stage} artifacts: ${missing.join(", ")}.`, 4);
 	await validateWorkspaceArtifacts(git, workspace, record, intent.stage, intent.artifacts, undefined, options.signal, !personaCheckpoint);
 	const paths = [...intent.artifacts.filter((item) => item.intent !== "delete").map((item) => item.path), ...(intent.changes ?? [])]; paths.forEach(ensurePath);
-	const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId), backlogRelativePath()]);
+	const allowed = new Set([...paths, ...intent.artifacts.filter((item) => item.intent === "delete").map((item) => item.path), relativeRecord(workId), workRelativePath(workId)]);
 	const prior = baselineRef(record); const dirty = parseStatusPaths(await git.status(options.signal)); const committed = await git.changedPaths(prior, "HEAD", options.signal); const candidate = [...new Set([...committed, ...dirty])];
 	const unexpected = candidate.filter((path) => !allowed.has(path));
 	if (unexpected.length && !personaCheckpoint) throw new CodepatrolError("CHANGE_CONFLICT", `Checkpoint has undeclared worktree paths: ${unexpected.join(", ")}.`, 4);
-	const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`${changeDirectoryRelativePath(workId)}/`) && !path.startsWith(backlogRelativePrefix())).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
+	const actualProduction = personaCheckpoint ? paths.slice().sort() : candidate.filter((path) => !path.startsWith(`${changeDirectoryRelativePath(workId)}/`) && path !== workRelativePath(workId)).sort(); const declaredProduction = [...(intent.changes ?? [])].sort();
 	if (!personaCheckpoint && JSON.stringify(actualProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Apply changes do not match the complete candidate production delta.", 4);
 
 	let gateSummary: GateResult | undefined;
@@ -287,13 +290,13 @@ async function buildCheckpointEvent(git: GitAdapter, workspace: string, workId: 
 		}
 	}
 
-	const committedPaths = [...new Set([...paths, ...intent.artifacts.map((item) => item.path)])];
+	const committedPaths = [...new Set([...paths, ...intent.artifacts.map((item) => item.path), ...(existsSync(resolveInside(workspace, workRelativePath(workId))) ? [workRelativePath(workId)] : [])])];
 	const toAdd = committedPaths.filter((path) => existsSync(resolveInside(workspace, path)));
 	const toUnstage = committedPaths.filter((path) => !existsSync(resolveInside(workspace, path)));
 	if (toAdd.length) await git.add(toAdd, options.signal);
 	if (toUnstage.length) await git.unstage(toUnstage, options.signal);
 	const checkpoint = await git.commit(personaCheckpoint ? `chore(codepatrol): ${intent.stage} ${persona} persona content ${workId}` : `chore(codepatrol): ${intent.stage} content ${workId}`, true, options.signal, committedPaths); const tree = await git.tree(checkpoint, options.signal);
-	const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`${changeDirectoryRelativePath(workId)}/`) && !path.startsWith(backlogRelativePrefix())).sort();
+	const finalDelta = await git.changedPaths(prior, checkpoint, options.signal); const unexpectedFinal = finalDelta.filter((path) => !allowed.has(path)); const finalProduction = finalDelta.filter((path) => !path.startsWith(`${changeDirectoryRelativePath(workId)}/`) && path !== workRelativePath(workId)).sort();
 	if (unexpectedFinal.length || JSON.stringify(finalProduction) !== JSON.stringify(declaredProduction)) throw new CodepatrolError("CHANGE_CONFLICT", "Checkpoint commit does not match its declared artifact and production paths.", 4);
 	return { ...eventBase(view, intent.actor, options), type: "stage-checkpointed", stage: intent.stage, result: intent.result, checkpoint, tree, artifacts: intent.artifacts, ...(intent.stage === "apply" ? { changes: intent.changes ?? [] } : {}), next_action: intent.nextAction, ...(persona ? { persona } : {}), ...(gateSummary ? { gate: gateSummary } : {}) };
 }
@@ -391,15 +394,15 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	let view = foldChange(record); await validateCheckpointLineage(git, record, existingTag ?? "HEAD", options.signal);
 	if (view.state === "terminal") {
 		if (view.outcome !== requestedOutcome) throw new CodepatrolError("CHANGE_CONFLICT", `Change is already ${view.outcome}.`, 4);
-		await assertVerifiedCandidate(git, view, existingTag ?? "HEAD", [relativeRecord(workId), `${changeDirectoryRelativePath(workId)}/close/receipt.md`, `${changeDirectoryRelativePath(workId)}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`], options.signal);
-		const recoveryPaths = parseStatusPaths(await git.status(options.signal)); const allowedRecovery = existingTag ? new Set<string>([relativeRecord(workId), `${changeDirectoryRelativePath(workId)}/close/receipt.md`, `${changeDirectoryRelativePath(workId)}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`]) : new Set([relativeRecord(workId)]); const unexpectedRecovery = recoveryPaths.filter((path) => !allowedRecovery.has(path));
+		await assertVerifiedCandidate(git, view, existingTag ?? "HEAD", [relativeRecord(workId), `${changeDirectoryRelativePath(workId)}/close/receipt.md`, `${changeDirectoryRelativePath(workId)}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`, workRelativePath(workId)], options.signal);
+		const recoveryPaths = parseStatusPaths(await git.status(options.signal)); const allowedRecovery = existingTag ? new Set<string>([relativeRecord(workId), `${changeDirectoryRelativePath(workId)}/close/receipt.md`, `${changeDirectoryRelativePath(workId)}/close/improvement-report.md`, `.codepatrol/docs/improvement-reports/${workId}.md`, workRelativePath(workId)]) : new Set([relativeRecord(workId), workRelativePath(workId)]); 		const unexpectedRecovery = recoveryPaths.filter((path) => !allowedRecovery.has(path));
 		if (unexpectedRecovery.length) throw new CodepatrolError("CHANGE_CONFLICT", `Close recovery found unrelated worktree paths: ${unexpectedRecovery.join(", ")}.`, 4);
 		let tag = existingTag;
 		if (!tag) {
 			await assertCurrentBranch(git, view, options.signal);
 			const statusPaths = parseStatusPaths(await git.status(options.signal));
-			if (statusPaths.some((path) => path !== relativeRecord(workId))) throw new CodepatrolError("CHANGE_CONFLICT", `Close recovery found unrelated worktree paths: ${statusPaths.join(", ")}.`, 4);
-			if (statusPaths.length) await commitMetadata(git, workId, `chore(codepatrol): ${requestedOutcome} ${workId}`, options.signal);
+			if (statusPaths.some((path) => path !== relativeRecord(workId) && path !== workRelativePath(workId))) throw new CodepatrolError("CHANGE_CONFLICT", `Close recovery found unrelated worktree paths: ${statusPaths.join(", ")}.`, 4);
+			if (statusPaths.length) await commitMetadata(git, workId, `chore(codepatrol): ${requestedOutcome} ${workId}`, options.signal, statusPaths.filter((path) => path !== relativeRecord(workId)));
 			const terminalHead = await git.head("HEAD", options.signal);
 			await git.tag(requestedTag, terminalHead, options.signal);
 			tag = requestedTag;
@@ -428,27 +431,12 @@ async function closeChangeLocked(workspace: string, workId: string, input: Close
 	let reportPath: string | undefined; try {
 		reportPath = writeImprovementReport(workspace, workId);
 		mirrorImprovementReport(workspace, workId, reportPath);
-		const FILLER_1 = "No trace available for this Change.";
-		const FILLER_2 = "No notable patterns detected; continue with current process.";
-		const report = generateImprovementReport(workspace, workId);
-		for (const rec of report.recommendations) {
-			if (rec === FILLER_1 || rec === FILLER_2) continue;
-			try { upsertBacklogItem(workspace, { title: rec, area: "workflow", evidence: [], source: { kind: "close-trace", workId } }); }
-			catch (cause) { process.stderr.write(`[close] backlog upsert failed for "${rec.slice(0, 80)}": ${(cause as Error).message}\n`); }
-		}
 	} catch (cause) { process.stderr.write(`[close] improvement report failed: ${(cause as Error).message}\n`); }
-	if (outcome === "committed") {
-		try {
-			const linkedItems = readBacklog(workspace).items.filter((item) => item.workId === workId && item.status === "scheduled");
-			for (const item of linkedItems) {
-				try { resolveBacklogItem(workspace, item.id, "done", now(options)); }
-				catch (cause) { process.stderr.write(`[close] backlog resolve failed for "${item.id}": ${(cause as Error).message}\n`); }
-			}
-		} catch (cause) { process.stderr.write(`[close] backlog resolution lookup failed: ${(cause as Error).message}\n`); }
-	}
+	const work = readWork(workspace, workId);
+	if (!work) throw new CodepatrolError("CHANGE_DRIFT", `CHANGE_DRIFT: nonterminal Change ${workId} has no Work record at ${workRelativePath(workId)}.`, 4);
+	writeWork(workspace, { ...work, status: outcome === "committed" ? "done" : "dismissed", updatedAt: at });
 	const pathsToCommit = [relativeRecord(workId)]; if (reportPath) pathsToCommit.push(reportPath);
-	const backlogFile = backlogPath(workspace);
-	if (existsSync(backlogFile)) pathsToCommit.push(backlogFile);
+	pathsToCommit.push(workRelativePath(workId));
 	await git.add(pathsToCommit, options.signal); const terminalCommit = await git.commit(`chore(codepatrol): ${outcome} ${workId}`, false, options.signal, pathsToCommit); await git.tag(tag, terminalCommit, options.signal);
 	view = foldChange({ ...record, events: [...record.events, event] });
 	try { trace.close(workspace, workId); } catch { /* trace cleanup is best-effort */ }

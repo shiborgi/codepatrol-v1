@@ -1,4 +1,5 @@
 import type { GateRunner } from "./apply-gate.js";
+import type { WorkPriority } from "./backlog.js";
 
 export const STAGES = ["plan", "review", "apply", "verify", "close"] as const;
 export type Stage = typeof STAGES[number];
@@ -25,7 +26,7 @@ export type ChangeEvent = ChangeStartedEvent | StageBeganEvent | RunRecordedEven
 
 export interface ChangeIdentity { work_id: string; title: string; created_at: string; branch: string; target_branch: string; base_commit: string }
 export interface ChangeRecordV2 { schema_version: 2; identity: ChangeIdentity; events: ChangeEvent[] }
-export interface StageAttempt { attempt: number; status: "ready" | "active" | "blocked" | "completed" | "returned" | "invalidated"; result?: string; runs: RunUsage[]; checkpoint?: string; tree?: string; artifacts: ArtifactBinding[]; changes?: string[] }
+export interface StageAttempt { attempt: number; status: "ready" | "active" | "blocked" | "completed" | "returned" | "invalidated"; result?: string; runs: RunUsage[]; checkpoint?: string; tree?: string; artifacts: ArtifactBinding[]; changes?: string[]; harness?: string }
 export interface UsageSummary { activeMs: number; characters: { input: number; output: number; cacheRead: number; cacheWrite: number; reasoning: number; total: number; measuredRuns: number; totalRuns: number; coverage: string; complete: boolean } }
 export interface ChangeView {
 	identity: ChangeIdentity;
@@ -49,7 +50,7 @@ export type TransitionIntent =
 	| { type: "return"; actor: string; stage: "review" | "apply" | "verify"; toStage: "plan" | "apply"; reason: string; nextAction: string; persona?: string; reasons?: string[] }
 	| { type: "block"; actor: string; stage: Stage; reason: string; nextAction: string }
 	| { type: "resume"; actor: string; stage: Stage; nextAction: string };
-export interface StartChangeInput { workId: string; title: string; targetBranch: string; actor: string; nextAction?: string; backlogItemId?: string }
+export interface StartChangeInput { workId: string; title: string; targetBranch: string; actor: string; nextAction?: string; priority?: WorkPriority }
 export interface ChangeQuery { workId?: string; all?: boolean }
 export interface CloseInput { outcome: "commit" | "rollback"; actor: string; authority: string }
 export interface CloseResult { outcome: TerminalOutcome; workId: string; targetBranch: string; terminalCommit: string; tag: string }

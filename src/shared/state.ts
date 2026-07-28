@@ -4,7 +4,7 @@ import { CodepatrolError } from "./errors.js";
 export const STATE_VERSION = 1;
 
 const CHANGES_DIR = ".codepatrol/changes";
-const BACKLOG_DIR = ".codepatrol/backlog";
+const WORK_DIR = ".codepatrol/work";
 const RUNTIME_DIR = ".codepatrol/runtime";
 
 export function stateRoot(workspace: string): string {
@@ -50,10 +50,13 @@ export function changeStageRelativePrefix(workId: string, stage: string): string
 	return `${CHANGES_DIR}/${workId}/${stage}/`;
 }
 
-export function backlogRelativePrefix(): string {
-	return `${BACKLOG_DIR}/`;
+export function workRootRelativePath(): string {
+	return WORK_DIR;
 }
 
-export function backlogRelativePath(): string {
-	return `${BACKLOG_DIR}/items.yaml`;
+export function workRelativePath(workId: string): string {
+	if (workId.includes("/") || workId.includes("\\")) {
+		throw new CodepatrolError("INVALID_WORKSPACE", `Work id must not contain a path separator: ${workId}`, 3);
+	}
+	return `${WORK_DIR}/${workId}.yaml`;
 }

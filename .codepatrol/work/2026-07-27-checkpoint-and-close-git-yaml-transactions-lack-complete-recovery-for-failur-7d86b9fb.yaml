@@ -1,0 +1,23 @@
+schema_version: 1
+work_id: 2026-07-27-checkpoint-and-close-git-yaml-transactions-lack-complete-recovery-for-failur-7d86b9fb
+priority: p1
+description: |-
+  Checkpoint and Close Git/YAML transactions lack complete recovery for failures between content commits events enrichment commits and tags
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-27-src-architecture-audit)
+  - Occurrences: 1
+  - Legacy id: checkpoint-and-close-git-yaml-transactions-lack-complete-recovery-for-failures-between-content-commits-events-enrichment-commits-and-tags
+
+  ## Evidence
+
+  - src/change/orchestrator.ts:290-298 commits checkpoint content before persisting its event at lines 312-324
+  - src/change/orchestrator.ts:220-229 recovery recognizes only an already-persisted matching event
+  - src/change/orchestrator.ts:423-456 performs receipt event report backlog terminal commit and tag as multiple partial phases
+  - src/change/git.test.ts covers event-persisted metadata-commit recovery and post-tag failures but not the inverse checkpoint failure or pre-tag Close phases
+status: open
+issue:
+  number: 19
+  url: https://github.com/shiborgi/codepatrol/issues/19
+created_at: 2026-07-27T16:48:42.036Z
+updated_at: 2026-07-27T16:48:42.036Z

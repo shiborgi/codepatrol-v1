@@ -1,0 +1,17 @@
+schema_version: 1
+work_id: 2026-07-27-plan-self-consistency-check
+priority: p2
+description: |-
+  Review stage returned 2+ times — surface the top review defects to the next Plan and consider a pre-Review `assess-change` precondition.
+
+  - Area: workflow
+  - Source: close-trace (2026-07-26-document-transition-close-payloads)
+  - Occurrences: 5
+  - Legacy id: review-stage-returned-times-surface-the-top-review-defects-to-the-next-plan-and-consider-a-pre-review-assess-change-precondition
+
+  ## Evidence
+
+  - (none)
+status: done
+created_at: 2026-07-27T00:30:07.613Z
+updated_at: 2026-07-27T21:33:23.289Z

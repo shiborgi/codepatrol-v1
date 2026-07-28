@@ -32,12 +32,12 @@ catch { backlogModule = await import("../src/change/backlog.ts"); }
 export async function renderKanban(argv) {
 	const args = parseKanbanArgs(argv);
 	const changes = await source.inspectChanges(args.workspace, { all: args.all });
-	const backlog = backlogModule.readBacklog(args.workspace);
-	const board = boardModule.projectKanban(changes, { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}), backlogItems: backlog.items });
+	const works = backlogModule.listWork(args.workspace);
+	const board = boardModule.projectKanban(works, changes, { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}) });
 	return args.format === "json" ? `${JSON.stringify(board, null, 2)}\n` : boardModule.renderKanbanMarkdown(board);
 }
 
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
-	try { process.stdout.write(await renderKanban(process.argv.slice(2))); }
+	try { process.stdout.write(`${await renderKanban(process.argv.slice(2))}\n`); }
 	catch (error) { process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`); process.exitCode = 2; }
 }

@@ -1,0 +1,7 @@
+schema_version: 1
+work_id: 2026-07-25-session-handoff
+priority: p2
+description: Make the Stage Session a faithful, resumable per-step todo list so a stopped harness can be replaced mid-stage, and reconcile it with the existing trace
+status: done
+created_at: 2026-07-25T16:28:59.852Z
+updated_at: 2026-07-25T16:28:59.852Z

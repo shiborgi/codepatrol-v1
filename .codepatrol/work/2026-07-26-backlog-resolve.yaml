@@ -1,0 +1,7 @@
+schema_version: 1
+work_id: 2026-07-26-backlog-resolve
+priority: p2
+description: Add a CLI command to mark a backlog item done/dismissed directly
+status: done
+created_at: 2026-07-26T02:07:26.231Z
+updated_at: 2026-07-26T02:07:26.231Z

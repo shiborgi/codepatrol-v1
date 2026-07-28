@@ -132,6 +132,8 @@ export function foldChange(record: ChangeRecordV2): ChangeView {
 				current().status = "completed"; current().result = event.outcome; state = "terminal"; outcome = event.outcome; terminalCommit = event.commit; nextAction = undefined; break;
 			default: invalid(`Unknown event type ${(event as ChangeEvent).type}.`);
 		}
+		const touched = attempts[event.stage as Stage].find((item) => item.attempt === event.attempt);
+		if (touched) touched.harness = event.actor;
 	}
 	const runs = Object.values(attempts).flat().flatMap((item) => item.runs);
 	const end = record.events.at(-1)?.at;

@@ -1,0 +1,25 @@
+schema_version: 1
+work_id: 2026-07-27-orchestrator-ts-remains-a-line-high-fan-out-facade-mixing-lifecycle-policy-i-423839ba
+priority: p2
+description: |-
+  orchestrator.ts remains a 493-line high-fan-out facade mixing lifecycle policy inspection checkpoint validation Close finalization and auxiliary reporting
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-27-src-architecture-audit)
+  - Occurrences: 1
+  - Legacy id: orchestrator-ts-remains-a-line-high-fan-out-facade-mixing-lifecycle-policy-inspection-checkpoint-validation-close-finalization-and-auxiliary-reporting
+
+  ## Evidence
+
+  - src/change/orchestrator.ts:27-95 owns payload schemas and persona aggregation
+  - src/change/orchestrator.ts:101-162 owns artifact and checkpoint lineage validation
+  - src/change/orchestrator.ts:164-369 owns start transition and multi-ref inspection
+  - src/change/orchestrator.ts:371-493 owns Close reporting backlog tagging integration and recovery
+  - codepatrol graph overview reports 180 symbols fan-out 15 and fan-in 12 for the module
+  - the completed transitionChange decomposition item covered only one function and did not isolate inspection or Close services
+status: open
+issue:
+  number: 24
+  url: https://github.com/shiborgi/codepatrol/issues/24
+created_at: 2026-07-27T16:49:15.533Z
+updated_at: 2026-07-27T16:49:15.533Z

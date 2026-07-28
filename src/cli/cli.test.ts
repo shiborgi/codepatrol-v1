@@ -216,74 +216,84 @@ test("codepatrol change summary renders a uniform Summary/Verdict/Next block", (
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test("codepatrol backlog add and list dedupe, classify, and filter", () => {
+test("codepatrol backlog add and list create one Work per exact work id, reorder by priority and filter", () => {
   const root = workspace();
   try {
-    const add1 = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "Command \"change.transition\" invoked 13 times — consider caching.", area: "workflow", evidence: [], source: { kind: "close-trace", workId: "2026-07-24-example" } })).stdout).data;
-    assert.equal(add1.status, "candidate");
-    assert.equal(add1.count, 1);
-    const add2 = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "Command \"change.transition\" invoked 47 times — consider caching.", area: "workflow", priority: "p1", evidence: [], source: { kind: "plan-followup", workId: "2026-07-24-example" } })).stdout).data;
-    assert.equal(add2.count, 2);
-    assert.equal(add2.status, "candidate");
+    const add1 = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: "2026-07-24-cli-add-a", priority: "p3", description: "First cli work" })).stdout).data;
+    assert.equal(add1.workId, "2026-07-24-cli-add-a");
+    assert.equal(add1.status, "open");
+    const same = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: "2026-07-24-cli-add-a", priority: "p3", description: "First cli work" })).stdout).data;
+    assert.equal(same.status, "open");
+    const conflict = run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: "2026-07-24-cli-add-a", priority: "p1", description: "Different" }));
+    assert.equal(conflict.status, 4, conflict.stdout);
+    assert.equal(JSON.parse(conflict.stdout).error.code, "CHANGE_CONFLICT");
+    const badShape = run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "old payload", area: "workflow", evidence: [], source: { kind: "close-trace", workId: "x" } }));
+    assert.equal(badShape.status, 2, badShape.stdout);
+    assert.equal(JSON.parse(badShape.stdout).error.code, "INVALID_ARGUMENT");
+    const add2 = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: "2026-07-24-cli-add-b", priority: "p0", description: "Urgent work" })).stdout).data;
+    assert.equal(add2.priority, undefined, "add returns only workId and status");
     const listed = JSON.parse(run(["backlog","list","--workspace",root,"--format=json"]).stdout).data;
-    assert.equal(listed.length, 1);
+    assert.equal(listed.length, 2);
+    assert.equal(listed[0].workId, "2026-07-24-cli-add-b");
     const text = run(["backlog","list","--workspace",root]).stdout;
-    assert.match(text, /id\s*\|\s*title/);
+    assert.match(text, /work_id\s*\|\s*priority/);
     const filtered = JSON.parse(run(["backlog","list","--status","dismissed","--workspace",root,"--format=json"]).stdout).data;
     assert.equal(filtered.length, 0);
+    const badStatus = run(["backlog","list","--status","candidate","--workspace",root,"--format=json"]);
+    assert.equal(badStatus.status, 2, badStatus.stdout);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test("CLI backlog resolve marks an item done or dismissed, rejects bad status/id/already-terminal", () => {
+test("CLI backlog resolve marks a Work done or dismissed, rejects bad status/id/already-terminal", () => {
   const root = workspace();
   try {
-    const add = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "Resolve me", area: "workflow", evidence: [], source: { kind: "close-trace", workId: "2026-07-26-x" } })).stdout).data;
-    const ok = run(["backlog","resolve","--id",add.id,"--status","done","--workspace",root,"--format=json"]);
+    const add = JSON.parse(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: "2026-07-26-cli-resolve", priority: "p2", description: "Resolve me" })).stdout).data;
+    const ok = run(["backlog","resolve","--id",add.workId,"--status","done","--workspace",root,"--format=json"]);
     assert.equal(ok.status, 0, ok.stderr || ok.stdout);
     const okData = JSON.parse(ok.stdout).data;
-    assert.equal(okData.id, add.id);
+    assert.equal(okData.workId, add.workId);
     assert.equal(okData.status, "done");
 
-    const badStatus = run(["backlog","resolve","--id",add.id,"--status","bogus","--workspace",root,"--format=json"]);
+    const badStatus = run(["backlog","resolve","--id",add.workId,"--status","bogus","--workspace",root,"--format=json"]);
     assert.equal(badStatus.status, 2, badStatus.stdout);
     assert.equal(JSON.parse(badStatus.stdout).error.code, "INVALID_ARGUMENT");
 
-    const badId = run(["backlog","resolve","--id","does-not-exist","--status","done","--workspace",root,"--format=json"]);
+    const badId = run(["backlog","resolve","--id","2026-07-26-does-not-exist","--status","done","--workspace",root,"--format=json"]);
     assert.equal(badId.status, 4, badId.stdout);
     assert.equal(JSON.parse(badId.stdout).error.code, "CHANGE_INVALID");
 
-    const alreadyDone = run(["backlog","resolve","--id",add.id,"--status","dismissed","--workspace",root,"--format=json"]);
+    const alreadyDone = run(["backlog","resolve","--id",add.workId,"--status","dismissed","--workspace",root,"--format=json"]);
     assert.equal(alreadyDone.status, 4, alreadyDone.stdout);
     assert.equal(JSON.parse(alreadyDone.stdout).error.code, "CHANGE_CONFLICT");
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test("codepatrol next --stage plan includes the backlog section; --stage verify omits it", () => {
+test("codepatrol next --stage plan includes the Work section; --stage verify omits it", () => {
   const root = workspace();
   try {
     const id = "2026-07-22-next-backlog";
-    assert.equal(run(["change","start","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: id, title: "IO", targetBranch: "main", actor: "codex" })).status, 0);
-    assert.equal(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ title: "Test backlog item for next", area: "workflow", priority: "p2", evidence: [], source: { kind: "plan-followup", workId: id } })).status, 0);
+    assert.equal(run(["backlog","add","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: id, priority: "p2", description: "Test backlog item for next" })).status, 0);
     const plan = JSON.parse(run(["next","--stage","plan","--workspace",root,"--format=json"]).stdout).data;
-    assert.ok(Array.isArray(plan.backlog));
-    assert.equal(plan.backlog.length, 1);
-    assert.equal(plan.backlog[0].priority, "p2");
+    assert.ok(Array.isArray(plan.work));
+    assert.equal(plan.work.length, 1);
+    assert.equal(plan.work[0].workId, id);
+    assert.equal(plan.work[0].priority, "p2");
     const planText = run(["next","--stage","plan","--workspace",root]).stdout;
     assert.match(planText, /Backlog:/);
-    assert.match(planText, /test-backlog-item-for-next/);
+    assert.match(planText, /Test backlog item for next/);
     const verifyText = run(["next","--stage","verify","--workspace",root]).stdout;
     assert.doesNotMatch(verifyText, /Backlog:/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test("regression: Plan checkpoint succeeds after backlog add CLI when the caller commits the file", () => {
+test("regression: Plan checkpoint succeeds after backlog add CLI when the caller commits the Work file", () => {
   const root = workspace();
   try {
-    const input = JSON.stringify({ title: "Split followup", area: "workflow", priority: "p2", evidence: [], source: { kind: "plan-followup", workId: "2026-07-24-cli-add-regress" } });
-    assert.equal(run(["backlog","add","--input","-","--workspace",root,"--format=json"], input).status, 0);
-    execFileSync("git", ["-C", root, "add", ".codepatrol/backlog/"]);
-    execFileSync("git", ["-C", root, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "backlog"]);
     const id2 = "2026-07-24-cli-add-regress";
+    const input = JSON.stringify({ workId: id2, priority: "p2", description: "Split followup" });
+    assert.equal(run(["backlog","add","--input","-","--workspace",root,"--format=json"], input).status, 0);
+    execFileSync("git", ["-C", root, "add", ".codepatrol/work/"]);
+    execFileSync("git", ["-C", root, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "work"]);
     assert.equal(run(["change","start","--input","-","--workspace",root,"--format=json"], JSON.stringify({ workId: id2, title: "Regress", targetBranch: "main", actor: "codex" })).status, 0);
     mkdirSync(join(root, ".codepatrol/changes", id2, "plan"), { recursive: true });
     writeFileSync(join(root, ".codepatrol/changes", id2, "plan/spec.md"), "spec\n");
@@ -380,6 +390,8 @@ class SyncCliGh implements GhAdapter {
 	async listIssues(): Promise<RemoteIssue[]> { this.listed = true; return []; }
 	async ensureLabel(): Promise<void> { this.writes++; }
 	async createIssue(): Promise<RemoteIssue> { this.writes++; throw new Error("no issue to create"); }
+	async editIssue(): Promise<void> { this.writes++; }
+	async reopenIssue(): Promise<void> { this.writes++; }
 	async closeIssue(): Promise<void> { this.writes++; }
 }
 

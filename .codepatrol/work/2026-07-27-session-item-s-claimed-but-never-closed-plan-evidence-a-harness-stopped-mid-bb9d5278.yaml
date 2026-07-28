@@ -1,0 +1,20 @@
+schema_version: 1
+work_id: 2026-07-27-session-item-s-claimed-but-never-closed-plan-evidence-a-harness-stopped-mid-bb9d5278
+priority: p3
+description: |-
+  Session item(s) claimed but never closed: plan/1/evidence. A harness stopped mid-stage; re-prime the session to resume.
+
+  - Area: workflow
+  - Source: close-trace (2026-07-27-trace-path-workspace-containment)
+  - Occurrences: 2
+  - Legacy id: session-item-s-claimed-but-never-closed-plan-evidence-a-harness-stopped-mid-stage-re-prime-the-session-to-resume
+
+  ## Evidence
+
+  - (none)
+status: open
+issue:
+  number: 26
+  url: https://github.com/shiborgi/codepatrol/issues/26
+created_at: 2026-07-27T19:54:07.590Z
+updated_at: 2026-07-27T21:33:23.318Z

@@ -1,0 +1,23 @@
+schema_version: 1
+work_id: 2026-07-26-centralize-codepatrol-paths
+priority: p2
+description: |-
+  Path-layout knowledge for .codepatrol/ has no owning module: ~28 hardcoded literals across 8 files, with change.yaml built in 2 places and the stage-artifact prefix in 3, despite shared/state.ts existing to own path construction
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-26-src-structure-revalidation)
+  - Occurrences: 1
+  - Legacy id: path-layout-knowledge-for-codepatrol-has-no-owning-module-hardcoded-literals-across-files-with-change-yaml-built-in-places-and-the-stage-artifact-prefix-in-despite-shared-state-ts-existing-to-own-path-construction
+
+  ## Evidence
+
+  - src/shared/state.ts:5 (stateRoot, the designated home for path construction)
+  - src/change/orchestrator.ts:24 and src/change/store.ts:11 both build .codepatrol/changes/<id>/change.yaml
+  - src/change/orchestrator.ts:123, src/change/validation.ts:24, src/change/validation.ts:43 all build the .codepatrol/changes/<id>/<stage>/ prefix
+  - src/change/backlog.ts:47 owns backlogPath but src/change/orchestrator.ts:265,269,292 re-inline the literal
+  - src/change/orchestrator.ts:255-258 inline the 4 required stage-artifact paths; src/change/session.ts:123 independently hardcodes plan/plan.md
+  - the F1 helpers removed by 2026-07-26-remove-dead-path-builders were abandoned attempts at exactly this centralization
+  - fix will touch ~6 files including orchestrator.ts, the highest-blast-radius module
+status: done
+created_at: 2026-07-26T14:46:48.305Z
+updated_at: 2026-07-26T15:44:25.837Z

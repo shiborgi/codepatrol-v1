@@ -1,0 +1,23 @@
+schema_version: 1
+work_id: 2026-07-27-stage-session-prime-and-rebuild-can-overwrite-concurrent-claimed-or-closed-p-f97f59c9
+priority: p1
+description: |-
+  Stage Session prime and rebuild can overwrite concurrent claimed or closed progress because they bypass the per-session mutation lock
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-27-src-architecture-audit)
+  - Occurrences: 1
+  - Legacy id: stage-session-prime-and-rebuild-can-overwrite-concurrent-claimed-or-closed-progress-because-they-bypass-the-per-session-mutation-lock
+
+  ## Evidence
+
+  - src/change/session.ts:181-210 locks claim and close mutations
+  - src/change/session.ts:173-176,213-216 creates or overwrites the same session without that lock
+  - src/cli/commands.ts:145-167 exposes prime rebuild and doctor paths concurrently
+  - src/change/change.test.ts covers sequential rebuild behavior but no rebuild-versus-claim race
+status: open
+issue:
+  number: 21
+  url: https://github.com/shiborgi/codepatrol/issues/21
+created_at: 2026-07-27T16:48:55.650Z
+updated_at: 2026-07-27T16:48:55.650Z

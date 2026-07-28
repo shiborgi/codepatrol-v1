@@ -5,12 +5,12 @@ import { CodepatrolError } from "../shared/errors.js";
 import { resolveInside } from "../shared/workspace.js";
 import type { ParsedArgs } from "./args.js";
 import { requireValue, KNOWN_COMMANDS } from "./args.js";
-import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary, renderBacklogList, renderIssueSyncResult, renderRemoteSyncResult } from "./output.js";
+import { renderFind, renderImpact, renderNeighbors, renderOutline, renderOverview, renderNext, renderSummary, renderWorkList, renderMigrationResult, renderIssueSyncResult, renderRemoteSyncResult } from "./output.js";
 import { closeChange, inspectChanges, startChange, transitionChange } from "../change/orchestrator.js";
 import { projectKanban, renderKanbanMarkdown } from "../change/board.js";
 import { claimSessionItem, closeSessionItem, discardAndRebuildSession, primeStageSession, readStageSession, sessionStatus } from "../change/session.js";
-import { listBacklog, upsertBacklogItem, readBacklog, resolveBacklogItem, type BacklogArea, type BacklogPriority, type BacklogSource, type BacklogStatus } from "../change/backlog.js";
-import { syncIssues, type GhAdapter, type SyncDirection } from "../change/issue-sync.js";
+import { addWork, listWork, migrateLegacyBacklog, resolveWork, assertWorkId, type WorkPriority, type WorkStatus } from "../change/backlog.js";
+import { syncIssues, type GhAdapter } from "../change/issue-sync.js";
 import { syncRemote } from "../change/sync.js";
 import type { CloseInput, Stage, StartChangeInput, TransitionIntent } from "../change/types.js";
 import { STAGES } from "../change/types.js";
@@ -72,22 +72,22 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 	switch (args.command) {
 		case "status": {
 			if (args.asOf && !Number.isFinite(Date.parse(args.asOf))) throw new CodepatrolError("INVALID_ARGUMENT", "--as-of must be an ISO timestamp.", 2);
-			const data = projectKanban(await inspectChanges(workspace, { all: args.all }, { signal }), { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}), backlogItems: readBacklog(workspace).items });
+			const data = projectKanban(listWork(workspace), await inspectChanges(workspace, { all: args.all }, { signal }), { all: args.all, ...(args.asOf ? { asOf: args.asOf } : {}) });
 			return { data, text: renderKanbanMarkdown(data) };
 		}
 		case "next": {
 			if (args.stage && !["plan", "review", "apply", "verify", "close"].includes(args.stage)) throw new CodepatrolError("INVALID_ARGUMENT", `Unknown stage: ${args.stage}`, 2);
 			const changes = (await inspectChanges(workspace, { all: true }, { signal })).filter((v) => v.state !== "terminal" && (!args.stage || v.stage === args.stage));
 			const showBacklog = !args.stage || args.stage === "plan";
-			const backlog = showBacklog ? listBacklog(workspace, { open: true }) : [];
-			const data: { stage: string | undefined; changes: { workId: string; state: string; nextAction?: string }[]; startNew: boolean; closeOptions?: string[]; backlog?: { id: string; title: string; priority: string; area: string; status: string; count: number; workId: string | null }[] } = {
+			const work = showBacklog ? listWork(workspace, { status: "open" }) : [];
+			const data: { stage: string | undefined; changes: { workId: string; state: string; nextAction?: string }[]; startNew: boolean; closeOptions?: string[]; work?: { workId: string; priority: string; status: string; description: string }[] } = {
 				stage: args.stage,
 				changes: changes.map((v) => ({ workId: v.identity.work_id, state: v.state, nextAction: v.nextAction })),
 				startNew: args.stage === "plan" || !args.stage,
 				...(args.stage === "close" ? { closeOptions: ["commit", "rollback"] } : {})
 			};
-			if (showBacklog) data.backlog = backlog.map((entry) => ({ id: entry.id, title: entry.title, priority: entry.priority, area: entry.area, status: entry.status, count: entry.count, workId: entry.workId }));
-			return { data, text: renderNext(args.stage as Stage | undefined, changes, showBacklog ? backlog : undefined) };
+			if (showBacklog) data.work = work.map((entry) => ({ workId: entry.workId, priority: entry.priority, status: entry.status, description: entry.description }));
+			return { data, text: renderNext(args.stage as Stage | undefined, changes, showBacklog ? work : undefined) };
 		}
 		case "graph.sync": {
 			const data = await graphSync(workspace, { force: args.force, signal });
@@ -179,42 +179,45 @@ export async function executeCommand(args: ParsedArgs, workspace: string, signal
 			throw new CodepatrolError("INVALID_ARGUMENT", `Unknown command: ${args.command || "(none)"}. Known commands: ${KNOWN_COMMANDS.map((c) => c.replace(".", " ")).join(", ")}.`, 2);
 		}
 		case "backlog.add": {
-			const payload = readJsonInput(workspace, requireValue(args.input, "input"), "Backlog") as { title?: unknown; area?: unknown; priority?: unknown; evidence?: unknown; source?: unknown };
-			if (typeof payload.title !== "string" || !payload.title.trim()) throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input.title must be a non-empty string.", 2);
-			const area = payload.area as BacklogArea;
-			if (!["architecture", "workflow", "skills"].includes(area)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog add input.area must be one of architecture|workflow|skills, got ${payload.area}.`, 2);
-			const priority = payload.priority as BacklogPriority | undefined;
-			if (priority !== undefined && !["p0", "p1", "p2", "p3"].includes(priority)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog add input.priority must be one of p0|p1|p2|p3, got ${payload.priority}.`, 2);
-			const evidence = Array.isArray(payload.evidence) && payload.evidence.every((entry) => typeof entry === "string") ? payload.evidence as string[] : (() => { throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input.evidence must be an array of strings.", 2); })();
-			const source = payload.source as BacklogSource | undefined;
-			if (!source || typeof source !== "object" || !["close-trace", "plan-followup"].includes((source as { kind?: string }).kind ?? "") || typeof (source as { workId?: unknown }).workId !== "string") throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input.source must be { kind: close-trace|plan-followup, workId: string }.", 2);
-			const item = upsertBacklogItem(workspace, { title: payload.title, area, priority, evidence, source: { kind: (source as { kind: "close-trace" | "plan-followup" }).kind, workId: (source as { workId: string }).workId } });
-			return { data: { id: item.id, status: item.status, count: item.count }, text: `${item.id} (status: ${item.status}, count: ${item.count})` };
+			const payload = readJsonInput(workspace, requireValue(args.input, "input"), "Backlog") as { workId?: unknown; priority?: unknown; description?: unknown };
+			if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input must be a JSON object.", 2);
+			const keys = Object.keys(payload).sort();
+			if (JSON.stringify(keys) !== JSON.stringify(["description", "priority", "workId"])) throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input must contain exactly workId, priority and description.", 2);
+			try { assertWorkId(payload.workId); } catch { throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog add input.workId must use YYYY-MM-DD-slug, got ${JSON.stringify(payload.workId)}.`, 2); }
+			const priority = payload.priority as WorkPriority;
+			if (!["p0", "p1", "p2", "p3"].includes(priority)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog add input.priority must be one of p0|p1|p2|p3, got ${JSON.stringify(payload.priority)}.`, 2);
+			if (typeof payload.description !== "string" || !payload.description.trim()) throw new CodepatrolError("INVALID_ARGUMENT", "INVALID_ARGUMENT: backlog add input.description must be a non-empty string.", 2);
+			const work = await addWork(workspace, { workId: payload.workId, priority, description: payload.description });
+			return { data: { workId: work.workId, status: work.status }, text: `${work.workId} (status: ${work.status})` };
 		}
 		case "backlog.list": {
-			const status = args.status as BacklogStatus | undefined;
-			if (status !== undefined && !["candidate", "scheduled", "done", "dismissed"].includes(status)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog list --status must be one of candidate|scheduled|done|dismissed, got ${status}.`, 2);
-			const items = listBacklog(workspace, status ? { status } : {});
-			return { data: items, text: renderBacklogList(items) };
+			const status = args.status as WorkStatus | undefined;
+			if (status !== undefined && !["open", "done", "dismissed"].includes(status)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog list --status must be one of open|done|dismissed, got ${status}.`, 2);
+			const works = listWork(workspace, status ? { status } : {});
+			return { data: works, text: renderWorkList(works) };
 		}
 		case "backlog.resolve": {
 			const id = requireValue(args.id, "id");
 			const status = args.status;
 			if (status !== "done" && status !== "dismissed") throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: backlog resolve --status must be done or dismissed, got ${status}.`, 2);
-			const item = resolveBacklogItem(workspace, id, status);
-			return { data: { id: item.id, status: item.status }, text: `${item.id} -> ${item.status}` };
+			const work = await resolveWork(workspace, id, status);
+			return { data: { workId: work.workId, status: work.status }, text: `${work.workId} -> ${work.status}` };
+		}
+		case "backlog.migrate": {
+			const changes = await inspectChanges(workspace, { all: true }, { signal });
+			const result = await migrateLegacyBacklog(workspace, changes, { dryRun: args.dryRun, signal });
+			return { data: result, text: renderMigrationResult(result) };
 		}
 		case "issues.sync": {
-			const direction = (args.direction ?? "both") as SyncDirection;
-			if (!["pull", "push", "both"].includes(direction)) throw new CodepatrolError("INVALID_ARGUMENT", `INVALID_ARGUMENT: issues sync --direction must be one of pull|push|both, got ${direction}.`, 2);
-			const result = await syncIssues(workspace, direction, { signal, dryRun: args.dryRun, ...(overrides?.gh ? { gh: overrides.gh } : {}) });
+			const changes = await inspectChanges(workspace, { all: true }, { signal });
+			const result = await syncIssues(workspace, changes, { signal, dryRun: args.dryRun, ...(overrides?.gh ? { gh: overrides.gh } : {}) });
 			return { data: result, text: renderIssueSyncResult(result) };
 		}
 		case "sync": {
 			const noSelector = !args.target && !args.branches && !args.issues;
 			const target = noSelector || args.target;
 			const branches = noSelector || args.branches;
-			const issues: SyncDirection | false = noSelector || args.issues ? ((args.direction ?? "both") as SyncDirection) : false;
+			const issues = noSelector || args.issues;
 			const data = await syncRemote(workspace, {
 				signal,
 				dryRun: args.dryRun,

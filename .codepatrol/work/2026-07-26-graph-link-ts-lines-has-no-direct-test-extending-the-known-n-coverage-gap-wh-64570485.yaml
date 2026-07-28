@@ -1,0 +1,24 @@
+schema_version: 1
+work_id: 2026-07-26-graph-link-ts-lines-has-no-direct-test-extending-the-known-n-coverage-gap-wh-64570485
+priority: p3
+description: |-
+  graph/link.ts (235 lines) has no direct test, extending the known N2 coverage gap which names only atomic-store.ts, languages.ts and queries.ts
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-26-src-structure-revalidation)
+  - Occurrences: 1
+  - Legacy id: graph-link-ts-lines-has-no-direct-test-extending-the-known-n-coverage-gap-which-names-only-atomic-store-ts-languages-ts-and-queries-ts
+
+  ## Evidence
+
+  - src/graph/link.ts is the largest production file in the repo with no test file importing it
+  - it owns edge resolution: turning extracted symbols into imports/calls/inherits edges
+  - silent misbehaviour would degrade graph impact blast-radius output that Verify stages rely on
+  - extends existing backlog item core-module-test-coverage-gaps-atomic-store-ts-graph-languages-ts-graph-queries-ts-lack-dedicated-tests rather than duplicating it
+  - cli/main.ts and cli/output.ts also lack direct tests but are legitimately covered by subprocess CLI tests; version.ts is a one-line constant
+status: open
+issue:
+  number: 12
+  url: https://github.com/shiborgi/codepatrol/issues/12
+created_at: 2026-07-26T14:47:06.622Z
+updated_at: 2026-07-26T14:47:06.622Z

@@ -3,7 +3,7 @@ import { inspectChanges } from "./orchestrator.js";
 import type { GitAdapter } from "./git.js";
 import { NodeGitAdapter } from "./git.js";
 import type { IssueSyncResult, GhAdapter } from "./issue-sync.js";
-import { syncIssues, type SyncDirection } from "./issue-sync.js";
+import { syncIssues } from "./issue-sync.js";
 
 export interface RemoteSyncOptions {
 	signal?: AbortSignal;
@@ -13,7 +13,7 @@ export interface RemoteSyncOptions {
 	target?: boolean;
 	targetBranch?: string;
 	branches?: boolean;
-	issues?: SyncDirection | false;
+	issues?: boolean;
 	pruneClosed?: boolean;
 }
 
@@ -86,8 +86,9 @@ export async function syncRemote(workspace: string, options: RemoteSyncOptions =
 		}
 	}
 
-	if (options.issues !== undefined && options.issues !== false) {
-		result.issues = await syncIssues(workspace, options.issues, { signal, dryRun, ...(options.gh ? { gh: options.gh } : {}) });
+	if (options.issues) {
+		const changes = await inspectChanges(workspace, { all: true }, { signal, git });
+		result.issues = await syncIssues(workspace, changes, { signal, dryRun, ...(options.gh ? { gh: options.gh } : {}) });
 	}
 
 	if (options.pruneClosed) {

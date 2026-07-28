@@ -1,0 +1,284 @@
+schema_version: 2
+identity:
+  work_id: 2026-07-27-unify-issue-change-kanban
+  title: Unify GitHub issue, Change, branch and Kanban work tracking
+  created_at: 2026-07-27T22:42:29.250Z
+  branch: codepatrol/2026-07-27-unify-issue-change-kanban
+  target_branch: main
+  base_commit: 8e28c44d71c926d1691f160bcb5098acf1264404
+events:
+  - id: 7b8f017e-ba7b-4ec5-93c8-ae771341f2cd
+    type: change-started
+    at: 2026-07-27T22:42:29.250Z
+    actor: opencode
+    stage: plan
+    attempt: 1
+    next_action: codepatrol-plan 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: 0d83e297-3ba3-4dc2-ad1c-d630d91d5ae4
+    at: 2026-07-27T23:18:22.312Z
+    actor: opencode
+    stage: plan
+    attempt: 1
+    type: run-recorded
+    run:
+      id: plan-opencode-1
+      started_at: 2026-07-27T22:42:29.250Z
+      finished_at: 2026-07-27T23:18:12.000Z
+      elapsed_ms: 2142750
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: e6c4f867-1b49-4019-b6e6-ad75acc61b64
+    at: 2026-07-27T23:18:36.037Z
+    actor: opencode
+    stage: plan
+    attempt: 1
+    type: stage-checkpointed
+    result: ready
+    checkpoint: 3c474347c125eb8e1f2ac1a31ea4d82e32f8f7eb
+    tree: dc8409e9ac1885e7e6bbe852c35d3524ef8da089
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-unify-issue-change-kanban/plan/spec.md
+        sha256: 517e1485f5348dc7a74a2ab3b8e82d0e1b5d651bc4a998a583b77fd78ffea055
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-unify-issue-change-kanban/plan/plan.md
+        sha256: 522dd4b6842ccd3eb391ead1dd9401340d0390c03296faf2fa721eafe81dd529
+        intent: create
+      - path: .codepatrol/changes/2026-07-27-unify-issue-change-kanban/plan/evidence/investigation.md
+        sha256: 95449188e4ed7e28b544ec2388fa982a990bbbac651f0bd18af2550fcfcf4ea5
+        intent: create
+    next_action: codepatrol-review 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: 4c768bb9-5b3d-4c4f-9cd3-8f298bb55419
+    at: 2026-07-27T23:22:52.669Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-review 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: 46b17945-6653-4a0c-81e5-0d6d470d1c8c
+    at: 2026-07-27T23:27:20.556Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: run-recorded
+    run:
+      id: review-opencode-1
+      started_at: 2026-07-27T23:22:52.000Z
+      finished_at: 2026-07-27T23:27:00.000Z
+      elapsed_ms: 248000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: e08b9e02-d371-4a80-8d3b-8b6a491138cb
+    at: 2026-07-27T23:27:28.736Z
+    actor: opencode
+    stage: review
+    attempt: 1
+    type: stage-checkpointed
+    result: approve
+    checkpoint: da89c77bffbd290ae3e0364bc30924f1f4f3a40e
+    tree: 8e924f83fdfa25c93ebacbee2c6048c771f1bb8c
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-unify-issue-change-kanban/review/report.md
+        sha256: 91f6a2cefe0a0ca9e870511c349e48835d42f9b650295f22b6dcc97844888339
+        intent: create
+    next_action: codepatrol-apply 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: 1f54e71b-4a56-426b-822c-8ce219fea98f
+    at: 2026-07-27T23:34:11.510Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-began
+    next_action: codepatrol-apply 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: ef5a48ea-1857-4b8c-be1c-8998edaad355
+    at: 2026-07-28T00:22:11.518Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-opencode-1
+      started_at: 2026-07-27T23:34:11.000Z
+      finished_at: 2026-07-28T00:22:00.000Z
+      elapsed_ms: 2869000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: f0332528-2792-431c-876b-49da5fdcd249
+    at: 2026-07-28T00:22:51.817Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: a0e55fe44734e821871fbe4626ff33b0deca0551
+    tree: 2d86630e9a3bf14404a5c4ed51ccb6d99851f698
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-unify-issue-change-kanban/apply/journal.md
+        sha256: 6193164386ec0f7bff818432e495a5d9849b8bb4596a75448aaa904139ee46ff
+        intent: create
+    changes:
+      - .codepatrol/backlog/items.yaml
+      - .codepatrol/work/2026-07-23-cleanup-and-push.yaml
+      - .codepatrol/work/2026-07-23-finalize-merge.yaml
+      - .codepatrol/work/2026-07-23-parallel-review.yaml
+      - .codepatrol/work/2026-07-23-rename-finalize-to-close.yaml
+      - .codepatrol/work/2026-07-23-self-improvement-tracing.yaml
+      - .codepatrol/work/2026-07-24-aggregate-and-push.yaml
+      - .codepatrol/work/2026-07-24-apply-verify-gate.yaml
+      - .codepatrol/work/2026-07-24-architecture-assessment-v2.yaml
+      - .codepatrol/work/2026-07-24-architecture-assessment.yaml
+      - .codepatrol/work/2026-07-24-backlog-subsystem.yaml
+      - .codepatrol/work/2026-07-24-cli-input-ergonomics.yaml
+      - .codepatrol/work/2026-07-24-migration-normalizer.yaml
+      - .codepatrol/work/2026-07-24-persona-subevent-helpers.yaml
+      - .codepatrol/work/2026-07-24-project-structure-review.yaml
+      - .codepatrol/work/2026-07-24-uniform-stage-io.yaml
+      - .codepatrol/work/2026-07-25-command-change-session-was-invoked-times-consider-caching-or-batching-repeat-93d81639.yaml
+      - .codepatrol/work/2026-07-25-command-change-transition-was-invoked-times-consider-caching-or-batching-rep-ec28444b.yaml
+      - .codepatrol/work/2026-07-25-commit-scoping.yaml
+      - .codepatrol/work/2026-07-25-core-module-test-coverage-gaps-atomic-store-ts-graph-languages-ts-graph-quer-91bd138f.yaml
+      - .codepatrol/work/2026-07-25-dead-taxonomy-unused-error-codes-artifact-invalid-and-workflow-in-errors-ts.yaml
+      - .codepatrol/work/2026-07-25-docs-consolidation.yaml
+      - .codepatrol/work/2026-07-25-issue-tracker-sync.yaml
+      - .codepatrol/work/2026-07-25-remove-duplicate-reader.yaml
+      - .codepatrol/work/2026-07-25-session-handoff.yaml
+      - .codepatrol/work/2026-07-25-session-input-validation.yaml
+      - .codepatrol/work/2026-07-26-architecture-assessment-v3.yaml
+      - .codepatrol/work/2026-07-26-backlog-resolve.yaml
+      - .codepatrol/work/2026-07-26-centralize-codepatrol-paths.yaml
+      - .codepatrol/work/2026-07-26-cli-command-registration-is-split-across-three-parallel-registries-with-no-c-229b88ec.yaml
+      - .codepatrol/work/2026-07-26-close-resolves-backlog.yaml
+      - .codepatrol/work/2026-07-26-decompose-transition-change.yaml
+      - .codepatrol/work/2026-07-26-dedupe-exact-keys-guard.yaml
+      - .codepatrol/work/2026-07-26-document-transition-close-payloads.yaml
+      - .codepatrol/work/2026-07-26-graph-link-ts-lines-has-no-direct-test-extending-the-known-n-coverage-gap-wh-64570485.yaml
+      - .codepatrol/work/2026-07-26-redundant-non-throwing-validators-in-validation-ts-validateartifactbindingsf-34caab79.yaml
+      - .codepatrol/work/2026-07-26-remove-dead-path-builders.yaml
+      - .codepatrol/work/2026-07-26-session-item-s-claimed-but-never-closed-review-report-review-report-a-harnes-e9ea8a30.yaml
+      - .codepatrol/work/2026-07-26-session-item-s-claimed-but-never-closed-review-report-verify-report-a-harnes-1c203965.yaml
+      - .codepatrol/work/2026-07-26-src-structure-revalidation.yaml
+      - .codepatrol/work/2026-07-26-top-error-code-change-invalid-investigate-the-first-occurrence-s-args-and-st-930c9abc.yaml
+      - .codepatrol/work/2026-07-27-backlog-read-modify-write-operations-are-atomic-per-file-but-unlocked-across-50e3cb5c.yaml
+      - .codepatrol/work/2026-07-27-checkpoint-and-close-git-yaml-transactions-lack-complete-recovery-for-failur-7d86b9fb.yaml
+      - .codepatrol/work/2026-07-27-checkpoint-delete-artifact-add-fix.yaml
+      - .codepatrol/work/2026-07-27-close-implementation-and-governing-contracts-disagree-on-squash-versus-fast-b4198963.yaml
+      - .codepatrol/work/2026-07-27-local-close-squash-remote-sync.yaml
+      - .codepatrol/work/2026-07-27-orchestrator-ts-remains-a-line-high-fan-out-facade-mixing-lifecycle-policy-i-423839ba.yaml
+      - .codepatrol/work/2026-07-27-persona-checkpoint-artifact-validation.yaml
+      - .codepatrol/work/2026-07-27-persona-review-and-verify-checkpoints-skip-artifact-ownership-and-sha-valida-dcc1ae37.yaml
+      - .codepatrol/work/2026-07-27-plan-self-consistency-check.yaml
+      - .codepatrol/work/2026-07-27-session-item-s-claimed-but-never-closed-close-close-work-review-report-verif-0a6d377f.yaml
+      - .codepatrol/work/2026-07-27-session-item-s-claimed-but-never-closed-plan-evidence-a-harness-stopped-mid-bb9d5278.yaml
+      - .codepatrol/work/2026-07-27-session-item-s-claimed-but-never-closed-review-report-a-harness-stopped-mid-1163102d.yaml
+      - .codepatrol/work/2026-07-27-src-architecture-audit.yaml
+      - .codepatrol/work/2026-07-27-stage-session-prime-and-rebuild-can-overwrite-concurrent-claimed-or-closed-p-f97f59c9.yaml
+      - .codepatrol/work/2026-07-27-sync-should-annotate-the-github-issue-with-its-change-branch-and-squashed-co-81a3d476.yaml
+      - .codepatrol/work/2026-07-27-test-infrastructure-leaks-temporary-git-workspaces-duplicates-lifecycle-fixt-06efbd6a.yaml
+      - .codepatrol/work/2026-07-27-trace-path-workspace-containment.yaml
+      - .codepatrol/work/2026-07-27-trace-paths-accept-unchecked-cli-id-values-and-can-escape-codepatrol-runtime-dfaef8d3.yaml
+      - AGENTS.md
+      - CONTEXT.md
+      - docs/adr/0001-offline-work-identity.md
+      - docs/runtime-state.md
+      - README.md
+      - scripts/render-kanban.mjs
+      - scripts/skills-contract.test.mjs
+      - skills/_shared/CODEPATROL-CLI.md
+      - skills/catalog.yaml
+      - skills/codepatrol-plan/SKILL.md
+      - skills/codepatrol-status/SKILL.md
+      - skills/codepatrol-sync/SKILL.md
+      - src/change/backlog-close-integration.test.ts
+      - src/change/backlog.test.ts
+      - src/change/backlog.ts
+      - src/change/board.test.ts
+      - src/change/board.ts
+      - src/change/git.test-helper.ts
+      - src/change/issue-sync.test.ts
+      - src/change/issue-sync.ts
+      - src/change/model.ts
+      - src/change/orchestrator.ts
+      - src/change/start-backlog-link.test.ts
+      - src/change/sync.test.ts
+      - src/change/sync.ts
+      - src/change/types.ts
+      - src/cli/args.ts
+      - src/cli/cli.test.ts
+      - src/cli/commands.ts
+      - src/cli/issues-sync.test.ts
+      - src/cli/output.ts
+      - src/shared/errors.ts
+      - src/shared/state.ts
+    next_action: codepatrol-verify 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 28237
+      at: 2026-07-28T00:22:51.664Z
+  - id: b5f207cd-f917-4ecd-ac32-21bd9fce2fff
+    at: 2026-07-28T00:26:15.748Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: Verify candidate a0e55fe44734e821871fbe4626ff33b0deca0551 for 2026-07-27-unify-issue-change-kanban
+  - id: f3fccbfc-f534-4a08-a6d0-9e5fee862f81
+    at: 2026-07-28T00:30:39.632Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-opencode-1
+      started_at: 2026-07-28T00:26:15.000Z
+      finished_at: 2026-07-28T00:30:11.000Z
+      elapsed_ms: 236000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: f00851a3-d780-4adc-8207-7173ad7cbe08
+    at: 2026-07-28T00:30:46.766Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-checkpointed
+    result: commit
+    checkpoint: 87af9809b208df8847447628685d0ef37c1005d8
+    tree: 7751f9663e229ddf51a571e9dfeed7f75571b4cd
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-unify-issue-change-kanban/verify/report.md
+        sha256: f982d9761f8d30de28a4bfb77381759baa430b13eb1708c0982557b755710ff3
+        intent: create
+    next_action: codepatrol-close 2026-07-27-unify-issue-change-kanban commit|rollback on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: cc5b49af-bd9a-4ed4-b136-46ce38139940
+    at: 2026-07-28T00:32:20.602Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: Close commit 2026-07-27-unify-issue-change-kanban with explicit user authority
+  - id: 8788cdc5-74e7-4ec3-953b-2089a2891705
+    at: 2026-07-28T00:32:29.479Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-opencode-1
+      started_at: 2026-07-28T00:32:20.000Z
+      finished_at: 2026-07-28T00:32:24.000Z
+      elapsed_ms: 4000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: b74ad93e-1680-4276-924d-bb6d081af480
+    at: 2026-07-28T00:32:37.054Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 7678d60f996ef9575ecfcd139751a335015f5dcc
+    tag: codepatrol/committed/2026-07-27-unify-issue-change-kanban
+    receipt: close/receipt.md

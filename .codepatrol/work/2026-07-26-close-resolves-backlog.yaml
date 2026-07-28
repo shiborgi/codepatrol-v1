@@ -1,0 +1,18 @@
+schema_version: 1
+work_id: 2026-07-26-close-resolves-backlog
+priority: p2
+description: |-
+  Close does not auto-resolve the backlog item it was started against — a Change linked via --backlogItemId stays scheduled forever after a successful commit close
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-26-backlog-resolve)
+  - Occurrences: 1
+  - Legacy id: close-does-not-auto-resolve-the-backlog-item-it-was-started-against-a-change-linked-via-backlogitemid-stays-scheduled-forever-after-a-successful-commit-close
+
+  ## Evidence
+
+  - src/change/orchestrator.ts:closeChangeLocked has no call to resolveBacklogItem/backlog resolution keyed by item.workId
+  - 2026-07-25-session-input-validation backlog item top-error-code-change-conflict-... stayed status=scheduled after its Change committed
+status: done
+created_at: 2026-07-26T02:07:44.040Z
+updated_at: 2026-07-26T03:46:19.283Z

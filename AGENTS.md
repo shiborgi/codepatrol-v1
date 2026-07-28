@@ -14,9 +14,11 @@
   state.
 
 Do not create a root progress file, a mutable status mirror, harness-specific
-worktrees or provider candidate trees. The structured backlog at
-`.codepatrol/backlog/items.yaml` is the sanctioned exception — a tracked,
-deduplicated follow-up queue auto-fed from Close trace analysis and Plan splits.
+worktrees or provider candidate trees. The tracked local Work records at
+`.codepatrol/work/<work-id>.yaml` are the sanctioned exception — one
+prioritized, deduplicated follow-up queue entry per work id, created
+explicitly by Plan splits or `backlog add` and resolved by Close or explicit
+dismissal.
 
 ## Choose one primary workflow
 

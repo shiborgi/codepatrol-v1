@@ -1,0 +1,20 @@
+schema_version: 1
+work_id: 2026-07-27-checkpoint-delete-artifact-add-fix
+priority: p1
+description: |-
+  Top error code: OPERATION_FAILED (6). Investigate the first occurrence's args and stage context.
+
+  - Area: workflow
+  - Source: close-trace (2026-07-25-docs-consolidation)
+  - Occurrences: 1
+  - Legacy id: top-error-code-operation-failed-investigate-the-first-occurrence-s-args-and-stage-context
+
+  ## Evidence
+
+  - (none)
+status: done
+issue:
+  number: 7
+  url: https://github.com/shiborgi/codepatrol/issues/7
+created_at: 2026-07-25T15:13:00.612Z
+updated_at: 2026-07-27T02:09:30.322Z

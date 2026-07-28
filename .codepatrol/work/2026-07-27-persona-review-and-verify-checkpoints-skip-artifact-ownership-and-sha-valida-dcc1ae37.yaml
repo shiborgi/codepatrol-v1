@@ -1,0 +1,23 @@
+schema_version: 1
+work_id: 2026-07-27-persona-review-and-verify-checkpoints-skip-artifact-ownership-and-sha-valida-dcc1ae37
+priority: p1
+description: |-
+  Persona Review and Verify checkpoints skip artifact ownership and SHA validation before committing submitted paths
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-27-src-architecture-audit)
+  - Occurrences: 1
+  - Legacy id: persona-review-and-verify-checkpoints-skip-artifact-ownership-and-sha-validation-before-committing-submitted-paths
+
+  ## Evidence
+
+  - src/change/orchestrator.ts:261-264 waives required reports and then skips validateWorkspaceCheckpoint entirely for persona checkpoints
+  - src/change/orchestrator.ts:290-295 stages declared paths after the skipped validation
+  - src/change/model.ts:122-126 returns early for persona events so bindings are not retained on the accepted attempt
+  - src/change/orchestrator-parallel.test.ts has no negative ownership or hash case
+status: open
+issue:
+  number: 18
+  url: https://github.com/shiborgi/codepatrol/issues/18
+created_at: 2026-07-27T16:48:35.584Z
+updated_at: 2026-07-27T16:48:35.584Z
