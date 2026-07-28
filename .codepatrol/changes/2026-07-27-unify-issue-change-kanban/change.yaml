@@ -251,3 +251,10 @@ events:
         sha256: f982d9761f8d30de28a4bfb77381759baa430b13eb1708c0982557b755710ff3
         intent: create
     next_action: codepatrol-close 2026-07-27-unify-issue-change-kanban commit|rollback on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: cc5b49af-bd9a-4ed4-b136-46ce38139940
+    at: 2026-07-28T00:32:20.602Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: stage-began
+    next_action: Close commit 2026-07-27-unify-issue-change-kanban with explicit user authority
