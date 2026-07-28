@@ -1,0 +1,7 @@
+schema_version: 1
+work_id: 2026-07-24-uniform-stage-io
+priority: p2
+description: "Standardize stage input and output across harnesses: deterministic per-stage Change list (codepatrol next) and uniform summary/verdict/next block (codepatrol change summary), wired into every lifecycle skill"
+status: done
+created_at: 2026-07-24T21:28:40.700Z
+updated_at: 2026-07-24T21:28:40.700Z

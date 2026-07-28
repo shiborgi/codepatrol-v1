@@ -77,3 +77,33 @@ test("support skills retain simplification and external-evidence safety floors",
 	const simplify = skill("solution-simplification"); assert.match(simplify, /minimum new implementation/i); assert.match(simplify, /data loss/i); assert.match(simplify, /security/i);
 	const research = skill("research-technology"); assert.match(research, /GitHub/i); assert.match(research, /facts?.*inferences?/is); assert.match(research, /must not.*dependenc|never.*dependenc/is);
 });
+
+test("live contracts describe local Work as truth and GitHub as one-way visualization", () => {
+	const governed = [
+		...["codepatrol-plan", "codepatrol-status", "codepatrol-sync"].map((name) => join(root, name, "SKILL.md")),
+		join(shared, "CODEPATROL-CLI.md"),
+		join(root, "catalog.yaml"),
+		join(resolve(root, ".."), "AGENTS.md"),
+		join(resolve(root, ".."), "CONTEXT.md"),
+		join(resolve(root, ".."), "README.md"),
+	];
+	for (const path of governed) {
+		const text = readFileSync(path, "utf8");
+		assert.doesNotMatch(text, /items\.yaml/, path);
+		assert.doesNotMatch(text, /backlogItemId/, path);
+		assert.doesNotMatch(text, /--direction/, path);
+		assert.doesNotMatch(text, /pull\|push\|both/, path);
+		assert.doesNotMatch(text, /\| Work \| Branch \|/, path);
+	}
+	const status = skill("codepatrol-status");
+	assert.match(status, /Backlog, Plan, Review, Apply, Verify and Close/);
+	assert.match(status, /harness, latest attempt, active time and token/);
+	const sync = skill("codepatrol-sync");
+	assert.match(sync, /one-way/);
+	assert.match(sync, /\[pN\] <work-id>/);
+	assert.match(sync, /never govern/i);
+	const agents = readFileSync(join(resolve(root, ".."), "AGENTS.md"), "utf8");
+	assert.match(agents, /\.codepatrol\/work\/<work-id>\.yaml/);
+	const catalogText = readFileSync(join(root, "catalog.yaml"), "utf8");
+	assert.doesNotMatch(catalogText, /backlog items/);
+});

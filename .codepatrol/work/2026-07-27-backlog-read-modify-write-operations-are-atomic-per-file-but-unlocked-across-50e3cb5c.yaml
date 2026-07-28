@@ -1,0 +1,23 @@
+schema_version: 1
+work_id: 2026-07-27-backlog-read-modify-write-operations-are-atomic-per-file-but-unlocked-across-50e3cb5c
+priority: p1
+description: |-
+  Backlog read-modify-write operations are atomic per file but unlocked across concurrent CLI lifecycle and issue-sync writers
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-27-src-architecture-audit)
+  - Occurrences: 1
+  - Legacy id: backlog-read-modify-write-operations-are-atomic-per-file-but-unlocked-across-concurrent-cli-lifecycle-and-issue-sync-writers
+
+  ## Evidence
+
+  - src/change/backlog.ts:140-185 mutators independently read modify and atomically replace without a shared lock
+  - src/cli/commands.ts:181-205 exposes concurrent add and resolve writers
+  - src/change/orchestrator.ts:175-191,428-447 and src/change/issue-sync.ts:106-138 add independent writer paths
+  - src/change/backlog.test.ts and src/change/issue-sync.test.ts exercise only sequential mutation
+status: open
+issue:
+  number: 20
+  url: https://github.com/shiborgi/codepatrol/issues/20
+created_at: 2026-07-27T16:48:49.350Z
+updated_at: 2026-07-27T16:48:49.350Z

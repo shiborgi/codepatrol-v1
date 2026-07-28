@@ -1,0 +1,7 @@
+schema_version: 1
+work_id: 2026-07-26-architecture-assessment-v3
+priority: p2
+description: "Whole-codebase architecture assessment: legacy removal candidates and structural improvement points"
+status: done
+created_at: 2026-07-26T03:50:31.335Z
+updated_at: 2026-07-26T03:50:31.335Z

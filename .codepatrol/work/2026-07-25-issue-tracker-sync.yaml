@@ -1,0 +1,7 @@
+schema_version: 1
+work_id: 2026-07-25-issue-tracker-sync
+priority: p2
+description: "codepatrol-git: two-way backlog <-> GitHub issue sync"
+status: done
+created_at: 2026-07-25T21:41:45.279Z
+updated_at: 2026-07-25T21:41:45.279Z

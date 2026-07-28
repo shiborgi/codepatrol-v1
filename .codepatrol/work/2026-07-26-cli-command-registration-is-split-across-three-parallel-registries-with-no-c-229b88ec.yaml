@@ -1,0 +1,23 @@
+schema_version: 1
+work_id: 2026-07-26-cli-command-registration-is-split-across-three-parallel-registries-with-no-c-229b88ec
+priority: p3
+description: |-
+  CLI command registration is split across three parallel registries with no compile-time link: args.ts COMMAND_OPTIONS, commands.ts switch, output.ts help text
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-26-src-structure-revalidation)
+  - Occurrences: 1
+  - Legacy id: cli-command-registration-is-split-across-three-parallel-registries-with-no-compile-time-link-args-ts-command-options-commands-ts-switch-output-ts-help-text
+
+  ## Evidence
+
+  - src/cli/args.ts:41 (COMMAND_OPTIONS), the executeCommand switch in src/cli/commands.ts, and the help block in src/cli/output.ts must be edited together
+  - currently in sync: 19 case labels and 19 COMMAND_OPTIONS keys, set-difference empty both directions
+  - latent not live: sync is held by discipline, not by the type system
+  - lived evidence: 2026-07-26-backlog-resolve Apply hit Unknown command: backlog.resolve because the case landed before the args.ts entry
+status: open
+issue:
+  number: 11
+  url: https://github.com/shiborgi/codepatrol/issues/11
+created_at: 2026-07-26T14:47:00.361Z
+updated_at: 2026-07-26T14:47:00.361Z

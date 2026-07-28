@@ -1,0 +1,19 @@
+schema_version: 1
+work_id: 2026-07-26-remove-dead-path-builders
+priority: p3
+description: |-
+  Dead, duplicated .codepatrol/changes path-builder helpers: changeDirectory (store.ts) and changeRoot (state.ts) are both unreferenced; the one real caller hardcodes the literal path instead
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-26-architecture-assessment-v3)
+  - Occurrences: 1
+  - Legacy id: dead-duplicated-codepatrol-changes-path-builder-helpers-changedirectory-store-ts-and-changeroot-state-ts-are-both-unreferenced-the-one-real-caller-hardcodes-the-literal-path-instead
+
+  ## Evidence
+
+  - src/change/store.ts:11 (changeDirectory, zero callers)
+  - src/shared/state.ts:17 (changeRoot, zero callers)
+  - src/change/store.ts:31 (listWorkingTreeChangeIds hardcodes the literal path instead of using either helper)
+status: done
+created_at: 2026-07-26T04:06:39.795Z
+updated_at: 2026-07-26T13:48:51.611Z

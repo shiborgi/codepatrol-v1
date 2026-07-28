@@ -1,0 +1,24 @@
+schema_version: 1
+work_id: 2026-07-27-test-infrastructure-leaks-temporary-git-workspaces-duplicates-lifecycle-fixt-06efbd6a
+priority: p2
+description: |-
+  Test infrastructure leaks temporary Git workspaces duplicates lifecycle fixtures and emits git.test-helper.ts in the production build
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-27-src-architecture-audit)
+  - Occurrences: 1
+  - Legacy id: test-infrastructure-leaks-temporary-git-workspaces-duplicates-lifecycle-fixtures-and-emits-git-test-helper-ts-in-the-production-build
+
+  ## Evidence
+
+  - src/change/change.test.ts has 17 mkdtempSync calls and no workspace-root cleanup
+  - src/change/git.test.ts has 19 mkdtempSync calls and no workspace-root cleanup
+  - src/change/git.test-helper.ts duplicates advanceThroughVerify and matches neither **/*.test.ts nor tsconfig.build.json exclusion **/*.helper.ts
+  - tsconfig.build.json:10 therefore includes git.test-helper.ts in dist
+  - large mixed-responsibility suites include src/cli/cli.test.ts, src/change/change.test.ts and src/change/git.test.ts
+status: open
+issue:
+  number: 23
+  url: https://github.com/shiborgi/codepatrol/issues/23
+created_at: 2026-07-27T16:49:06.772Z
+updated_at: 2026-07-27T16:49:06.772Z

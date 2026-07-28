@@ -1,0 +1,7 @@
+schema_version: 1
+work_id: 2026-07-24-migration-normalizer
+priority: p2
+description: Centralize scattered change-record compat migrations into one normalizer seam with characterization tests
+status: done
+created_at: 2026-07-24T19:05:04.759Z
+updated_at: 2026-07-24T19:05:04.759Z

@@ -1,0 +1,20 @@
+schema_version: 1
+work_id: 2026-07-25-command-change-transition-was-invoked-times-consider-caching-or-batching-rep-ec28444b
+priority: p3
+description: |-
+  Command "change.transition" was invoked 52 times — consider caching or batching repeated invocations.
+
+  - Area: workflow
+  - Source: close-trace (2026-07-24-backlog-subsystem)
+  - Occurrences: 9
+  - Legacy id: command-change-transition-was-invoked-times-consider-caching-or-batching-repeated-invocations
+
+  ## Evidence
+
+  - (none)
+status: open
+issue:
+  number: 3
+  url: https://github.com/shiborgi/codepatrol/issues/3
+created_at: 2026-07-25T10:12:35.564Z
+updated_at: 2026-07-27T21:33:23.305Z

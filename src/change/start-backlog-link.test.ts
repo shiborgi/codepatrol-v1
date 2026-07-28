@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startChange, transitionChange } from "./orchestrator.js";
-import { readBacklog, upsertBacklogItem, writeBacklog } from "./backlog.js";
+import { addWork, readWork, resolveWork } from "./backlog.js";
 
 function git(workspace: string, args: string[]): string { return execFileSync("git", args, { cwd: workspace, encoding: "utf8" }).trim(); }
 function initRepo(workspace: string): void {
@@ -16,68 +16,89 @@ function initRepo(workspace: string): void {
 	git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
 }
 
-test("change start with valid backlogItemId links and schedules the item", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-link-"));
+test("direct change start creates an open Work from the exact work id and commits it", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-work-create-"));
 	try {
 		initRepo(workspace);
-		upsertBacklogItem(workspace, { title: "Test item", area: "workflow", evidence: [], source: { kind: "plan-followup", workId: "seed" } });
-		git(workspace, ["add", ".codepatrol/backlog/"]);
-		git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "backlog"]);
-		const id = readBacklog(workspace).items[0]!.id;
-		const result = await startChange(workspace, { workId: "2026-07-24-start-link-ok", title: "Link", targetBranch: "main", actor: "test", backlogItemId: id });
-		assert.equal(result.identity.work_id, "2026-07-24-start-link-ok");
-		const linked = readBacklog(workspace).items.find((entry) => entry.id === id);
-		assert.equal(linked?.workId, "2026-07-24-start-link-ok");
-		assert.equal(linked?.status, "scheduled");
+		const result = await startChange(workspace, { workId: "2026-07-24-start-work", title: "Direct start title", targetBranch: "main", actor: "test" });
+		assert.equal(result.identity.work_id, "2026-07-24-start-work");
+		const work = readWork(workspace, "2026-07-24-start-work");
+		assert.equal(work?.status, "open");
+		assert.equal(work?.priority, "p2");
+		assert.equal(work?.description, "Direct start title");
+		const show = git(workspace, ["show", "--name-only", "--format=", "HEAD"]);
+		assert.match(show, /\.codepatrol\/work\/2026-07-24-start-work\.yaml/);
 	} finally { rmSync(workspace, { recursive: true, force: true }); }
 });
 
-test("change start with missing backlogItemId fails before branch creation", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-link-missing-"));
+test("change start honors an explicit priority for newly created Work", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-work-priority-"));
 	try {
 		initRepo(workspace);
-		await assert.rejects(startChange(workspace, { workId: "2026-07-24-start-link-missing", title: "Missing", targetBranch: "main", actor: "test", backlogItemId: "does-not-exist" }), /INVALID_ARGUMENT/);
-		assert.throws(() => git(workspace, ["rev-parse", "--verify", "codepatrol/2026-07-24-start-link-missing"]), /Needed a single revision/);
+		await startChange(workspace, { workId: "2026-07-24-start-p0", title: "Urgent", targetBranch: "main", actor: "test", priority: "p0" });
+		assert.equal(readWork(workspace, "2026-07-24-start-p0")?.priority, "p0");
 	} finally { rmSync(workspace, { recursive: true, force: true }); }
 });
 
-test("change start with dismissed backlogItemId fails before branch creation", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-link-dismissed-"));
+test("change start reuses an existing open Work and takes its first description line as title", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-work-reuse-"));
 	try {
 		initRepo(workspace);
-		upsertBacklogItem(workspace, { title: "Dismissed", area: "workflow", evidence: [], source: { kind: "plan-followup", workId: "seed" } });
-		git(workspace, ["add", ".codepatrol/backlog/"]);
-		git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "backlog"]);
-		const id = readBacklog(workspace).items[0]!.id;
-		const items = readBacklog(workspace).items;
-		items[0]!.status = "dismissed";
-		writeBacklog(workspace, { schema_version: 1, items });
-		git(workspace, ["add", ".codepatrol/backlog/"]);
-		git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "dismiss"]);
-		await assert.rejects(startChange(workspace, { workId: "2026-07-24-start-link-dismissed", title: "Dismissed", targetBranch: "main", actor: "test", backlogItemId: id }), /CHANGE_CONFLICT/);
-		assert.throws(() => git(workspace, ["rev-parse", "--verify", "codepatrol/2026-07-24-start-link-dismissed"]), /Needed a single revision/);
+		await addWork(workspace, { workId: "2026-07-24-start-reuse", priority: "p1", description: "\nExisting work summary\n\nLonger details" });
+		git(workspace, ["add", ".codepatrol/work/"]);
+		git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "work"]);
+		const result = await startChange(workspace, { workId: "2026-07-24-start-reuse", title: "Ignored input title", targetBranch: "main", actor: "test" });
+		assert.equal(result.identity.title, "Existing work summary");
+		const work = readWork(workspace, "2026-07-24-start-reuse");
+		assert.equal(work?.priority, "p1");
+		const show = git(workspace, ["show", "--name-only", "--format=", "HEAD"]);
+		assert.doesNotMatch(show, /\.codepatrol\/work\//, "a pre-existing Work record is not re-committed");
 	} finally { rmSync(workspace, { recursive: true, force: true }); }
 });
 
-test("change start without backlogItemId is unchanged", async () => {
+test("change start rejects a terminal Work before branch creation", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-work-terminal-"));
+	try {
+		initRepo(workspace);
+		await addWork(workspace, { workId: "2026-07-24-start-terminal", priority: "p2", description: "Done work" });
+		await resolveWork(workspace, "2026-07-24-start-terminal", "done");
+		git(workspace, ["add", ".codepatrol/work/"]);
+		git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "work"]);
+		await assert.rejects(startChange(workspace, { workId: "2026-07-24-start-terminal", title: "x", targetBranch: "main", actor: "test" }), /CHANGE_CONFLICT/);
+		assert.throws(() => git(workspace, ["rev-parse", "--verify", "codepatrol/2026-07-24-start-terminal"]), /Needed a single revision/);
+	} finally { rmSync(workspace, { recursive: true, force: true }); }
+});
+
+test("change start rejects an independent backlog identity at input validation", async () => {
 	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-no-link-"));
 	try {
 		initRepo(workspace);
-		const result = await startChange(workspace, { workId: "2026-07-24-no-link", title: "No Link", targetBranch: "main", actor: "test" });
-		assert.equal(result.identity.work_id, "2026-07-24-no-link");
+		await assert.rejects(startChange(workspace, { workId: "2026-07-24-no-link", title: "x", targetBranch: "main", actor: "test", backlogItemId: "anything" } as never), /unknown field backlogItemId/);
 	} finally { rmSync(workspace, { recursive: true, force: true }); }
 });
 
-test("regression: Plan checkpoint succeeds immediately after change start with backlogItemId", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-link-regression-"));
+test("a start failure after Work creation deletes only the newly-owned Work", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-work-cleanup-"));
 	try {
 		initRepo(workspace);
-		upsertBacklogItem(workspace, { title: "Regress item", area: "workflow", evidence: [], source: { kind: "plan-followup", workId: "seed" } });
-		git(workspace, ["add", ".codepatrol/backlog/"]);
-		git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "backlog"]);
-		const id = readBacklog(workspace).items[0]!.id;
-		const id2 = "2026-07-24-start-link-regress";
-		await startChange(workspace, { workId: id2, title: "Regress", targetBranch: "main", actor: "test", backlogItemId: id });
+		await addWork(workspace, { workId: "2026-07-24-pre-existing", priority: "p2", description: "Keep me" });
+		mkdirSync(join(workspace, ".codepatrol/changes"), { recursive: true });
+		writeFileSync(join(workspace, ".codepatrol/changes/2026-07-24-start-fails"), "not a directory\n");
+		git(workspace, ["add", ".codepatrol/"]);
+		git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "blocking file"]);
+		await assert.rejects(startChange(workspace, { workId: "2026-07-24-start-fails", title: "Will fail", targetBranch: "main", actor: "test" }));
+		assert.equal(existsSync(join(workspace, ".codepatrol/work/2026-07-24-start-fails.yaml")), false, "no Work survives a rejected start");
+		assert.ok(readWork(workspace, "2026-07-24-pre-existing"), "pre-existing Work is never deleted by cleanup");
+		assert.throws(() => git(workspace, ["rev-parse", "--verify", "codepatrol/2026-07-24-start-fails"]), /Needed a single revision/);
+	} finally { rmSync(workspace, { recursive: true, force: true }); }
+});
+
+test("regression: Plan checkpoint succeeds immediately after a direct change start", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-start-work-regression-"));
+	try {
+		initRepo(workspace);
+		const id2 = "2026-07-24-start-work-regress";
+		await startChange(workspace, { workId: id2, title: "Regress", targetBranch: "main", actor: "test" });
 		mkdirSync(join(workspace, ".codepatrol/changes", id2, "plan"), { recursive: true });
 		writeFileSync(join(workspace, ".codepatrol/changes", id2, "plan/spec.md"), "spec\n");
 		writeFileSync(join(workspace, ".codepatrol/changes", id2, "plan/plan.md"), "plan\n");

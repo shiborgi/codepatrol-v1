@@ -8,8 +8,9 @@ function git(workspace: string, args: string[]): string { return execFileSync("g
 function binding(workspace: string, path: string) { return { path, sha256: createHash("sha256").update(readFileSync(join(workspace, path))).digest("hex"), intent: "create" as const }; }
 function at(second: number) { return { now: new Date(`2026-07-22T10:00:${String(second).padStart(2, "0")}.000Z`) }; }
 
-export async function advanceThroughVerify(workspace: string, id: string): Promise<void> {
+export async function advanceThroughVerify(workspace: string, id: string, afterStart?: () => Promise<void>): Promise<void> {
 	await startChange(workspace, { workId: id, title: "Verified candidate", targetBranch: "main", actor: "codex" }, at(1));
+	if (afterStart) await afterStart();
 	for (const [index, stage] of (["plan", "review", "apply", "verify"] as const).entries()) {
 		if (stage !== "plan") await transitionChange(workspace, id, { type: "begin", actor: "codex", stage, nextAction: `complete ${stage}` }, at(2 + index * 3));
 		const dir = join(workspace, `.codepatrol/changes/${id}/${stage}`); mkdirSync(dir, { recursive: true }); const name = stage === "plan" ? "spec.md" : stage === "review" ? "report.md" : stage === "apply" ? "journal.md" : "report.md"; const path = `.codepatrol/changes/${id}/${stage}/${name}`; writeFileSync(join(workspace, path), `${stage}\n`); const artifacts = [binding(workspace, path)];

@@ -38,8 +38,9 @@ class RecordingGit implements GitAdapter {
 	async mergeFf(): Promise<void> {}
 	async mergeSquash(): Promise<void> {}
 	async refs(prefix: string): Promise<string[]> {
-		if (prefix === "refs/heads/codepatrol/") return [`codepatrol/${this.workIdForRefs}`].filter(Boolean);
-		if (prefix === "refs/tags/codepatrol/") return [`codepatrol/committed/${this.workIdForRefs}`].filter(Boolean);
+		if (!this.workIdForRefs) return [];
+		if (prefix === "refs/heads/codepatrol/") return [`codepatrol/${this.workIdForRefs}`];
+		if (prefix === "refs/tags/codepatrol/") return [`codepatrol/committed/${this.workIdForRefs}`];
 		return [];
 	}
 	workIdForRefs = "";
@@ -53,11 +54,13 @@ class RecordingGit implements GitAdapter {
 }
 
 class FakeGh implements GhAdapter {
-	asserted = false; listed = false; closed = 0; created = 0; labelled = false;
+	asserted = false; listed = false; closed = 0; created = 0; edited = 0; reopened = 0; labelled = false;
 	async assertAvailable(): Promise<void> { this.asserted = true; }
 	async listIssues(): Promise<never[]> { this.listed = true; return []; }
 	async ensureLabel(): Promise<void> { this.labelled = true; }
 	async createIssue(): Promise<never> { this.created++; throw new Error("should not be called under dry-run"); }
+	async editIssue(): Promise<void> { this.edited++; throw new Error("should not be called under dry-run"); }
+	async reopenIssue(): Promise<void> { this.reopened++; throw new Error("should not be called under dry-run"); }
 	async closeIssue(): Promise<void> { this.closed++; throw new Error("should not be called under dry-run"); }
 }
 
@@ -169,7 +172,7 @@ describe("codepatrol sync", () => {
 			git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n"); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
 			const fake = new RecordingGit(workspace, "main");
 			const gh = new FakeGh();
-			const result = await syncRemote(workspace, { target: true, targetBranch: "main", issues: "both", dryRun: true, git: fake, gh });
+			const result = await syncRemote(workspace, { target: true, targetBranch: "main", issues: true, dryRun: true, git: fake, gh });
 			assert.equal(fake.pushes.length, 0);
 			assert.equal(gh.asserted, true);
 			assert.equal(gh.listed, true);

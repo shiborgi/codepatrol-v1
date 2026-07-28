@@ -1,6 +1,6 @@
 ---
 name: codepatrol-sync
-description: (codepatrol) Push the local Change-related refs and terminal tags to origin and reconcile backlog ↔ GitHub issues via gh. Use to publish a closed Change and to keep the remote aligned with local state; this is the only command that touches the network.
+description: (codepatrol) Push the local Change-related refs and terminal tags to origin and publish local Work records one-way to GitHub issues via gh. Use to publish a closed Change and to keep the remote aligned with local state; this is the only command that touches the network.
 ---
 
 # Codepatrol Sync
@@ -9,8 +9,7 @@ Act as the read-only Dispatcher in [ROLES.md](../_shared/ROLES.md). This skill
 wraps one CLI command and never touches Change lifecycle state.
 
 Run `codepatrol sync [--target] [--branches] [--issues]
-[--direction pull|push|both] [--target-branch <name>] [--prune-closed]
-[--dry-run] --workspace "$PWD"`.
+[--target-branch <name>] [--prune-closed] [--dry-run] --workspace "$PWD"`.
 
 Reproduce the command's output verbatim. Do not construct, reorder, embellish
 or repair the result.
@@ -26,17 +25,25 @@ or repair the result.
   case are rejected with `INVALID_ARGUMENT` before any `git push`.
 - `--branches` pushes every `refs/heads/codepatrol/*` and every
   `refs/tags/codepatrol/*` ref exactly once.
-- `--issues` reconciles the backlog with GitHub issues via `syncIssues`,
-  reusing its `--direction pull|push|both` selector.
+- `--issues` publishes local Work records to GitHub issues one-way via
+  `syncIssues`. Local Work is the only authority: each record maps to one
+  issue labeled `codepatrol-backlog` titled exactly `[pN] <work-id>`, whose
+  body is the local description plus a generated `Codepatrol-Work: <work-id>`
+  marker. Open work maps to an open issue, done to completed closure and
+  dismissed to not-planned closure. Sync may create, edit, reopen or close
+  remote issues and writes back only the issue number/URL into the local
+  Work record; remote prose, priority or state never govern local Work or
+  lifecycle state. There is no direction selector because there is no second
+  authority to pull from.
 - `--prune-closed` deletes the local `refs/heads/codepatrol/<work-id>` for a
   terminal Change **only after** its branch pushed successfully. The
   terminal tag is never deleted.
 - Passing **any** of `--target`/`--branches`/`--issues` narrows to the
   selected subset; passing none selects all three (the permissive default).
-- `--dry-run`: zero remote mutations — no `git push`, no `git deleteBranch`,
-  no `gh` writes, no `items.yaml` writes. The `gh` reads
-  `assertAvailable`/`listIssues` still run because they are reused from
-  `syncIssues` unchanged.
+- `--dry-run`: zero remote mutations and zero local writes — no `git push`,
+  no `git deleteBranch`, no `gh` writes, no Work record updates. The `gh`
+  reads `assertAvailable`/`listIssues` still run so the report names the
+  exact create/edit/reopen/close/link actions that would execute.
 
 ## Preconditions
 

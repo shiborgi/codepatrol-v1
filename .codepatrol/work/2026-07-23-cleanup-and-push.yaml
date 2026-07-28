@@ -1,0 +1,7 @@
+schema_version: 1
+work_id: 2026-07-23-cleanup-and-push
+priority: p2
+description: Minor improvements, push option, token count logic, and legacy cleanup
+status: done
+created_at: 2026-07-23T23:18:46.634Z
+updated_at: 2026-07-23T23:18:46.634Z

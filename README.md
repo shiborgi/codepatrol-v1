@@ -85,12 +85,16 @@ Session. It never edits events, refreshes hashes, repairs source or mutates refs
 
 ### Deterministic Kanban
 
-`scripts/render-kanban.mjs` and `codepatrol status` use the same pure projector.
-Rows sort by creation timestamp then work id. Columns are fixed: Work, Branch,
-Plan, Review, Apply, Verify, Close and Total. Each stage shows attempt,
-result/state, token coverage and elapsed time; Total shows all-attempt tokens,
-summed active time and terminal cycle time. Default output never advances an
-active clock. Pass an explicit `--as-of <ISO>` when that projection is wanted.
+`scripts/render-kanban.mjs` and `codepatrol status` use the same pure offline
+projector over local Work records (`.codepatrol/work/<work-id>.yaml`) and
+Change projections, joined by exact work id. Rows sort by priority, creation
+timestamp then work id. Columns are fixed: Backlog, Plan, Review, Apply,
+Verify and Close. Each populated stage cell shows exactly the harness, latest
+attempt, summed active stage time and token total with measured-run coverage.
+Default output never advances an active clock. Pass an explicit `--as-of
+<ISO>` when that projection is wanted. GitHub issues are an optional one-way
+visualization published only by `codepatrol sync --issues` as `[pN] <work-id>`
+titles; they never govern local Work or lifecycle state.
 
 ### Tokens and time
 

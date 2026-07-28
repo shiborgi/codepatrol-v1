@@ -1,126 +1,101 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parse } from "yaml";
 import { advanceThroughVerify } from "./git.test-helper.js";
 import { closeChange, transitionChange } from "./orchestrator.js";
-import { linkBacklogItem, readBacklog, resolveBacklogItem, upsertBacklogItem } from "./backlog.js";
+import { addWork, listWork, readWork, resolveWork } from "./backlog.js";
 import * as trace from "./trace.js";
 
 function git(workspace: string, args: string[]): string { return execFileSync("git", args, { cwd: workspace, encoding: "utf8" }).trim(); }
 function at(second: number) { return { now: new Date(`2026-07-24T10:00:${String(second).padStart(2, "0")}.000Z`) }; }
-function readItems(workspace: string): { id: string; title: string; status: string; priority: string; source: { kind: string; workId: string } }[] {
-	const path = join(workspace, ".codepatrol", "backlog", "items.yaml");
-	if (!existsSync(path)) return [];
-	return (parse(readFileSync(path, "utf8")) as { items: { id: string; title: string; status: string; priority: string; source: { kind: string; workId: string } }[] }).items;
+function initRepo(workspace: string): void {
+	writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
+	git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
+}
+async function closeWithRun(workspace: string, id: string, outcome: "commit" | "rollback") {
+	await transitionChange(workspace, id, { type: "begin", actor: "trace-test", stage: "close", nextAction: "close" }, at(15));
+	await transitionChange(workspace, id, { type: "usage", actor: "trace-test", stage: "close", run: { id: "close-usage", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
+	return closeChange(workspace, id, { outcome, actor: "trace-test", authority: "test" }, at(20));
 }
 
-describe("close integration: backlog feed", () => {
-test("close writes non-filler recommendations as close-trace items with deterministic priority", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-backlog-"));
+describe("close integration: Work disposition", () => {
+test("close commit marks only the matching Work done in the terminal commit and leaves unrelated Work untouched", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-work-done-"));
 	try {
-		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
-		git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
-		const id = "2026-07-24-close-backlog";
+		initRepo(workspace);
+		const id = "2026-07-26-close-work-done";
+		await addWork(workspace, { workId: "2026-07-26-unrelated", priority: "p1", description: "Unrelated work" });
+		git(workspace, ["add", ".codepatrol/work/"]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "work"]);
+		await advanceThroughVerify(workspace, id);
+		const result = await closeWithRun(workspace, id, "commit");
+		assert.equal(result.outcome, "committed");
+		assert.equal(readWork(workspace, id)?.status, "done");
+		assert.equal(readWork(workspace, "2026-07-26-unrelated")?.status, "open");
+		const show = git(workspace, ["show", "--name-only", "--format=", result.terminalCommit]);
+		assert.match(show, new RegExp(`\\.codepatrol/work/${id}\\.yaml`), "the matching Work record is part of the terminal commit");
+		assert.doesNotMatch(show, /2026-07-26-unrelated/, "no unrelated Work record is touched");
+	} finally { rmSync(workspace, { recursive: true, force: true }); }
+});
+
+test("close rollback marks the matching Work dismissed in the terminal tag", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-work-rollback-"));
+	try {
+		initRepo(workspace);
+		const id = "2026-07-26-close-work-rollback";
+		await advanceThroughVerify(workspace, id);
+		const result = await closeWithRun(workspace, id, "rollback");
+		assert.equal(result.outcome, "rolled-back");
+		const raw = git(workspace, ["show", `${result.tag}:.codepatrol/work/${id}.yaml`]);
+		assert.match(raw, /status: dismissed/);
+	} finally { rmSync(workspace, { recursive: true, force: true }); }
+});
+
+test("close recommendations remain report-only and never create Work", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-report-only-"));
+	try {
+		initRepo(workspace);
+		const id = "2026-07-24-close-report-only";
 		await advanceThroughVerify(workspace, id);
 		for (let i = 0; i < 8; i++) trace.append(workspace, id, { kind: "command", at: `2026-07-22T10:00:0${i}.000Z`, command: "change transition", args: {} });
-		await transitionChange(workspace, id, { type: "begin", actor: "trace-test", stage: "close", nextAction: "close" }, at(15));
-		await transitionChange(workspace, id, { type: "usage", actor: "trace-test", stage: "close", run: { id: "close-usage", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
-		const result = await closeChange(workspace, id, { outcome: "commit", actor: "trace-test", authority: "test" }, at(20));
+		const result = await closeWithRun(workspace, id, "commit");
 		assert.equal(result.outcome, "committed");
-		const items = readItems(workspace);
-		const invoked = items.find((entry) => entry.title.includes('invoked'));
-		assert.ok(invoked, "expected an 'invoked N times' backlog item");
-		assert.equal(invoked!.source.kind, "close-trace");
-		assert.equal(invoked!.source.workId, id);
-		assert.equal(invoked!.priority, "p3");
-		assert.equal(invoked!.status, "candidate");
+		const works = listWork(workspace);
+		assert.deepEqual(works.map((work) => work.workId), [id], "trace recommendations create no implicit Work");
 		const show = git(workspace, ["show", "--name-only", "--format=", result.terminalCommit]);
-		assert.match(show, /\.codepatrol\/backlog\/items\.yaml/, "the backlog file must be part of the terminal commit so the change is genuinely git-tracked");
+		assert.match(show, /improvement-report\.md/, "the improvement report is still produced");
 	} finally { rmSync(workspace, { recursive: true, force: true }); }
 });
 
-test("close with only filler recommendations adds nothing", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-backlog-empty-"));
+test("close fails closed with CHANGE_DRIFT when a nonterminal Change lacks Work", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-work-missing-"));
 	try {
-		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
-		git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
-		const id = "2026-07-24-close-backlog-empty";
-		await advanceThroughVerify(workspace, id);
+		initRepo(workspace);
+		const id = "2026-07-26-close-work-missing";
+		await advanceThroughVerify(workspace, id, async () => {
+			rmSync(join(workspace, ".codepatrol/work", `${id}.yaml`));
+			git(workspace, ["add", ".codepatrol/work/"]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "remove work"]);
+		});
 		await transitionChange(workspace, id, { type: "begin", actor: "trace-test", stage: "close", nextAction: "close" }, at(15));
 		await transitionChange(workspace, id, { type: "usage", actor: "trace-test", stage: "close", run: { id: "close-usage", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
-		const result = await closeChange(workspace, id, { outcome: "commit", actor: "trace-test", authority: "test" }, at(20));
+		await assert.rejects(closeChange(workspace, id, { outcome: "commit", actor: "trace-test", authority: "test" }, at(20)), /CHANGE_DRIFT/);
+	} finally { rmSync(workspace, { recursive: true, force: true }); }
+});
+
+test("close commit succeeds when the Work was manually dismissed mid-lifecycle and records done", async () => {
+	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-work-predismissed-"));
+	try {
+		initRepo(workspace);
+		const id = "2026-07-26-close-work-predismissed";
+		await advanceThroughVerify(workspace, id, async () => {
+			await resolveWork(workspace, id, "dismissed");
+			git(workspace, ["add", ".codepatrol/work/"]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "dismiss"]);
+		});
+		const result = await closeWithRun(workspace, id, "commit");
 		assert.equal(result.outcome, "committed");
-		const items = readItems(workspace);
-		assert.equal(items.length, 0);
-		const show = git(workspace, ["show", "--name-only", "--format=", result.terminalCommit]);
-		assert.doesNotMatch(show, /\.codepatrol\/backlog\/items\.yaml/, "no backlog file should be created or committed when there are no recommendations");
-	} finally { rmSync(workspace, { recursive: true, force: true }); }
-});
-
-test("close commit auto-resolves the linked backlog item to done, committed in the terminal commit", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-resolve-"));
-	try {
-		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
-		git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
-		const id = "2026-07-26-close-resolve";
-		const linked = upsertBacklogItem(workspace, { title: "Linked item", area: "workflow", evidence: [], source: { kind: "plan-followup", workId: "seed" } });
-		linkBacklogItem(workspace, linked.id, id);
-		const unrelated = upsertBacklogItem(workspace, { title: "Unrelated item", area: "workflow", evidence: [], source: { kind: "plan-followup", workId: "seed" } });
-		linkBacklogItem(workspace, unrelated.id, "some-other-change");
-		git(workspace, ["add", ".codepatrol/backlog/"]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "backlog"]);
-		await advanceThroughVerify(workspace, id);
-		await transitionChange(workspace, id, { type: "begin", actor: "trace-test", stage: "close", nextAction: "close" }, at(15));
-		await transitionChange(workspace, id, { type: "usage", actor: "trace-test", stage: "close", run: { id: "close-usage", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
-		const result = await closeChange(workspace, id, { outcome: "commit", actor: "trace-test", authority: "test" }, at(20));
-		assert.equal(result.outcome, "committed");
-		const items = readBacklog(workspace).items;
-		assert.equal(items.find((entry) => entry.id === linked.id)?.status, "done");
-		assert.equal(items.find((entry) => entry.id === unrelated.id)?.status, "scheduled");
-		const show = git(workspace, ["show", "--name-only", "--format=", result.terminalCommit]);
-		assert.match(show, /\.codepatrol\/backlog\/items\.yaml/);
-	} finally { rmSync(workspace, { recursive: true, force: true }); }
-});
-
-test("close rollback does not touch the linked backlog item's status", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-resolve-rollback-"));
-	try {
-		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
-		git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
-		const id = "2026-07-26-close-resolve-rollback";
-		const linked = upsertBacklogItem(workspace, { title: "Linked item", area: "workflow", evidence: [], source: { kind: "plan-followup", workId: "seed" } });
-		linkBacklogItem(workspace, linked.id, id);
-		git(workspace, ["add", ".codepatrol/backlog/"]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "backlog"]);
-		await advanceThroughVerify(workspace, id);
-		await transitionChange(workspace, id, { type: "begin", actor: "trace-test", stage: "close", nextAction: "close" }, at(15));
-		await transitionChange(workspace, id, { type: "usage", actor: "trace-test", stage: "close", run: { id: "close-usage", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
-		const result = await closeChange(workspace, id, { outcome: "rollback", actor: "trace-test", authority: "test" }, at(20));
-		assert.equal(result.outcome, "rolled-back");
-		const items = readBacklog(workspace).items;
-		assert.equal(items.find((entry) => entry.id === linked.id)?.status, "scheduled");
-	} finally { rmSync(workspace, { recursive: true, force: true }); }
-});
-
-test("close commit does not fail when the linked item was already manually resolved", async () => {
-	const workspace = mkdtempSync(join(tmpdir(), "codepatrol-close-resolve-already-done-"));
-	try {
-		writeFileSync(join(workspace, ".gitignore"), ".codepatrol/runtime/\n.codepatrol/docs/\n");
-		git(workspace, ["init", "-b", "main"]); writeFileSync(join(workspace, "README.md"), "baseline\n"); git(workspace, ["add", "."]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "baseline"]);
-		const id = "2026-07-26-close-resolve-already-done";
-		const linked = upsertBacklogItem(workspace, { title: "Linked item", area: "workflow", evidence: [], source: { kind: "plan-followup", workId: "seed" } });
-		linkBacklogItem(workspace, linked.id, id);
-		resolveBacklogItem(workspace, linked.id, "dismissed");
-		git(workspace, ["add", ".codepatrol/backlog/"]); git(workspace, ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "backlog"]);
-		await advanceThroughVerify(workspace, id);
-		await transitionChange(workspace, id, { type: "begin", actor: "trace-test", stage: "close", nextAction: "close" }, at(15));
-		await transitionChange(workspace, id, { type: "usage", actor: "trace-test", stage: "close", run: { id: "close-usage", started_at: "2026-07-22T10:00:16Z", finished_at: "2026-07-22T10:00:17Z", elapsed_ms: 1000, characters: { status: "unavailable", reason: "test" } } }, at(17));
-		const result = await closeChange(workspace, id, { outcome: "commit", actor: "trace-test", authority: "test" }, at(20));
-		assert.equal(result.outcome, "committed");
-		const items = readBacklog(workspace).items;
-		assert.equal(items.find((entry) => entry.id === linked.id)?.status, "dismissed");
+		assert.equal(readWork(workspace, id)?.status, "done");
 	} finally { rmSync(workspace, { recursive: true, force: true }); }
 });
 });

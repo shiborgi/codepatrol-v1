@@ -1,0 +1,7 @@
+schema_version: 1
+work_id: 2026-07-27-local-close-squash-remote-sync
+priority: p2
+description: Close squash-merges and retains the branch locally; new sync command owns every remote action
+status: done
+created_at: 2026-07-27T02:22:25.278Z
+updated_at: 2026-07-27T02:22:25.278Z

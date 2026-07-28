@@ -24,11 +24,11 @@ No root `.codepatrol` scratch JSON, duplicate status cache, architecture
 namespace or durable ADR is supported. Durable project decisions belong in
 `CONTEXT.md`, `docs/adr/` or declared Change evidence.
 
-The structured backlog at `.codepatrol/backlog/items.yaml` is the sanctioned
-follow-up queue: a tracked, schema-validated top-level file (not rebuildable
-runtime, not a per-Change artifact), auto-fed from Close trace analysis and
-Plan splits, surfaced by `codepatrol next --stage plan` and the Kanban's
-Backlog column.
+The local Work records at `.codepatrol/work/<work-id>.yaml` are the sanctioned
+follow-up queue: one tracked, schema-validated file per work id (not
+rebuildable runtime, not a per-Change artifact), created explicitly by Plan
+splits or `backlog add`, surfaced by `codepatrol next --stage plan` and the
+Kanban's Backlog column, and resolved only by Close or explicit dismissal.
 
 `.codepatrol/docs/` is gitignored, rebuildable local-mirror state: local,
 human-browsable copies of artifacts that are already durable elsewhere. It is

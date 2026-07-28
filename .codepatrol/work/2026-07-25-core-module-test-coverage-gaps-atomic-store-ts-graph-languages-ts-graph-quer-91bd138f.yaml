@@ -1,0 +1,23 @@
+schema_version: 1
+work_id: 2026-07-25-core-module-test-coverage-gaps-atomic-store-ts-graph-languages-ts-graph-quer-91bd138f
+priority: p2
+description: |-
+  Core module test coverage gaps: atomic-store.ts, graph/languages.ts, graph/queries.ts lack dedicated tests
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-25-docs-consolidation)
+  - Occurrences: 1
+  - Legacy id: core-module-test-coverage-gaps-atomic-store-ts-graph-languages-ts-graph-queries-ts-lack-dedicated-tests
+
+  ## Evidence
+
+  - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N2 (Medium)
+  - src/shared/atomic-store.ts
+  - src/graph/languages.ts
+  - src/graph/queries.ts
+status: open
+issue:
+  number: 5
+  url: https://github.com/shiborgi/codepatrol/issues/5
+created_at: 2026-07-25T10:21:16.198Z
+updated_at: 2026-07-25T10:21:16.198Z

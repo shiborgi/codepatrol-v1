@@ -1,0 +1,22 @@
+schema_version: 1
+work_id: 2026-07-26-redundant-non-throwing-validators-in-validation-ts-validateartifactbindingsf-34caab79
+priority: p3
+description: |-
+  Redundant non-throwing validators in validation.ts: validateArtifactBindingsFromReader has zero callers anywhere; validateArtifactBindings is only imported by one test, never by production code
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-26-architecture-assessment-v3)
+  - Occurrences: 1
+  - Legacy id: redundant-non-throwing-validators-in-validation-ts-validateartifactbindingsfromreader-has-zero-callers-anywhere-validateartifactbindings-is-only-imported-by-one-test-never-by-production-code
+
+  ## Evidence
+
+  - src/change/validation.ts:51 (validateArtifactBindingsFromReader, zero importers anywhere)
+  - src/change/validation.ts:42 (validateArtifactBindings, imported only by src/change/change.test.ts:14)
+  - src/change/orchestrator.ts:16,118,130 (production code calls only the throwing pair, validateStageArtifacts/validateStageArtifactsFromReader)
+status: open
+issue:
+  number: 9
+  url: https://github.com/shiborgi/codepatrol/issues/9
+created_at: 2026-07-26T04:06:41.523Z
+updated_at: 2026-07-26T04:06:41.523Z

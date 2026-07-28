@@ -1,0 +1,23 @@
+schema_version: 1
+work_id: 2026-07-27-trace-paths-accept-unchecked-cli-id-values-and-can-escape-codepatrol-runtime-dfaef8d3
+priority: p1
+description: |-
+  Trace paths accept unchecked CLI --id values and can escape .codepatrol/runtime or the workspace through parent traversal
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-27-src-architecture-audit)
+  - Occurrences: 1
+  - Legacy id: trace-paths-accept-unchecked-cli-id-values-and-can-escape-codepatrol-runtime-or-the-workspace-through-parent-traversal
+
+  ## Evidence
+
+  - src/cli/main.ts:19-28 traceableWorkId accepts any non-empty args.id and forwards it before dispatch
+  - src/change/trace.ts:13-18 builds the trace path with unchecked join instead of resolveInside/state path helpers
+  - src/change/trace.ts:54-67 creates parent directories and appends at the unchecked path
+  - src/change/trace.test.ts covers only a safe work id
+status: done
+issue:
+  number: 17
+  url: https://github.com/shiborgi/codepatrol/issues/17
+created_at: 2026-07-27T16:48:29.584Z
+updated_at: 2026-07-27T20:00:42.519Z

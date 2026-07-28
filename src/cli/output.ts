@@ -1,6 +1,7 @@
 import type { ChangeView, Stage } from "../change/types.js";
-import type { BacklogItem } from "../change/backlog.js";
+import type { WorkItem } from "../change/backlog.js";
 import type { IssueSyncResult } from "../change/issue-sync.js";
+import type { MigrationResult } from "../change/backlog.js";
 import type { RemoteSyncResult } from "../change/sync.js";
 import type { GraphImpactData, GraphNeighborsData, GraphOverviewData, OutlineFile } from "../graph/service.js";
 import type { GraphNode } from "../graph/model.js";
@@ -48,12 +49,13 @@ Change lifecycle commands:
   change doctor --id <work-id>
   change close --id <work-id> --input <file|->
   backlog add --input <file|->
-  backlog list [--status <candidate|scheduled|done|dismissed>]
-  backlog resolve --id <item-id> --status done|dismissed
+  backlog list [--status <open|done|dismissed>]
+  backlog resolve --id <work-id> --status done|dismissed
+  backlog migrate [--dry-run]
 
 Issue sync commands:
-  issues sync [--direction pull|push|both] [--dry-run]
-  sync [--target-branch <name>] [--target] [--branches] [--issues] [--prune-closed] [--dry-run] [--direction pull|push|both]
+  issues sync [--dry-run]
+  sync [--target-branch <name>] [--target] [--branches] [--issues] [--prune-closed] [--dry-run]
 
 Graph commands:
   graph sync [--force]
@@ -146,7 +148,7 @@ export function renderImpact(data: GraphImpactData): string {
 	].join("\n");
 }
 
-export function renderNext(stage: Stage | undefined, changes: ChangeView[], backlog?: BacklogItem[]): string {
+export function renderNext(stage: Stage | undefined, changes: ChangeView[], work?: WorkItem[]): string {
 	const lines = [`${stage ? `Stage: ${stage}` : "All active changes"}`];
 	if (changes.length) {
 		lines.push("");
@@ -154,8 +156,8 @@ export function renderNext(stage: Stage | undefined, changes: ChangeView[], back
 	} else {
 		lines.push("(none)");
 	}
-	if (backlog && backlog.length) {
-		lines.push("", "Backlog:", formatTable(["id", "priority", "area", "status", "count", "title"], backlog.map((entry) => [entry.id, entry.priority, entry.area, entry.status, String(entry.count), entry.title])));
+	if (work && work.length) {
+		lines.push("", "Backlog:", formatTable(["work_id", "priority", "status", "description"], work.map((entry) => [entry.workId, entry.priority, entry.status, entry.description.split("\n").find((line) => line.trim()) ?? ""])));
 	}
 	if (stage === "plan" || !stage) {
 		lines.push("", "To start a new change:", "codepatrol change start --input -");
@@ -170,22 +172,26 @@ export function renderSummary(view: ChangeView): string {
 	return `Summary: ${view.identity.work_id} — ${view.identity.title}\nVerdict: ${view.stage} attempt ${view.attempt} is ${view.state}${view.outcome ? ` (${view.outcome})` : ""}\nNext: ${view.nextAction ?? "none"}`;
 }
 
-export function renderBacklogList(items: BacklogItem[]): string {
-	if (!items.length) return "(no backlog items)";
-	return formatTable(["id", "title", "priority", "area", "status", "count"], items.map((entry) => [entry.id, entry.title, entry.priority, entry.area, entry.status, String(entry.count)]));
+export function renderWorkList(works: WorkItem[]): string {
+	if (!works.length) return "(no work items)";
+	return formatTable(["work_id", "priority", "status", "description"], works.map((entry) => [entry.workId, entry.priority, entry.status, entry.description.split("\n").find((line) => line.trim()) ?? ""]));
+}
+
+export function renderMigrationResult(result: MigrationResult): string {
+	const lines = [`Migration: ${result.created.length} Work record(s) created${result.removedLegacy ? ", legacy backlog removed" : ""}.`];
+	if (result.created.length) lines.push(`  created: ${result.created.join(", ")}`);
+	if (result.dryRun) lines.push("(dry run)");
+	return lines.join("\n");
 }
 
 export function renderIssueSyncResult(result: IssueSyncResult): string {
 	const lines: string[] = [];
-	const pull = result.pulled;
-	lines.push(`Pull: ${pull.created.length} created, ${pull.dismissed.length} dismissed, ${pull.reopened.length} reopened, ${pull.skippedClosed} closed skipped.`);
-	if (pull.created.length) lines.push(`  created: ${pull.created.join(", ")}`);
-	if (pull.dismissed.length) lines.push(`  dismissed: ${pull.dismissed.join(", ")}`);
-	if (pull.reopened.length) lines.push(`  reopened: ${pull.reopened.join(", ")}`);
-	const push = result.pushed;
-	lines.push(`Push: ${push.created.length} created, ${push.closed.length} closed.`);
-	if (push.created.length) lines.push(`  created: ${push.created.join(", ")}`);
-	if (push.closed.length) lines.push(`  closed: ${push.closed.join(", ")}`);
+	lines.push(`Issues: ${result.created.length} created, ${result.edited.length} edited, ${result.reopened.length} reopened, ${result.closed.length} closed, ${result.linked.length} linked, ${result.unchanged.length} unchanged.`);
+	if (result.created.length) lines.push(`  created: ${result.created.join(", ")}`);
+	if (result.edited.length) lines.push(`  edited: ${result.edited.join(", ")}`);
+	if (result.reopened.length) lines.push(`  reopened: ${result.reopened.join(", ")}`);
+	if (result.closed.length) lines.push(`  closed: ${result.closed.join(", ")}`);
+	if (result.linked.length) lines.push(`  linked: ${result.linked.join(", ")}`);
 	if (result.dryRun) lines.push("(dry run)");
 	return lines.join("\n");
 }
@@ -196,7 +202,7 @@ export function renderRemoteSyncResult(result: RemoteSyncResult): string {
 	if (result.pushedRefs.length) lines.push(`  pushed: ${result.pushedRefs.join(", ")}`);
 	if (result.prunedBranches.length) lines.push(`  pruned: ${result.prunedBranches.join(", ")}`);
 	if (result.failures.length) lines.push(`  failures: ${result.failures.map((f) => `${f.ref} (${f.code})`).join(", ")}`);
-	if (result.issues) lines.push(`Issues: ${result.issues.dryRun ? "(dry run) " : ""}pulled ${result.issues.pulled.created.length + result.issues.pulled.reopened.length + result.issues.pulled.dismissed.length}; pushed ${result.issues.pushed.created.length + result.issues.pushed.closed.length}.`);
+	if (result.issues) lines.push(`Issues: ${result.issues.dryRun ? "(dry run) " : ""}${result.issues.created.length} created, ${result.issues.edited.length} edited, ${result.issues.reopened.length} reopened, ${result.issues.closed.length} closed, ${result.issues.linked.length} linked, ${result.issues.unchanged.length} unchanged.`);
 	if (result.dryRun) lines.push("(dry run)");
 	return lines.join("\n");
 }

@@ -1,0 +1,20 @@
+schema_version: 1
+work_id: 2026-07-26-top-error-code-change-invalid-investigate-the-first-occurrence-s-args-and-st-930c9abc
+priority: p1
+description: |-
+  Top error code: CHANGE_INVALID (1). Investigate the first occurrence's args and stage context.
+
+  - Area: workflow
+  - Source: close-trace (2026-07-26-decompose-transition-change)
+  - Occurrences: 4
+  - Legacy id: top-error-code-change-invalid-investigate-the-first-occurrence-s-args-and-stage-context
+
+  ## Evidence
+
+  - (none)
+status: open
+issue:
+  number: 10
+  url: https://github.com/shiborgi/codepatrol/issues/10
+created_at: 2026-07-26T14:28:30.028Z
+updated_at: 2026-07-27T19:54:07.567Z

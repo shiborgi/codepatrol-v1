@@ -26,7 +26,6 @@ export interface ParsedArgs {
 	asOf?: string;
 	stage?: string;
 	status?: string;
-	direction?: string;
 	dryRun?: boolean;
 	target?: boolean;
 	branches?: boolean;
@@ -40,7 +39,7 @@ const REPEATABLE = new Set(["file", "symbol", "relation"]);
 const KNOWN = new Set([
 	"workspace", "format", "help", "version", "force", "path", "query", "exact", "symbol", "file",
 	"relation", "since-ref", "include-ambiguous", "input", "id", "all", "as-of", "stage", "status",
-	"direction", "dry-run", "target", "branches", "issues", "prune-closed", "target-branch",
+	"dry-run", "target", "branches", "issues", "prune-closed", "target-branch",
 ]);
 const GLOBAL = new Set(["workspace", "format", "help", "version"]);
 const COMMAND_OPTIONS = new Map<string, Set<string>>([
@@ -62,8 +61,9 @@ const COMMAND_OPTIONS = new Map<string, Set<string>>([
 	["backlog.add", new Set(["input"])],
 	["backlog.list", new Set(["status"])],
 	["backlog.resolve", new Set(["id", "status"])],
-	["issues.sync", new Set(["direction", "dry-run"])],
-	["sync", new Set(["target", "branches", "issues", "direction", "target-branch", "prune-closed", "dry-run"])],
+	["backlog.migrate", new Set(["dry-run"])],
+	["issues.sync", new Set(["dry-run"])],
+	["sync", new Set(["target", "branches", "issues", "target-branch", "prune-closed", "dry-run"])],
 ]);
 
 export const KNOWN_COMMANDS: string[] = [...COMMAND_OPTIONS.keys()];
@@ -138,7 +138,6 @@ export function parseArgs(argv: string[]): ParsedArgs {
 		asOf: values.get("as-of")?.[0],
 		stage: values.get("stage")?.[0],
 		status: values.get("status")?.[0],
-		direction: values.get("direction")?.[0],
 		dryRun: values.has("dry-run"),
 		target: values.has("target"),
 		branches: values.has("branches"),

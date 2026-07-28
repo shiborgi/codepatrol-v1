@@ -1,0 +1,21 @@
+schema_version: 1
+work_id: 2026-07-26-decompose-transition-change
+priority: p2
+description: |-
+  Orchestrator transitionChangeLocked is dense and mixes validation, persona semantics, and storage responsibilities
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-25-docs-consolidation)
+  - Occurrences: 1
+  - Legacy id: orchestrator-transitionchangelocked-is-dense-and-mixes-validation-persona-semantics-and-storage-responsibilities
+
+  ## Evidence
+
+  - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N3 (Medium)
+  - src/change/orchestrator.ts:206-293
+status: done
+issue:
+  number: 4
+  url: https://github.com/shiborgi/codepatrol/issues/4
+created_at: 2026-07-25T10:21:16.121Z
+updated_at: 2026-07-26T14:28:30.050Z

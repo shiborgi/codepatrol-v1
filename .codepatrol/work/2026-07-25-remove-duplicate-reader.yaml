@@ -1,0 +1,18 @@
+schema_version: 1
+work_id: 2026-07-25-remove-duplicate-reader
+priority: p1
+description: |-
+  Unsafe duplicate YAML reader in improvement-report.ts bypasses migrateRecord normalization
+
+  - Area: architecture
+  - Source: plan-followup (2026-07-25-docs-consolidation)
+  - Occurrences: 1
+  - Legacy id: unsafe-duplicate-yaml-reader-in-improvement-report-ts-bypasses-migraterecord-normalization
+
+  ## Evidence
+
+  - docs/codepatrol/assessments/2026-07-24-architecture-v2.md N4 (High)
+  - src/change/improvement-report.ts:33
+status: done
+created_at: 2026-07-25T10:21:16.044Z
+updated_at: 2026-07-26T02:00:00.000Z

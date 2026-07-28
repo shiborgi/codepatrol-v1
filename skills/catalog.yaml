@@ -96,8 +96,8 @@ skills:
     role: support
     invokedBy: []
     mayInvoke: []
-    consumes: [backlog items, closed Change refs, GitHub issues on origin]
-    produces: [pushed target/refs, pruned local branches, reconciled backlog items, reconciled GitHub issues]
+    consumes: [local Work records, closed Change refs, GitHub issues on origin]
+    produces: [pushed target/refs, pruned local branches, one-way published GitHub issues, updated Work issue references]
     mutation: artifacts
   diagnose-bug:
     role: support

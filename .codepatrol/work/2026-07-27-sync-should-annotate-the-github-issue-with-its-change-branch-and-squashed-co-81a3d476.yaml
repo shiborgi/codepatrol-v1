@@ -1,0 +1,22 @@
+schema_version: 1
+work_id: 2026-07-27-sync-should-annotate-the-github-issue-with-its-change-branch-and-squashed-co-81a3d476
+priority: p3
+description: |-
+  Sync should annotate the GitHub issue with its Change branch and squashed commit when closing it
+
+  - Area: workflow
+  - Source: plan-followup (2026-07-27-local-close-squash-remote-sync)
+  - Occurrences: 1
+  - Legacy id: sync-should-annotate-the-github-issue-with-its-change-branch-and-squashed-commit-when-closing-it
+
+  ## Evidence
+
+  - src/change/issue-sync.ts:129-137 closes linked done/dismissed issues but posts no comment
+  - src/change/backlog.ts:15-27 BacklogItem already carries workId + externalRef, so the branch/issue relation is derivable with no schema change
+  - src/change/orchestrator.ts:437-444 Close already flips linked scheduled items to done
+status: open
+issue:
+  number: 16
+  url: https://github.com/shiborgi/codepatrol/issues/16
+created_at: 2026-07-27T02:23:27.870Z
+updated_at: 2026-07-27T02:23:27.870Z

@@ -10,6 +10,11 @@ codepatrol change transition --id <work-id> --input transition.json --workspace 
 codepatrol change session --id <work-id> --input session.json --workspace "$PWD" --format json
 codepatrol change doctor --id <work-id> --workspace "$PWD" --format json
 codepatrol change close --id <work-id> --input close.json --workspace "$PWD" --format json
+codepatrol backlog add --input work.json --workspace "$PWD" --format json
+codepatrol backlog list [--status open|done|dismissed] --workspace "$PWD" --format json
+codepatrol backlog resolve --id <work-id> --status done|dismissed --workspace "$PWD" --format json
+codepatrol backlog migrate [--dry-run] --workspace "$PWD" --format json
+codepatrol issues sync [--dry-run] --workspace "$PWD" --format json
 codepatrol sync [--target-branch <name>] [--dry-run] --workspace "$PWD" --format json
 node --import jiti/register scripts/render-kanban.mjs --workspace "$PWD" --format markdown
 
@@ -20,6 +25,16 @@ codepatrol graph find --query Example --workspace "$PWD" --format json
 codepatrol graph neighbors --file src/example.ts --relation tests --workspace "$PWD" --format json
 codepatrol graph impact --since-ref HEAD~30 --workspace "$PWD" --format json
 ```
+
+`work.json` for `backlog add` names one explicit Work record:
+
+```json
+{ "workId": "YYYY-MM-DD-slug", "priority": "p0|p1|p2|p3", "description": "..." }
+```
+
+Local Work records at `.codepatrol/work/<work-id>.yaml` are the offline
+authority for the backlog; `issues sync`/`sync --issues` is the only network
+path and publishes them one-way to GitHub issues titled `[pN] <work-id>`.
 
 `session.json` for `change session` carries `action`, `stage`, `attempt`, and
 the fields that action needs (`itemId`/`actor` for `claim`; `itemId`/`result`/
