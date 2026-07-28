@@ -223,3 +223,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Verify candidate a0e55fe44734e821871fbe4626ff33b0deca0551 for 2026-07-27-unify-issue-change-kanban
+  - id: f3fccbfc-f534-4a08-a6d0-9e5fee862f81
+    at: 2026-07-28T00:30:39.632Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: run-recorded
+    run:
+      id: verify-opencode-1
+      started_at: 2026-07-28T00:26:15.000Z
+      finished_at: 2026-07-28T00:30:11.000Z
+      elapsed_ms: 236000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
