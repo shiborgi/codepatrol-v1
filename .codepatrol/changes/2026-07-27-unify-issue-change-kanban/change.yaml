@@ -104,3 +104,115 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: f0332528-2792-431c-876b-49da5fdcd249
+    at: 2026-07-28T00:22:51.817Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: stage-checkpointed
+    result: implemented
+    checkpoint: a0e55fe44734e821871fbe4626ff33b0deca0551
+    tree: 2d86630e9a3bf14404a5c4ed51ccb6d99851f698
+    artifacts:
+      - path: .codepatrol/changes/2026-07-27-unify-issue-change-kanban/apply/journal.md
+        sha256: 6193164386ec0f7bff818432e495a5d9849b8bb4596a75448aaa904139ee46ff
+        intent: create
+    changes:
+      - .codepatrol/backlog/items.yaml
+      - .codepatrol/work/2026-07-23-cleanup-and-push.yaml
+      - .codepatrol/work/2026-07-23-finalize-merge.yaml
+      - .codepatrol/work/2026-07-23-parallel-review.yaml
+      - .codepatrol/work/2026-07-23-rename-finalize-to-close.yaml
+      - .codepatrol/work/2026-07-23-self-improvement-tracing.yaml
+      - .codepatrol/work/2026-07-24-aggregate-and-push.yaml
+      - .codepatrol/work/2026-07-24-apply-verify-gate.yaml
+      - .codepatrol/work/2026-07-24-architecture-assessment-v2.yaml
+      - .codepatrol/work/2026-07-24-architecture-assessment.yaml
+      - .codepatrol/work/2026-07-24-backlog-subsystem.yaml
+      - .codepatrol/work/2026-07-24-cli-input-ergonomics.yaml
+      - .codepatrol/work/2026-07-24-migration-normalizer.yaml
+      - .codepatrol/work/2026-07-24-persona-subevent-helpers.yaml
+      - .codepatrol/work/2026-07-24-project-structure-review.yaml
+      - .codepatrol/work/2026-07-24-uniform-stage-io.yaml
+      - .codepatrol/work/2026-07-25-command-change-session-was-invoked-times-consider-caching-or-batching-repeat-93d81639.yaml
+      - .codepatrol/work/2026-07-25-command-change-transition-was-invoked-times-consider-caching-or-batching-rep-ec28444b.yaml
+      - .codepatrol/work/2026-07-25-commit-scoping.yaml
+      - .codepatrol/work/2026-07-25-core-module-test-coverage-gaps-atomic-store-ts-graph-languages-ts-graph-quer-91bd138f.yaml
+      - .codepatrol/work/2026-07-25-dead-taxonomy-unused-error-codes-artifact-invalid-and-workflow-in-errors-ts.yaml
+      - .codepatrol/work/2026-07-25-docs-consolidation.yaml
+      - .codepatrol/work/2026-07-25-issue-tracker-sync.yaml
+      - .codepatrol/work/2026-07-25-remove-duplicate-reader.yaml
+      - .codepatrol/work/2026-07-25-session-handoff.yaml
+      - .codepatrol/work/2026-07-25-session-input-validation.yaml
+      - .codepatrol/work/2026-07-26-architecture-assessment-v3.yaml
+      - .codepatrol/work/2026-07-26-backlog-resolve.yaml
+      - .codepatrol/work/2026-07-26-centralize-codepatrol-paths.yaml
+      - .codepatrol/work/2026-07-26-cli-command-registration-is-split-across-three-parallel-registries-with-no-c-229b88ec.yaml
+      - .codepatrol/work/2026-07-26-close-resolves-backlog.yaml
+      - .codepatrol/work/2026-07-26-decompose-transition-change.yaml
+      - .codepatrol/work/2026-07-26-dedupe-exact-keys-guard.yaml
+      - .codepatrol/work/2026-07-26-document-transition-close-payloads.yaml
+      - .codepatrol/work/2026-07-26-graph-link-ts-lines-has-no-direct-test-extending-the-known-n-coverage-gap-wh-64570485.yaml
+      - .codepatrol/work/2026-07-26-redundant-non-throwing-validators-in-validation-ts-validateartifactbindingsf-34caab79.yaml
+      - .codepatrol/work/2026-07-26-remove-dead-path-builders.yaml
+      - .codepatrol/work/2026-07-26-session-item-s-claimed-but-never-closed-review-report-review-report-a-harnes-e9ea8a30.yaml
+      - .codepatrol/work/2026-07-26-session-item-s-claimed-but-never-closed-review-report-verify-report-a-harnes-1c203965.yaml
+      - .codepatrol/work/2026-07-26-src-structure-revalidation.yaml
+      - .codepatrol/work/2026-07-26-top-error-code-change-invalid-investigate-the-first-occurrence-s-args-and-st-930c9abc.yaml
+      - .codepatrol/work/2026-07-27-backlog-read-modify-write-operations-are-atomic-per-file-but-unlocked-across-50e3cb5c.yaml
+      - .codepatrol/work/2026-07-27-checkpoint-and-close-git-yaml-transactions-lack-complete-recovery-for-failur-7d86b9fb.yaml
+      - .codepatrol/work/2026-07-27-checkpoint-delete-artifact-add-fix.yaml
+      - .codepatrol/work/2026-07-27-close-implementation-and-governing-contracts-disagree-on-squash-versus-fast-b4198963.yaml
+      - .codepatrol/work/2026-07-27-local-close-squash-remote-sync.yaml
+      - .codepatrol/work/2026-07-27-orchestrator-ts-remains-a-line-high-fan-out-facade-mixing-lifecycle-policy-i-423839ba.yaml
+      - .codepatrol/work/2026-07-27-persona-checkpoint-artifact-validation.yaml
+      - .codepatrol/work/2026-07-27-persona-review-and-verify-checkpoints-skip-artifact-ownership-and-sha-valida-dcc1ae37.yaml
+      - .codepatrol/work/2026-07-27-plan-self-consistency-check.yaml
+      - .codepatrol/work/2026-07-27-session-item-s-claimed-but-never-closed-close-close-work-review-report-verif-0a6d377f.yaml
+      - .codepatrol/work/2026-07-27-session-item-s-claimed-but-never-closed-plan-evidence-a-harness-stopped-mid-bb9d5278.yaml
+      - .codepatrol/work/2026-07-27-session-item-s-claimed-but-never-closed-review-report-a-harness-stopped-mid-1163102d.yaml
+      - .codepatrol/work/2026-07-27-src-architecture-audit.yaml
+      - .codepatrol/work/2026-07-27-stage-session-prime-and-rebuild-can-overwrite-concurrent-claimed-or-closed-p-f97f59c9.yaml
+      - .codepatrol/work/2026-07-27-sync-should-annotate-the-github-issue-with-its-change-branch-and-squashed-co-81a3d476.yaml
+      - .codepatrol/work/2026-07-27-test-infrastructure-leaks-temporary-git-workspaces-duplicates-lifecycle-fixt-06efbd6a.yaml
+      - .codepatrol/work/2026-07-27-trace-path-workspace-containment.yaml
+      - .codepatrol/work/2026-07-27-trace-paths-accept-unchecked-cli-id-values-and-can-escape-codepatrol-runtime-dfaef8d3.yaml
+      - AGENTS.md
+      - CONTEXT.md
+      - docs/adr/0001-offline-work-identity.md
+      - docs/runtime-state.md
+      - README.md
+      - scripts/render-kanban.mjs
+      - scripts/skills-contract.test.mjs
+      - skills/_shared/CODEPATROL-CLI.md
+      - skills/catalog.yaml
+      - skills/codepatrol-plan/SKILL.md
+      - skills/codepatrol-status/SKILL.md
+      - skills/codepatrol-sync/SKILL.md
+      - src/change/backlog-close-integration.test.ts
+      - src/change/backlog.test.ts
+      - src/change/backlog.ts
+      - src/change/board.test.ts
+      - src/change/board.ts
+      - src/change/git.test-helper.ts
+      - src/change/issue-sync.test.ts
+      - src/change/issue-sync.ts
+      - src/change/model.ts
+      - src/change/orchestrator.ts
+      - src/change/start-backlog-link.test.ts
+      - src/change/sync.test.ts
+      - src/change/sync.ts
+      - src/change/types.ts
+      - src/cli/args.ts
+      - src/cli/cli.test.ts
+      - src/cli/commands.ts
+      - src/cli/issues-sync.test.ts
+      - src/cli/output.ts
+      - src/shared/errors.ts
+      - src/shared/state.ts
+    next_action: codepatrol-verify 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+    gate:
+      command: npm run verify
+      exit_code: 0
+      elapsed_ms: 28237
+      at: 2026-07-28T00:22:51.664Z
