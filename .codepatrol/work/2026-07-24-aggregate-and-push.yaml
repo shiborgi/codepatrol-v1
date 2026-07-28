@@ -3,5 +3,8 @@ work_id: 2026-07-24-aggregate-and-push
 priority: p2
 description: Aggregate parallel review/verify and allow push at close
 status: done
+issue:
+  number: 34
+  url: https://github.com/shiborgi/codepatrol/issues/34
 created_at: 2026-07-24T02:40:19.108Z
 updated_at: 2026-07-24T02:40:19.108Z

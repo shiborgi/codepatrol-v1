@@ -14,5 +14,8 @@ description: |-
   - src/change/orchestrator.ts:closeChangeLocked has no call to resolveBacklogItem/backlog resolution keyed by item.workId
   - 2026-07-25-session-input-validation backlog item top-error-code-change-conflict-... stayed status=scheduled after its Change committed
 status: done
+issue:
+  number: 51
+  url: https://github.com/shiborgi/codepatrol/issues/51
 created_at: 2026-07-26T02:07:44.040Z
 updated_at: 2026-07-26T03:46:19.283Z

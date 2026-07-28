@@ -15,5 +15,8 @@ description: |-
   - src/shared/state.ts:17 (changeRoot, zero callers)
   - src/change/store.ts:31 (listWorkingTreeChangeIds hardcodes the literal path instead of using either helper)
 status: done
+issue:
+  number: 60
+  url: https://github.com/shiborgi/codepatrol/issues/60
 created_at: 2026-07-26T04:06:39.795Z
 updated_at: 2026-07-26T13:48:51.611Z

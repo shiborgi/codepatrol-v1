@@ -3,5 +3,8 @@ work_id: 2026-07-27-src-architecture-audit
 priority: p2
 description: Revalidate src architecture, modularity, and tests
 status: done
+issue:
+  number: 57
+  url: https://github.com/shiborgi/codepatrol/issues/57
 created_at: 2026-07-27T16:37:06.281Z
 updated_at: 2026-07-27T16:37:06.281Z

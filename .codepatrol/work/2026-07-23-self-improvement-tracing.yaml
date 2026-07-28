@@ -3,5 +3,8 @@ work_id: 2026-07-23-self-improvement-tracing
 priority: p2
 description: Tracing and process improvement report
 status: done
+issue:
+  number: 33
+  url: https://github.com/shiborgi/codepatrol/issues/33
 created_at: 2026-07-24T01:15:11.135Z
 updated_at: 2026-07-24T01:15:11.135Z

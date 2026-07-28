@@ -3,5 +3,8 @@ work_id: 2026-07-24-cli-input-ergonomics
 priority: p2
 description: "CLI input ergonomics: detect inline JSON passed without --input - and emit an actionable error instead of an obscure INVALID_WORKSPACE"
 status: done
+issue:
+  number: 39
+  url: https://github.com/shiborgi/codepatrol/issues/39
 created_at: 2026-07-24T17:55:26.634Z
 updated_at: 2026-07-24T17:55:26.634Z

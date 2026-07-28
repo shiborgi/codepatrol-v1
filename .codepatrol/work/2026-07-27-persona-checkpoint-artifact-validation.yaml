@@ -3,5 +3,8 @@ work_id: 2026-07-27-persona-checkpoint-artifact-validation
 priority: p2
 description: Validate artifact ownership and hash for persona Review/Verify checkpoints
 status: done
+issue:
+  number: 55
+  url: https://github.com/shiborgi/codepatrol/issues/55
 created_at: 2026-07-27T20:01:51.139Z
 updated_at: 2026-07-27T20:01:51.139Z

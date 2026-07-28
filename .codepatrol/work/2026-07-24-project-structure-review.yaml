@@ -3,5 +3,8 @@ work_id: 2026-07-24-project-structure-review
 priority: p2
 description: "Re-evaluate project structure for leanness and cohesion: bin/ necessity, docs location under .codepatrol, and wiki subsystem value"
 status: done
+issue:
+  number: 42
+  url: https://github.com/shiborgi/codepatrol/issues/42
 created_at: 2026-07-24T21:59:21.483Z
 updated_at: 2026-07-24T21:59:21.483Z

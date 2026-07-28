@@ -3,5 +3,8 @@ work_id: 2026-07-24-migration-normalizer
 priority: p2
 description: Centralize scattered change-record compat migrations into one normalizer seam with characterization tests
 status: done
+issue:
+  number: 40
+  url: https://github.com/shiborgi/codepatrol/issues/40
 created_at: 2026-07-24T19:05:04.759Z
 updated_at: 2026-07-24T19:05:04.759Z

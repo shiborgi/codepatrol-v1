@@ -3,5 +3,8 @@ work_id: 2026-07-23-cleanup-and-push
 priority: p2
 description: Minor improvements, push option, token count logic, and legacy cleanup
 status: done
+issue:
+  number: 29
+  url: https://github.com/shiborgi/codepatrol/issues/29
 created_at: 2026-07-23T23:18:46.634Z
 updated_at: 2026-07-23T23:18:46.634Z

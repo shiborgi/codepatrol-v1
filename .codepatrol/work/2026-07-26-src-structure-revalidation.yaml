@@ -3,5 +3,8 @@ work_id: 2026-07-26-src-structure-revalidation
 priority: p2
 description: "Revalidate src/ structure: module cohesion, boundaries, testability and extensibility assessment"
 status: done
+issue:
+  number: 53
+  url: https://github.com/shiborgi/codepatrol/issues/53
 created_at: 2026-07-26T14:32:42.590Z
 updated_at: 2026-07-26T14:32:42.590Z

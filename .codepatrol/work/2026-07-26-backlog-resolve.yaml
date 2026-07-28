@@ -3,5 +3,8 @@ work_id: 2026-07-26-backlog-resolve
 priority: p2
 description: Add a CLI command to mark a backlog item done/dismissed directly
 status: done
+issue:
+  number: 49
+  url: https://github.com/shiborgi/codepatrol/issues/49
 created_at: 2026-07-26T02:07:26.231Z
 updated_at: 2026-07-26T02:07:26.231Z

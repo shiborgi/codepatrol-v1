@@ -3,5 +3,8 @@ work_id: 2026-07-27-local-close-squash-remote-sync
 priority: p2
 description: Close squash-merges and retains the branch locally; new sync command owns every remote action
 status: done
+issue:
+  number: 54
+  url: https://github.com/shiborgi/codepatrol/issues/54
 created_at: 2026-07-27T02:22:25.278Z
 updated_at: 2026-07-27T02:22:25.278Z

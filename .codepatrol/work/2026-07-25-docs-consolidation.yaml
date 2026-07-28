@@ -3,5 +3,8 @@ work_id: 2026-07-25-docs-consolidation
 priority: p2
 description: "Revalidate docs/ and .codepatrol/ artifacts: fold durable follow-ups into the backlog, consolidate the rest under .codepatrol/docs"
 status: done
+issue:
+  number: 45
+  url: https://github.com/shiborgi/codepatrol/issues/45
 created_at: 2026-07-25T10:16:48.820Z
 updated_at: 2026-07-25T10:16:48.820Z

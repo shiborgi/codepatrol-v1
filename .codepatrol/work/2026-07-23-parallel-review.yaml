@@ -3,5 +3,8 @@ work_id: 2026-07-23-parallel-review
 priority: p2
 description: Parallel review and verify of a work id
 status: done
+issue:
+  number: 31
+  url: https://github.com/shiborgi/codepatrol/issues/31
 created_at: 2026-07-23T22:43:06.100Z
 updated_at: 2026-07-23T22:43:06.100Z

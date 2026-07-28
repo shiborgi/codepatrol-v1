@@ -3,5 +3,8 @@ work_id: 2026-07-24-persona-subevent-helpers
 priority: p2
 description: Extract the duplicated persona sub-event and divergence predicates into single helpers with characterization tests for consolidation safety
 status: done
+issue:
+  number: 41
+  url: https://github.com/shiborgi/codepatrol/issues/41
 created_at: 2026-07-24T19:47:46.138Z
 updated_at: 2026-07-24T19:47:46.138Z
