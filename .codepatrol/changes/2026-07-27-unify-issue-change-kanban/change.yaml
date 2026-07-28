@@ -216,3 +216,10 @@ events:
       exit_code: 0
       elapsed_ms: 28237
       at: 2026-07-28T00:22:51.664Z
+  - id: b5f207cd-f917-4ecd-ac32-21bd9fce2fff
+    at: 2026-07-28T00:26:15.748Z
+    actor: opencode
+    stage: verify
+    attempt: 1
+    type: stage-began
+    next_action: Verify candidate a0e55fe44734e821871fbe4626ff33b0deca0551 for 2026-07-27-unify-issue-change-kanban
