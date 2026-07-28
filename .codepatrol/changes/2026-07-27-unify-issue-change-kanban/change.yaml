@@ -90,3 +90,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: codepatrol-apply 2026-07-27-unify-issue-change-kanban on codepatrol/2026-07-27-unify-issue-change-kanban
+  - id: ef5a48ea-1857-4b8c-be1c-8998edaad355
+    at: 2026-07-28T00:22:11.518Z
+    actor: opencode
+    stage: apply
+    attempt: 1
+    type: run-recorded
+    run:
+      id: apply-opencode-1
+      started_at: 2026-07-27T23:34:11.000Z
+      finished_at: 2026-07-28T00:22:00.000Z
+      elapsed_ms: 2869000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
