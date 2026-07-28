@@ -272,3 +272,13 @@ events:
       characters:
         status: unavailable
         reason: OpenCode exposes no authoritative per-run token or character usage hook
+  - id: b74ad93e-1680-4276-924d-bb6d081af480
+    at: 2026-07-28T00:32:37.054Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: change-closed
+    outcome: committed
+    commit: 7678d60f996ef9575ecfcd139751a335015f5dcc
+    tag: codepatrol/committed/2026-07-27-unify-issue-change-kanban
+    receipt: close/receipt.md
