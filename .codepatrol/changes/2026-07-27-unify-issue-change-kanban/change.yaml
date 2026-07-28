@@ -258,3 +258,17 @@ events:
     attempt: 1
     type: stage-began
     next_action: Close commit 2026-07-27-unify-issue-change-kanban with explicit user authority
+  - id: 8788cdc5-74e7-4ec3-953b-2089a2891705
+    at: 2026-07-28T00:32:29.479Z
+    actor: opencode
+    stage: close
+    attempt: 1
+    type: run-recorded
+    run:
+      id: close-opencode-1
+      started_at: 2026-07-28T00:32:20.000Z
+      finished_at: 2026-07-28T00:32:24.000Z
+      elapsed_ms: 4000
+      characters:
+        status: unavailable
+        reason: OpenCode exposes no authoritative per-run token or character usage hook
